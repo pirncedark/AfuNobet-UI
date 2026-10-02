@@ -1,0 +1,19 @@
+/* Ajan soru kartı — sohbet panelinin renkleriyle uyumlu, tek ana düğme vurgulu. */
+.soru-kap{min-width:0;}
+.soru-kap[hidden]{display:none;}
+.soru-karti{display:flex;flex-direction:column;gap:8px;min-width:0;padding:10px 12px;border:1px solid #F5A524;border-radius:14px;background:#211e2b;color:#eee;}
+.soru-kimden{margin:0;font-size:12px;color:#F5A524;font-weight:600;}
+.soru-baslik{margin:0;font-size:16px;line-height:1.3;}
+.soru-metin{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;max-height:96px;overflow:auto;line-height:1.45;user-select:text;}
+.soru-ayrinti{margin:0;max-height:72px;overflow:auto;padding:6px 8px;border-radius:8px;background:#16141d;color:#bdb8d3;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;}
+.soru-secenekler{display:flex;flex-wrap:wrap;gap:8px;}
+.soru-dugme{flex:1;min-height:40px;min-width:88px;border:1px solid #555066;border-radius:11px;background:#2a253b;color:#e5dffe;font:inherit;cursor:pointer;}
+.soru-dugme.birincil{background:#F5A524;border-color:#F5A524;color:#1b1722;font-weight:700;}
+.soru-dugme:disabled{opacity:.45;cursor:default;}
+.soru-yazi{display:flex;gap:8px;}
+.soru-alan{flex:1;min-width:0;min-height:40px;box-sizing:border-box;border:1px solid #555066;border-radius:11px;padding:8px 10px;background:#16141d;color:#fff;font:inherit;user-select:text;}
+.soru-hata{margin:0;font-size:12px;color:#F4505E;}
+.soru-hata[hidden]{display:none;}
+/* Soru varken ana ekranda yalnız soru kartı görünür (tek ana işlem). */
+.overview:has(> .soru-kap:not([hidden])) > :not(.soru-kap){display:none !important;}
+.overview > .soru-kap{max-height:100%;overflow:auto;scrollbar-width:thin;}

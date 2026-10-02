@@ -1,38 +1,9 @@
-# Contributing to Coucou
+﻿# Contributing
 
-Thanks for wanting to help Mochi grow up! 🫶
+Keep the Afu simplicity rule: one main card, one main action, named agents
+and short user messages. Technical configuration belongs outside the main view.
+Preserve the upstream MIT notice. Keep the native island file unchanged.
+Run frontend tests and build, Cargo tests, and headless render checks before
+submitting changes. Native Windows smoke checks must be reported separately.
+Never introduce agent actions, external API calls or writes to state.json.
 
-## Getting started
-
-```bash
-brew install xcodegen
-cd NotchBuddy && xcodegen && open NotchBuddy.xcodeproj
-```
-
-Never edit `NotchBuddy.xcodeproj` by hand: change `project.yml` and run `xcodegen`.
-
-Check resting island dimensions on screens with and without a notch:
-
-```bash
-bash scripts/test-screen-geometry.sh
-```
-
-## Good first contributions
-
-- A new integration (a poller + a pill + a detail card). Look at `StripePoller.swift` for a compact example.
-- A new emote or sound for Mochi.
-- Bug fixes — please describe how to reproduce.
-
-## Rules of the house
-
-- Swift 6, SwiftUI + AppKit, **no third-party dependencies** unless there's really no other way.
-- Secrets go in the Keychain, never on disk or in git.
-- No telemetry, no network calls except to services the user configured.
-- Never block Claude Code: if the app doesn't answer, the hook must exit right away.
-- Never write `~/.claude/settings.json` without a backup and the user's confirmation.
-- Keep it light: 0 % CPU when the island is hidden.
-
-## Pull requests
-
-- One topic per PR, with a short GIF or screenshot for anything visual.
-- Build must pass with no new warnings.

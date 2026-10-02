@@ -1,0 +1,11 @@
+import { expect, it } from "vitest";
+import { trayDisplay } from "../src/island/island";
+it("uygulama daha acilse tepsi adı uygulama durumunu açıklar",()=>{const result=trayDisplay({apps:[{id:"a",ad:"AfuDM",kurulu:true}],durumlar:{a:{durum:"hata",ozet:"İndirme durdu"}}},{status:"Calisiyor",agent:"codex",title:"Kod işi",quotaPaused:false});expect(result).toEqual({durum:"hata",title:"AfuDM: İndirme durdu"});});
+import { vi } from "vitest";
+import { Island } from "../src/island/island";
+import { Bridge } from "../src/core/bridge";
+it("chat görünümünden ayrılma mikrofonu ve pencere odağını bırakır",()=>{const cancel=vi.fn(async()=>{});const focus=vi.spyOn(Bridge,"focusWindow").mockResolvedValue(null);const state:any={view:"chat",mode:"expanded",chat:{suspend:cancel},fsm:{pinned:true},animateGeometry:vi.fn(),syncDom:vi.fn()};Island.prototype.setView.call(state,"apps");expect(cancel).toHaveBeenCalledOnce();expect(focus).toHaveBeenCalledWith(false);expect(state.fsm.pinned).toBe(false);expect(state.view).toBe("apps");focus.mockRestore();});
+
+import { State } from "../src/core/state";
+import { VoiceController } from "../src/chat/voice";
+it("mikrofon açılması beklenirken bildirim okunmaz",async()=>{let finish!:()=>void;const voice=new VoiceController({voiceStart:()=>new Promise<void>(r=>finish=r),voiceStop:async()=>"",voiceCancel:async()=>{},voiceSpeak:async()=>{},voiceSilence:async()=>{},voiceSupported:async()=>({whisper:true,winrt_stt:false,tts:true})});const press=voice.press();expect(voice.state).toBe("idle");const announce=vi.fn(async()=>{});const permitted=vi.spyOn(State,"shouldAnnounce").mockReturnValue(true);const now=new Date().toISOString();State.apply({version:1,tasks:[{id:"sound",agent:"codex",status:"Calisiyor",task:"Ses görevi",updated_at:now}]});const fake:any={mode:"tray",events:{accept:()=>true},chat:{voice,responses:{speaking:false},notifications:{announce}}};Island.prototype.applySnapshot.call(fake,{version:1,tasks:[{id:"sound",agent:"codex",status:"Tamamlandi",task:"Ses görevi",updated_at:now}]});expect(announce).toHaveBeenCalledWith(expect.objectContaining({kind:"JOB_FINISHED"}),false);finish();await press;await voice.cancel();permitted.mockRestore();State.apply({version:1,tasks:[]});});

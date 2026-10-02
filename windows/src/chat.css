@@ -1,0 +1,15 @@
+.chat-panel {display:flex;flex-direction:column;gap:9px;min-width:0;max-height:480px;overflow:auto;padding:4px 2px;color:#eee;}
+.chat-panel h1 {font-size:20px;margin:0;}
+.chat-status {font-size:12px;color:#bdb8d3;margin:0;}
+.chat-answer {white-space:pre-wrap;overflow-wrap:anywhere;max-height:190px;overflow:auto;line-height:1.5;margin:0;user-select:text;}
+.chat-input {width:100%;min-height:76px;box-sizing:border-box;border:1px solid #555066;border-radius:12px;padding:11px;background:#211e2b;color:#fff;resize:vertical;user-select:text;font:inherit;}
+.chat-actions {display:flex;align-items:center;justify-content:flex-end;gap:10px;}
+.chat-actions .primary-button {flex:1;min-height:42px;}
+.chat-attachments {display:flex;flex-wrap:wrap;gap:6px;}
+.chat-attachment {max-width:100%;overflow-wrap:anywhere;border:1px solid #555066;border-radius:9px;padding:5px 9px;background:#2a253b;color:#e5dffe;}
+.chat-panel button:disabled {opacity:.45;cursor:default;}
+/* İçerik kendi alanında kayar; Gönder ve ikincil ses seçenekleri erişilebilir kalır. */
+.chat-view{flex:1;min-height:0;overflow:auto;scrollbar-width:thin;}
+.chat-panel{max-height:none;overflow:visible;}
+.chat-panel>*{flex-shrink:0;}
+.chat-answer{max-height:100px;}

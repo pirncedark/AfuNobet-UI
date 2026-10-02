@@ -1,0 +1,42 @@
+   Compiling afu-merkez-hazirlik v0.1.0 (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\delivery\faz-c)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 1.64s
+     Running unittests src\lib.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\delivery\faz-c\target\debug\deps\afu_merkez_hazirlik-0a3ebbb6ba781004.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\delivery\faz-c\target\debug\deps\contract-e0d0368ef02829ca.exe)
+
+running 22 tests
+test bozuk_json_ve_dizi_olmayan_bos_kayit_uretir ... ok
+test bos_yanlis_tur_ve_yinelenen_kimlik_atlanir ... ok
+test bozuk_satir_gecerli_komsulari_kaybettirmez ... ok
+test bayat_gelecek_ve_kimlik_uyusmazligi_yok_sayilir ... ok
+test bozuk_bilinmeyen_ve_eksik_durum_reddedilir ... ok
+test gizli_bilgi_isaretleri_ve_eposta_ozetten_reddedilir ... ok
+test gizli_bilgi_suzgeci_siradan_turkce_insan_metnini_korur ... ok
+test takvim_tasma_hatasi_tazelik_kontrolunun_arkasina_saklanmaz ... ok
+test taze_durum_ve_bes_dakika_siniri_okunur ... ok
+test iso_tarih_araligi_ve_bicimi_kati_dogrulanir ... ok
+test teknik_ve_kontrol_metni_ana_uiya_gecmez ... ok
+test teknik_yol_gizli_surucu_ve_ipv6_ozette_gosterilmez ... ok
+test desen_yol_kacisi_ve_eksik_kok_reddedilir ... ok
+test tum_durumlar_ve_negatif_ofset_desteklenir ... ok
+test turkce_ozet_karakterle_sinirlanir_baytla_degil ... ok
+test acma_hatasi_insan_mesajina_donusur ... ok
+test exe_olmayan_eksik_dizin_ve_argumanli_yol_hic_acilmaz ... ok
+test asiri_buyuk_dosya_okunmaz ... ok
+test yalniz_kayitli_mevcut_exe_parametresiz_kanala_ulastirilir ... ok
+test okuyucu_salt_okur_ve_dosya_kimligini_denetler ... ok
+test cok_parcali_surumlar_sayisal_ve_deterministik ... ok
+test sayisal_surum_ve_mevcut_exe_secilir ... ok
+
+test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+   Doc-tests afu_merkez_hazirlik
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

@@ -1,7 +1,9 @@
-# Changelog
+﻿# Changes
 
-## Unreleased
+## 0.1.1 AfuNobet adaptation
 
-- Compact island on screens without a notch (#22) — thanks @Kamasoutra
-- Only web links (http/https) open from the notch; other kinds of links from Claude or integrations are ignored (#16) — thanks @Cris1670
-- Hook socket limited to your own user account, with size and time limits; logs no longer keep commands, n8n data or full URLs, and stay under 1 MB (#16) — thanks @Cris1670 and @Vignesh-Thangamariappan
+Read-only Afu task snapshots replace all upstream integrations and model hooks.
+The official reference cutouts replace the upstream character and media.
+Island geometry and animation primitives are retained; detailed verification
+and native test limitations are recorded in AFU_CHANGES.md.
+
