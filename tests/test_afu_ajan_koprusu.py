@@ -4,6 +4,8 @@ Gerçek AFU'ya bağlanmaz; her test kendi rastgele adlı sahte borusunu `_winapi
 ile açar. Ağ yok, pencere yok.
 """
 import _winapi
+import ctypes
+from ctypes import wintypes
 import json
 import os
 import subprocess
@@ -26,6 +28,9 @@ BASLANGIC_PAYI = 1.5  # Python yorumlayıcı başlangıcı
 ERROR_PIPE_CONNECTED = 535
 UNLIMITED = 255
 BAYRAK = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+_disconnect = ctypes.WinDLL("kernel32", use_last_error=True).DisconnectNamedPipe
+_disconnect.argtypes = [wintypes.HANDLE]
+_disconnect.restype = wintypes.BOOL
 
 
 def rastgele_boru(on="afu-test"):
@@ -70,7 +75,7 @@ class SahteAda:
                 break
             tampon += veri
         try:
-            _winapi.DisconnectNamedPipe(h)
+            _disconnect(h)  # CPython _winapi does not expose DisconnectNamedPipe.
         except OSError:
             pass
         _winapi.CloseHandle(h)
@@ -295,6 +300,8 @@ def test_f17_boru_mesgulken_bosalinca_ulasir():
 RISKLI = [
     ("Bash", {"command": "rm -rf build/"}, k.SILME),
     ("Bash", {"command": "rm -r eski"}, k.SILME),
+    # The completion contract requires approval for single-file deletion too.
+    ("Bash", {"command": "rm dosya.txt"}, k.SILME),
     ("PowerShell", {"command": "Remove-Item C:\\x -Recurse -Force"}, k.SILME),
     ("Bash", {"command": "cmd /c del /s /q C:\\tmp\\*"}, k.SILME),
     ("Bash", {"command": "rmdir /S /Q eski"}, k.SILME),
@@ -325,7 +332,6 @@ RISKLI = [
 ]
 RISKSIZ = [
     ("Bash", {"command": "ls -la"}),
-    ("Bash", {"command": "rm dosya.txt"}),
     ("Bash", {"command": "git push origin main"}),
     ("Bash", {"command": "git push -u origin ozellik"}),
     ("Bash", {"command": "git push --follow-tags"}),

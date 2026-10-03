@@ -1,0 +1,464 @@
+{
+  "Sağlık şeridi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/views.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: aktivasyon_kontrol.test.ts"
+  },
+  "Orkestra \"Başlıyor…\" kartı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/state.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: aktivasyon_kontrol.test.ts"
+  },
+  "27 durum animasyonu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/character.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_etkilesim.test.ts"
+  },
+  "Premium karakter görünümü": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/style.css",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: working-100.png"
+  },
+  "Kurulu değilse İndir": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/apps.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: apps.test.ts"
+  },
+  "Otomatik test (CI)": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": ".github/workflows/ci.yml",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_tum_ozellik_sozlesme.py"
+  },
+  "Canlı görev durumu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/state.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: state.test.ts"
+  },
+  "Görev listesi ve kartı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/views.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: arayuz.test.ts"
+  },
+  "Canlı oturum akışı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/state.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: state.test.ts"
+  },
+  "Görev akışı aşamaları": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Salt okunur izleme": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/watch.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "Aktif ajan sekmeleri": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_etkilesim.test.ts"
+  },
+  "Kota/limit paneli": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/state.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: state.test.ts"
+  },
+  "Orkestra: manuel ajan seçimi ve iş verme": {
+    "status": "KALDI",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/orkestra.rs",
+    "note": "olası hata: orkestra_send içinde cmd.spawn öncesi Codex ret kontrolü eksik."
+  },
+  "Model / effort / thinking bilgisi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Context göstergesi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Maliyet bilgisi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Claude koruma rozeti": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/views.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: f1_f5.test.ts"
+  },
+  "Afu pet / karakter": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/character.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: character.test.ts"
+  },
+  "Pet tıklaması": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/pet.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: pet.test.ts"
+  },
+  "Dışarı tıklayınca pete dönüş": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/disari.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "Tıklama alanı / click-through": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/hit.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: hit.test.ts"
+  },
+  "Düğme geri bildirimi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/style.css",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: working-100.png"
+  },
+  "Hover ile uyanma": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/island/fsm.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: fsm.test.ts"
+  },
+  "Pencere modları": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/island/fsm.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: fsm.test.ts"
+  },
+  "Üstte kalma": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/island.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: source_hashes.json"
+  },
+  "Tepsi desteği": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/tray.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "Tam ekran oyun modu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/glide.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "%150 ölçekte erişilebilirlik": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/layout.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: p8_kart_buyut.test.ts"
+  },
+  "Sohbet (yazılı)": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/chat/chat.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: chat.test.ts"
+  },
+  "\"Afu'ya sor\" tek ana düğme": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/sor/sor.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: sor_ui.test.ts"
+  },
+  "Yerel durum soruları": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/sor/yerel.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_etkilesim.test.ts"
+  },
+  "Ajan soru/onay kartı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/question/question.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: question.test.ts"
+  },
+  "Dosyayı Ada'ya sürükleme": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/main.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: island_connections.test.ts"
+  },
+  "İnsan onay kapısı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "scripts/afu_ajan_koprusu.py",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_afu_ajan_koprusu.py"
+  },
+  "Afu Merkez (Uygulamalar)": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/apps.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: apps.test.ts"
+  },
+  "Tek cümle hata": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/labels.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: labels.test.ts"
+  },
+  "Empty state": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Tekrar dene": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/views.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: arayuz.test.ts"
+  },
+  "Bildirimler": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/bildirim.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "Arama ve filtre": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Modal davranışı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/overlay.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: arayuz.test.ts"
+  },
+  "Klavye erişilebilirliği": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/overlay.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: arayuz.test.ts"
+  },
+  "TR/EN dayanıklılığı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/labels.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: q1_uzun_metin.test.ts"
+  },
+  "Uzun metin kontrolü": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/metin.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: q1_uzun_metin.test.ts"
+  },
+  "İlk kullanım ipucu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/ilk_kullanim.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "Basitlik kuralı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/views.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: sor_ui.test.ts"
+  },
+  "Otomatik toparlanma": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/watch.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E1 Genel ajan protokolü": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/protokol.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E1b Ortak olay standardı": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/protokol.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: protokol.test.ts"
+  },
+  "E1c Yerel generic agent API": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/ipc.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E3 Alt ajan takibi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/protokol.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: protokol.test.ts"
+  },
+  "E4 Fail-open köprü": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "scripts/afu_ajan_koprusu.py",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_afu_ajan_koprusu.py"
+  },
+  "E4b Güvenli hook kurulumu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/hook_kur.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E5 Güvenli IPC": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/ipc.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E7 Servis pill'leri": {
+    "status": "KALDI",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/sistem/servis.ts",
+    "note": "olası hata: Servis uygulamalarında bulunmayan hizmetler: vercel, n8n, stripe, notion"
+  },
+  "E8 Olaylara bağlı ses": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/ses.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_tum_ozellik_sozlesme.py"
+  },
+  "E9 Gizlilik odaklı log": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/log.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E10 Sahte test modu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "scripts/sahte_olay.py",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_sahte_mod.py"
+  },
+  "E11 Credential Manager": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/kimlik.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: cargo.log"
+  },
+  "E12 Web link güvenliği": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/apps.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: security_links.test.ts"
+  },
+  "Ses taşınabilirliği": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "ses_deneme/afu_konus.py",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_ses_paths.py"
+  },
+  "Mini pet eski hali + sürükle-bırak-dön": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/pet.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Pet animasyon iyileştirmesi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/oynatma.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Animasyon stüdyosu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "studyo/animasyon_studyo.html",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: test_studyo_uygula.py"
+  },
+  "Enseden tutma (kedi gibi)": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/pet.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Konuşan Afu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/message/message.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: mesaj.test.ts"
+  },
+  "Menü sekmeleri eski haline": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/views/views.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_gorev.test.ts"
+  },
+  "Mini pet tam sığsın": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/pet.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Görev kartı 1,5x": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/layout.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: p8_kart_buyut.test.ts"
+  },
+  "Soru seçenekleri": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/question/question.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_etkilesim.test.ts"
+  },
+  "Kalıcı balon": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/message/message.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Pet balonu": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/core/layout.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: pet-balon.test.ts"
+  },
+  "Göz kırpma yavaş": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/oynatma.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Mesaj gelince öne gel": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/message/notifications.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: notifications.test.ts"
+  },
+  "Pete uygun mesaj biçimi": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/message/message.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: r3b1.test.ts"
+  },
+  "Mini pet yeni animasyonlar": {
+    "status": "GEÇTİ",
+    "kind": "Kurtarma kaynak sözleşmesi",
+    "evidence": "windows/src/afu/pet.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  }
+}

@@ -45,9 +45,11 @@ OYNATICI = {
 }
 
 
-def oynat(hedef: Path, senaryo: str, oto_cevap=None):
+def oynat(hedef: Path, senaryo: str, oto_cevap=None, **overrides):
     """Senaryoyu beklemeden oynatir; uretilen klasoru dondurur."""
     ayar = dict(AYAR[senaryo])
+    # Common overrides apply only to scenarios that accept that argument.
+    ayar.update({key: value for key, value in overrides.items() if key in ayar})
     if oto_cevap:
         ayar["oto_cevap"] = oto_cevap
     OYNATICI[senaryo](hedef, **ayar)
@@ -179,9 +181,11 @@ def test_bayat_kaydi_canli_sayilmaz(tmp_path):
 
 
 def test_uretilen_dosyalar_hedef_klasorde_kalir(tmp_path):
-    oynat(tmp_path / "codex_soru", "codex_soru", bekleme=0.0, cevap_bekleme=0.0, sabit=True, oto_cevap="evet")
+    hedef = tmp_path / "codex_soru"
+    oynat(hedef, "codex_soru", bekleme=0.0, cevap_bekleme=0.0, sabit=True, oto_cevap="evet")
     kalan = {yol.relative_to(tmp_path).as_posix() for yol in tmp_path.rglob("*") if yol.is_file()}
-    assert kalan <= {"state.json", "sorular/codex-soru.json"}, kalan
+    # The caller chose a child directory; retain the check for escaped files.
+    assert kalan <= {"codex_soru/state.json", "codex_soru/sorular/codex-soru.json"}, kalan
     assert not list(tmp_path.rglob("*.tmp")), "atomik yazma artigi kaldi"
 
 

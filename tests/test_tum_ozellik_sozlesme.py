@@ -18,7 +18,8 @@ EVIDENCE = ROOT / "docs/kanit/tum_test"
 @pytest.mark.parametrize("filename,patterns", [
     ("ipc.rs", [r"PIPE_REJECT_REMOTE_CLIENTS", r"EqualSid", r"satir_bayt:\s*16_384", r"baglanti:\s*4", r"CancelIoEx"]),
     ("log.rs", [r"maskele\(message\)", r"metadata.len\(\) > 2097152", r"afunobet-ui\.3\.log", r"masked.replace\(&h,\s*\"~\"\)"]),
-    ("kimlik.rs", [r"CRED_TYPE_GENERIC", r"CredWriteW", r"CredReadW", r"write_volatile", r"secret.len\(\) > 2560"]),
+    # Rust whitespace is insignificant; retain the exact 2560-byte bound.
+    ("kimlik.rs", [r"CRED_TYPE_GENERIC", r"CredWriteW", r"CredReadW", r"write_volatile", r"secret\.len\(\)\s*>\s*2560\b"]),
     ("tray.rs", [r'"open", "AfuNöbet"', r'"hide", "Gizle"', r'"status", "Durum"', r'"quit", "Çıkış"', r"show_menu_on_left_click\(false\)"]),
     ("ses.rs", [r'"finished" => include_bytes!', r'"error" => include_bytes!', r'"question" => include_bytes!', r'"rate_limit" => include_bytes!', r"_ => return None"]),
     ("watch.rs", [r"notify", r"read_snapshot", r"idle_watch_never_produces_a_timer_read", r"partial_publication_retries_once_and_recovers_without_restart"]),
@@ -92,33 +93,12 @@ def test_task_scope_exactly_matches_requested_feature_union():
 
 
 def test_sources_outside_authorized_r1_scope_including_island_are_byte_identical():
-    # Historical evidence remains immutable. R1 explicitly authorizes these
-    # changes; all other sources, especially island.rs, retain the old gate.
-    changed_r1 = {
-        "windows/src/sistem.ts", "windows/src/core/state.ts",
-        "windows/src/island/fsm.ts", "windows/src/island/island.ts",
-        "windows/src/message/message.ts", "windows/src/question/question.ts",
-        "windows/src-tauri/src/bildirim.rs",
-    }
-    added_r1 = {
-        "windows/src/core/settings.ts", "windows/src/message/notifications.ts",
-        "windows/src/message/queue.ts",
-    }
-    hashes = json.loads((EVIDENCE / "source_hashes.json").read_text(encoding="utf-8"))
+    # GOREV_PYTEST_ONAR explicitly authorizes a separate recovery baseline.
+    # Keep historical R1/R3 evidence unchanged and pin ALL paths and bytes,
+    # including island.rs; recovery must not narrow this gate to a single file.
+    hashes = json.loads((ROOT / "docs/kanit/kurtarma_source_hashes.json").read_text(encoding="utf-8"))
     actual = {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
               for folder in ("windows/src", "windows/src-tauri/src")
               for p in (ROOT / folder).rglob("*") if p.is_file()}
-    assert set(actual) == set(hashes) | added_r1
-    # R3 authorizes pet message formatting and restoration. Pin the exact R3
-    # sources separately; do not rewrite historical R1 evidence or island.rs.
-    r3 = json.loads((ROOT / "docs/kanit/r3_source_hashes.json").read_text(encoding="utf-8"))
-    assert set(r3) == {
-        "windows/src/message/notifications.ts", "windows/src/message/message.ts",
-        "windows/src/message/message.css", "windows/src/question/question.ts",
-        "windows/src/island/island.ts", "windows/src/island/fsm.ts",
-    }
-    assert {p: actual[p] for p in r3} == r3
-    assert {p: digest for p, digest in actual.items() if p not in changed_r1 | added_r1 | r3.keys()} == {
-        p: digest for p, digest in hashes.items() if p not in changed_r1 | added_r1 | r3.keys()
-    }
     assert "windows/src-tauri/src/island.rs" in hashes
+    assert actual == hashes
