@@ -62,7 +62,7 @@ class FakeWindow {
   }
 }
 const el = (x: unknown) => x as unknown as FakeEl;
-const flush = async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); };
+const flush = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 
 function task(over: Partial<Task> = {}): Task {
   return { id: "t1", agent: "codex", title: "Kontrol", task: "Kontrol", status: "Calisiyor", model: null, currentAction: null,
@@ -89,12 +89,14 @@ describe("sağlık şeridi", () => {
       return { status: "hazir", loggedIn: true, planType: null, rateLimits: null } as never;
     });
     vi.spyOn(Bridge, "bildirimAyarlari").mockResolvedValue({ muted: ok.ses === false });
+    // M9: Claude rozeti köprünün KURULU olmasına bakar (son etkinliğe değil).
+    vi.spyOn(Bridge, "claudeHookInstalled").mockResolvedValue(ok.claude !== false);
   };
   const serit = (v: AfuViews) => el(v.healthStrip).children.map(c => c.textContent);
 
-  it("dört öğe çizer: AfuNöbet, Codex, Sesler, Claude", async () => {
+  it("dört öğe çizer: AfuNöbet, GPT, Ses, Claude", async () => {
     saglik(); const { v } = newViews(); await flush();
-    expect(serit(v)).toEqual(["AfuNöbet ✓", "Codex ✓", "Sesler ✓", "Claude ✓"]);
+    expect(serit(v)).toEqual(["AfuNöbet ✓", "GPT ✓", "Ses ✓", "Claude ✓"]);
   });
   it("her şey hazırken dört öğe de ✓ çizer", async () => {
     saglik(); const { v } = newViews(); await flush();
@@ -103,7 +105,7 @@ describe("sağlık şeridi", () => {
   });
   it("bağlanamayan modül ✗ olur", async () => {
     saglik({ codex: false }); const { v } = newViews(); await flush();
-    expect(serit(v)).toEqual(["AfuNöbet ✓", "Codex ✗", "Sesler ✓", "Claude ✓"]);
+    expect(serit(v)).toEqual(["AfuNöbet ✓", "GPT ✗", "Ses ✓", "Claude ✓"]);
   });
   it("✗ olana tıklayınca tek cümle görünür", async () => {
     saglik({ claude: false }); const { v } = newViews(); await flush();
@@ -115,7 +117,7 @@ describe("sağlık şeridi", () => {
     expect(metin).not.toMatch(/[\n;]|\.\s+\S/);
   });
   it("her hata için ayrı tek cümle yönlendirme verir", async () => {
-    for (const [hata, beklenen] of [["afu", "AfuNöbet kapalı"], ["codex", "Codex oturumu yok"], ["ses", "Sesler kapalı"], ["claude", "Claude görünmüyor"]] as const) {
+    for (const [hata, beklenen] of [["afu", "Afu izlemeyi durdurdu"], ["codex", "GPT hesabına bağlı değil"], ["ses", "Afu'nun sesi kapalı"], ["claude", "Claude mesajları Afu'ya gelmiyor"]] as const) {
       vi.restoreAllMocks(); fakeDom();
       saglik({ [hata]: false });
       const { v } = newViews(); await flush();
