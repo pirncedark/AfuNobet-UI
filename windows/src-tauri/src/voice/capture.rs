@@ -8,6 +8,23 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 pub const RATE: u32 = 16_000;
 pub const MAX_SECONDS: usize = 60;
+pub fn cumle_bitti_mi(cerceveler_rms: &[f32], esik: f32, sessizlik_ms: usize) -> bool {
+    let sessizlik_cerceve_sayisi = sessizlik_ms.div_ceil(30).max(1);
+    let mut konusma_basladi = false;
+    let mut son_sessizlik = 0;
+    for &rms in cerceveler_rms {
+        if rms > esik {
+            konusma_basladi = true;
+            son_sessizlik = 0;
+        } else if konusma_basladi {
+            son_sessizlik += 1;
+            if son_sessizlik >= sessizlik_cerceve_sayisi {
+                return true;
+            }
+        }
+    }
+    false
+}
 fn finite(x: f32) -> f32 {
     if x.is_finite() {
         x.clamp(-1., 1.)
@@ -82,10 +99,26 @@ pub struct Recorder {
     cancelled: Arc<AtomicBool>,
 }
 impl Recorder {
+    pub fn start_auto(cancelled: Arc<AtomicBool>, esik: f32, sessizlik_ms: usize, bekleme_ms: usize) -> Result<Self, SesHata> {
+        Self::start_internal(cancelled, Some((esik, sessizlik_ms, bekleme_ms.min(MAX_SECONDS * 1000))))
+    }
+    pub fn wait_and_stop(mut self) -> Result<Vec<f32>, SesHata> {
+        let worker = self.worker.take().ok_or(SesHata::Microphone)?;
+        // Auto-stop zaten iş parçacığını bitireceği için uzun timeout verebiliriz
+        if !wait_finished(&worker, Duration::from_secs(MAX_SECONDS as u64 + 5)) {
+            self.cancelled.store(true, Ordering::Release);
+            drop(worker);
+            return Err(SesHata::Microphone);
+        }
+        worker.join().map_err(|_| SesHata::Microphone)?
+    }
     pub fn start() -> Result<Self, SesHata> {
-        Self::start_cancelled(Arc::new(AtomicBool::new(false)))
+        Self::start_internal(Arc::new(AtomicBool::new(false)), None)
     }
     pub fn start_cancelled(cancelled: Arc<AtomicBool>) -> Result<Self, SesHata> {
+        Self::start_internal(cancelled, None)
+    }
+    fn start_internal(cancelled: Arc<AtomicBool>, auto_stop: Option<(f32, usize, usize)>) -> Result<Self, SesHata> {
         let lease = WorkerLease::acquire()?;
         let (tx, rx) = mpsc::channel::<bool>();
         let (ready_tx, ready_rx) = mpsc::sync_channel(1);
@@ -115,10 +148,44 @@ impl Recorder {
                     if ready_tx.send(Ok(())).is_err() {
                         return Ok(vec![]);
                     }
-                    let keep = match rx.recv_timeout(Duration::from_secs(MAX_SECONDS as u64)) {
-                        Ok(value) => value,
-                        Err(mpsc::RecvTimeoutError::Timeout) => true,
-                        Err(_) => false,
+                    let started = Instant::now();
+                    let mut cerceveler_rms = Vec::new();
+                    let mut son_islenen_ornek = 0;
+                    let keep = loop {
+                        match rx.recv_timeout(Duration::from_millis(30)) {
+                            Ok(value) => break value,
+                            Err(mpsc::RecvTimeoutError::Timeout) => {
+                                if signal.load(Ordering::Acquire) { break false; }
+                                if failed.load(Ordering::Relaxed) { return Err(SesHata::Microphone); }
+                                if started.elapsed() >= Duration::from_secs(MAX_SECONDS as u64) {
+                                    break auto_stop.is_none() || cerceveler_rms.iter().any(|&r| r > auto_stop.unwrap().0);
+                                }
+                                if auto_stop.is_none() { continue; }
+                                let (esik, sessizlik_ms, bekleme_ms) = auto_stop.unwrap();
+                                let anlik_samples = {
+                                    let guard = samples.lock().unwrap_or_else(|e| e.into_inner());
+                                    guard[son_islenen_ornek..].to_vec()
+                                };
+                                // Örnek hızı rate. 30ms = rate * 30 / 1000.
+                                let cerceve_boyutu = ((rate * 30 / 1000) as usize).max(1);
+                                for cerceve in anlik_samples.chunks_exact(cerceve_boyutu) {
+                                    let kare_toplam: f32 = cerceve.iter().map(|&x| x * x).sum();
+                                    let rms = (kare_toplam / cerceve_boyutu as f32).sqrt();
+                                    cerceveler_rms.push(rms);
+                                    son_islenen_ornek += cerceve_boyutu;
+                                }
+                                if cumle_bitti_mi(&cerceveler_rms, esik, sessizlik_ms) {
+                                    break true; // Kaydı doğal olarak bitir ve sakla
+                                }
+                                if !cerceveler_rms.iter().any(|&r| r > esik) && started.elapsed() >= Duration::from_millis(bekleme_ms as u64) {
+                                    break false; // Bekleme süresi doldu
+                                }
+                                if started.elapsed() >= Duration::from_secs(MAX_SECONDS as u64) {
+                                    break true; // Maksimum süreye ulaşıldı
+                                }
+                            }
+                            Err(_) => break false,
+                        }
                     };
                     drop(stream);
                     if !keep || signal.load(Ordering::Acquire) {
@@ -159,6 +226,10 @@ impl Recorder {
 }
 impl Drop for Recorder {
     fn drop(&mut self) {
+        // Joined workers have already released capture; preserve their result's signal.
+        if self.worker.is_none() {
+            return;
+        }
         self.cancelled.store(true, Ordering::Release);
         let _ = self.control.send(false);
         // Windows sürücüsünü zorla kesemeyiz; UI thread üzerinde join yapılmaz.
@@ -300,6 +371,49 @@ mod tests {
         let _ = release_tx.send(());
         let _ = dropping.join();
         assert!(quick, "Drop sürücü iş parçacığını beklememeli");
+    }
+    #[test]
+    fn auto_stop_tamamlanan_kaydi_iptal_etmez() {
+        let (control, _receiver) = mpsc::channel();
+        let cancelled = Arc::new(AtomicBool::new(false));
+        let recorder = Recorder {
+            control,
+            worker: Some(std::thread::spawn(|| Ok(vec![0.5]))),
+            cancelled: cancelled.clone(),
+        };
+        assert_eq!(recorder.wait_and_stop().unwrap(), vec![0.5]);
+        assert!(!cancelled.load(Ordering::Acquire), "Tamamlanan kayıt Whisper öncesinde iptal edilmemeli");
+    }
+    #[test]
+    fn cumle_bitti_mi_calisir() {
+        let rms_bos = vec![0.0, 0.0, 0.0, 0.0];
+        assert!(!cumle_bitti_mi(&rms_bos, 0.1, 800));
+
+        let rms_konusma = vec![0.0, 0.2, 0.3, 0.15];
+        assert!(!cumle_bitti_mi(&rms_konusma, 0.1, 800));
+
+        let mut rms_biten = vec![0.0, 0.2, 0.3, 0.2]; // konusma basladi
+        for _ in 0..26 {
+            rms_biten.push(0.05);
+        }
+        assert!(!cumle_bitti_mi(&rms_biten, 0.1, 800));
+        rms_biten.push(0.05);
+        assert!(cumle_bitti_mi(&rms_biten, 0.1, 800));
+    }
+    #[test]
+    fn sessizlik_konusma_olmadan_cumleyi_bitirmez() {
+        assert!(!cumle_bitti_mi(&vec![0.0; 2000], 0.01, 800));
+        assert!(!cumle_bitti_mi(&[], 0.01, 800));
+    }
+    #[test]
+    fn kisa_duraklama_yeni_konusmada_sifirlanir() {
+        let mut frames = vec![0.2];
+        frames.extend(vec![0.0; 20]);
+        frames.push(0.2);
+        frames.extend(vec![0.0; 26]);
+        assert!(!cumle_bitti_mi(&frames, 0.01, 800));
+        frames.push(0.0);
+        assert!(cumle_bitti_mi(&frames, 0.01, 800));
     }
     #[test]
     fn baslangic_hazirligi_zaman_asimi_sinirlidir() {

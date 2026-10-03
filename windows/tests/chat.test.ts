@@ -70,6 +70,35 @@ it("gönderim sürerken yazılan yeni taslak kabulde korunur",async()=>{vi.stubG
 function voiceChat(){vi.stubGlobal("document",{createElement:()=>new FakeElement(),createTextNode:(text:string)=>Object.assign(new FakeElement(),{textContent:text})});const a={codexStatus:vi.fn(async()=>"hazir"),codexSend:vi.fn(async()=>{}),codexCancel:vi.fn(async()=>{}),codexLogin:vi.fn(async()=>{}),codexLoginCancel:vi.fn(async()=>{})};const s={voiceStart:vi.fn(async()=>{}),voiceStop:vi.fn(async()=>"incelenecek metin"),voiceCancel:vi.fn(async()=>{}),voiceSpeak:vi.fn(async(_text:string)=>{}),voiceSilence:vi.fn(async()=>{}),voiceSupported:vi.fn(async()=>({whisper:true,winrt_stt:false,tts:true}))};const v=new ChatView(a,()=>"",s);return {v,a,s};}
 async function explicitTurn(v:ChatView,id="1"){await v.refresh();v.input.value="Mesaj";(v.sendButton as unknown as FakeElement).fire("click");await Promise.resolve();v.onEvent({method:"turn/started",params:{threadId:"t",turn:{id}}});v.onEvent({method:"item/agentMessage/delta",params:{threadId:"t",turnId:id,delta:"Merhaba"}});}
 function finishTurn(v:ChatView,id="1",status="completed"){v.onEvent({method:"turn/completed",params:{threadId:"t",turn:{id,status}}});}
+it("oturum hazır olmadan veya yanıt sürerken mikrofon yeni kayıt açmaz",async()=>{
+ const {v,s}=voiceChat();await Promise.resolve();
+ const mic=v.micButton as unknown as FakeElement;
+ mic.fire("pointerdown",{pointerId:1});
+ for(let i=0;i<5;i++)await Promise.resolve();
+ expect(s.voiceStart).not.toHaveBeenCalled();
+ await explicitTurn(v);
+ mic.fire("keydown",{key:" ",repeat:false,preventDefault:vi.fn()});
+ for(let i=0;i<5;i++)await Promise.resolve();
+ expect(s.voiceStart).not.toHaveBeenCalled();
+ await v.detach();
+});
+it("bas-konuş metni kullanıcı gönderince Afu yanıtına ulaşır",async()=>{
+ const {s,a}=voiceChat();
+ const response=vi.fn(async()=>({warning:null}));
+ const v=new ChatView(a,()=>"",{...s,voiceResponse:response});
+ await v.refresh();(v.responseButton as unknown as FakeElement).fire("click");
+ const mic=v.micButton as unknown as FakeElement;
+ mic.fire("pointerdown",{pointerId:1});mic.fire("pointerup");
+ for(let i=0;i<20;i++)await Promise.resolve();
+ expect(v.input.value).toBe("incelenecek metin");expect(a.codexSend).not.toHaveBeenCalled();
+ (v.sendButton as unknown as FakeElement).fire("click");await Promise.resolve();
+ expect(a.codexSend).toHaveBeenCalledWith("incelenecek metin",[]);
+ v.onEvent({method:"turn/started",params:{threadId:"t",turn:{id:"voice"}}});
+ v.onEvent({method:"item/agentMessage/delta",params:{threadId:"t",turnId:"voice",delta:"Merhaba, ben Afu."}});
+ finishTurn(v,"voice");finishTurn(v,"voice");await Promise.resolve();
+ expect(response).toHaveBeenCalledExactlyOnceWith("Merhaba, ben Afu.");
+ await v.detach();
+});
 it("sesli yanıt default kapalı ve bildirimden bağımsızdır",async()=>{const {v,s}=voiceChat();await explicitTurn(v);finishTurn(v);await Promise.resolve();expect(s.voiceSpeak).not.toHaveBeenCalled();expect(v.responseButton?.textContent).toBe("Sesli yanıt kapalı");(v.responseButton as unknown as FakeElement).fire("click");expect(v.notifications?.enabled).toBe(false);});
 it("yalnız başarılı tamamlanan yanıt bir kez okunur ve working speaking idle olur",async()=>{const {v,s}=voiceChat();const states:string[]=[];v.onVoiceState=state=>states.push(state);let finish!:()=>void;s.voiceSpeak.mockImplementation(()=>new Promise<void>(r=>finish=r));(v.responseButton as unknown as FakeElement).fire("click");await explicitTurn(v);expect(s.voiceSpeak).not.toHaveBeenCalled();finishTurn(v,"other");expect(s.voiceSpeak).not.toHaveBeenCalled();finishTurn(v);expect(s.voiceSpeak).toHaveBeenCalledWith("Merhaba");finishTurn(v);expect(s.voiceSpeak).toHaveBeenCalledOnce();expect(states).toContain("working");expect(states.at(-1)).toBe("speaking");finish();await Promise.resolve();await Promise.resolve();expect(states.at(-1)).toBe("idle");});
 it.each(["failed","interrupted"])("%s yanıt seslendirilmez",async(status)=>{const {v,s}=voiceChat();(v.responseButton as unknown as FakeElement).fire("click");await explicitTurn(v);finishTurn(v,"1",status);await Promise.resolve();expect(s.voiceSpeak).not.toHaveBeenCalled();});

@@ -366,6 +366,7 @@ pub fn run() {
             codex_login_cancel,
             codex_install,
             voice::voice_start,
+            voice::voice_listen_turn,
             voice::voice_stop,
             voice::voice_cancel,
             voice::voice_speak,
