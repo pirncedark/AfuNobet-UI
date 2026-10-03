@@ -15,7 +15,7 @@ export interface Mesaj { surum: 1; id: string; ajan: MesajAjan; tur: "bitti" | "
 export const ad = (ajan: MesajAjan) => ({ claude: "Claude", codex: "Codex", gemini: "Gemini", opencode: "OpenCode" })[ajan];
 
 /** Balonda görünen gövde en fazla bu kadar karakter; kesilirse "…" eklenir. */
-export const BALON_MAX_KARAKTER = 140;
+export const BALON_MAX_KARAKTER = 80;
 /** Kuyruk en fazla bu kadar mesaj tutar; eskisi düşer. */
 export const BALON_KUYRUGU = 5;
 
@@ -91,7 +91,7 @@ export function bildirimBalonu(belge: Pick<Document, "createElement">, host: HTM
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
   metin.textContent = yazi.tam;
   const dugme = belge.createElement("button"); dugme.className = "afu-balon-kapat";
-  dugme.textContent = "×"; dugme.setAttribute("aria-label", "Mesajı kapat");
+  dugme.textContent = "Okudum"; dugme.setAttribute("aria-label", "Mesajı kapat (Okudum)");
   dugme.addEventListener("click", ev => { ev.stopPropagation(); kapat(mesaj.id); });
   balon.addEventListener("pointerdown", ev => ev.stopPropagation());
   balon.append(etiket, metin, dugme); host.append(balon);
@@ -174,8 +174,8 @@ export function balonOlustur(
     }
     const ul = belge.createElement("ul");
     ul.style.margin = "2px 0"; ul.style.paddingLeft = "14px";
-    for (const m of bicim.maddeler) {
-      const li = belge.createElement("li"); li.textContent = m; ul.append(li);
+    for (const m of bicim.maddeler.slice(0, 2)) {
+      const li = belge.createElement("li"); li.textContent = m.length > 50 ? m.slice(0, 49) + "…" : m; ul.append(li);
     }
     metin.append(ul);
   } else {

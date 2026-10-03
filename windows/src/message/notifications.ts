@@ -57,9 +57,7 @@ export class MessageNotifications {
     if ((message?.id ?? null) === this.activeId) return;
     if (this.timer != null) clearTimeout(this.timer);
     this.timer = null; this.activeId = message?.id ?? null;
-    if (message?.type === "notification" && !message.requiresReply) {
-      this.timer = setTimeout(() => this.close(message.id), this.durations.get(message.id) ?? 8000);
-    }
+    // Otomatik kapanma YOK — kullanıcı "Okudum" ile kapatır
     this.updateWindow();
     for (const listener of this.listeners) listener();
   }

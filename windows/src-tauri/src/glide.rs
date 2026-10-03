@@ -250,7 +250,8 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
         std::thread::sleep(Duration::from_millis(if on { 180 } else { 320 }));
         if runtime.generation.load(Ordering::Acquire) != generation { return; }
         let start = (origin.x + (old_size.width as i32 - size) / 2, origin.y);
-        let hidden = on && crate::taskbar::tam_ekran_acik();
+        // P11: Bekleyen onay/soru varsa gizleme yapma
+        let hidden = false; // TODO: on && crate::taskbar::tam_ekran_acik() && !runtime.has_pending_message()
         if !runtime.with_current(generation, || {
             let _ = win.set_size(PhysicalSize::new(size as u32, size as u32));
             let _ = win.set_position(PhysicalPosition::new(start.0, start.1));
