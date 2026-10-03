@@ -194,16 +194,18 @@ describe("orkestra geçici kart", () => {
 describe("konuşma balonu", () => {
   const mesaj = (id: string, metin = `Mesaj ${id}`): Mesaj => ({ surum: 1, id, ajan: "codex", tur: "bilgi", metin, zaman: 0 });
 
-  it("140 karakterden uzun metni '…' ile keser", () => {
+  it("80 karakterden uzun metni '…' ile kelime sınırında keser", () => {
     const uzun = "ab".repeat(80);
-    expect(Array.from(kisalt(uzun))).toHaveLength(140);
+    expect(Array.from(kisalt(uzun))).toHaveLength(80);
     expect(kisalt(uzun).endsWith("…")).toBe(true);
-    expect(Array.from(kisalt("😀".repeat(200)))).toHaveLength(140);
+    expect(Array.from(kisalt("😀".repeat(200)))).toHaveLength(80);
     expect(kisalt("😀".repeat(200)).endsWith("…")).toBe(true);
+    const kelimeler = "kelime ".repeat(20).trim();
+    expect(kisalt(kelimeler)).toBe(Array(11).fill("kelime").join(" ") + "…");
   });
-  it("kısa metne ve tam 140 karaktere dokunmaz", () => {
+  it("kısa metne ve tam 80 karaktere dokunmaz", () => {
     expect(kisalt("kısa metin")).toBe("kısa metin");
-    const tam = "x".repeat(140);
+    const tam = "x".repeat(80);
     expect(kisalt(tam)).toBe(tam);
     expect(kisalt(tam).endsWith("…")).toBe(false);
   });

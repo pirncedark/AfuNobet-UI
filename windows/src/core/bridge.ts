@@ -58,6 +58,7 @@ export const Bridge = {
   reposition: () => call<void>("reposition"),
   petAppsPopup: (on: boolean) => action<void>("pet_apps_popup", { on }),
   petDrag: () => action<boolean>("pet_drag"),
+  petOnayBekliyor: (on: boolean) => action<void>("pet_onay_bekliyor", { on }),
   petMode: (on: boolean) => call<void>("pet_mode", { on }),
   /** P10: pet modunda balon açılınca pencere YUKARI büyür, kapanınca eski boyuta döner. */
   petBalon: (on: boolean) => action<void>("pet_balon", { on }),

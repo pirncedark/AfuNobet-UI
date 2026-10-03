@@ -50,6 +50,10 @@ it("feeds directory snapshots into FIFO and keeps failed answers on screen", asy
   expect(host.hidden).toBe(true);
   expect(notification.hidden).toBe(false); expect(notification.children).toHaveLength(1);
   await vi.advanceTimersByTimeAsync(8000);
+  expect(alerts.current()?.id).toBe("first"); expect(host.hidden).toBe(true);
+  expect(notification.hidden).toBe(false); expect(notification.children).toHaveLength(1);
+  const okudum = notification.querySelector(".afu-balon-kapat")!;
+  expect(okudum.textContent).toBe("Okudum"); okudum.fire("click");
   expect(alerts.current()?.id).toBe("question:q1"); expect(host.hidden).toBe(false);
   expect(notification.hidden).toBe(true); expect(notification.children).toHaveLength(0);
   expect(host.parentElement).toBe(petBalloon);
