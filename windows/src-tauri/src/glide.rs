@@ -16,6 +16,14 @@ pub fn drag_distance(from: (f64, f64), to: (f64, f64), scale: f64) -> bool {
     let scale = if scale.is_finite() && scale > 0.0 { scale } else { 1.0 };
     (to.0 - from.0).hypot(to.1 - from.1) >= 5.0 * scale
 }
+/// Physical client geometry, matching pet.ts's bottom-aligned square frame.
+/// Re-read the size after moving: Windows can resize it when monitor DPI changes.
+pub fn drag_origin(cursor: (f64, f64), size: (u32, u32)) -> (i32, i32) {
+    let hand_x = size.0 as f64 * (220.0 / 384.0);
+    let hand_y = size.1 as f64 - size.0 as f64;
+    ((cursor.0 - hand_x).round() as i32, (cursor.1 - hand_y).round() as i32)
+}
+
 pub fn return_point(from: (i32, i32), to: (i32, i32), t: f64) -> (i32, i32) {
     let t = if t.is_finite() { t.clamp(0.0, 1.0) } else { 0.0 };
     let eased = 1.0 - (1.0 - t).powi(3);
@@ -120,6 +128,7 @@ pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
     let home = (origin.x, origin.y);
     let result = (|| {
         let mut held = false;
+        let mut last_position = None;
         loop {
             if runtime.generation.load(Ordering::Acquire) != generation { return Ok(true); }
             if unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000 } == 0 { break; }
@@ -129,10 +138,21 @@ pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
                 let _ = app.emit("pet-drag", "held");
             }
             if held {
-                let target = PhysicalPosition::new(home.0 + (point.0 - first.0).round() as i32, home.1 + (point.1 - first.1).round() as i32);
-                let mut error = None;
-                if !runtime.with_current(generation, || { error = win.set_position(target).err(); }) { return Ok(true); }
-                if error.is_some() { return Err("Afu taşınamadı. Yeniden dene.".to_string()); }
+                let mut error = false;
+                if !runtime.with_current(generation, || {
+                    // Settle a synchronous DPI resize in the same cursor sample.
+                    // No webview-relative feedback, easing or screen-edge clamp.
+                    for _ in 0..3 {
+                        let Ok(size) = win.inner_size() else { error = true; break; };
+                        let target = drag_origin(point, (size.width, size.height));
+                        if last_position == Some(target) { break; }
+                        if win.set_position(PhysicalPosition::new(target.0, target.1)).is_err() {
+                            error = true; break;
+                        }
+                        last_position = Some(target);
+                    }
+                }) { return Ok(true); }
+                if error { return Err("Afu taşınamadı. Yeniden dene.".to_string()); }
             }
             std::thread::sleep(Duration::from_millis(16));
         }
@@ -331,6 +351,24 @@ mod tests {
             assert!(drag_distance((0.0, 0.0), (5.0 * scale, 0.0), scale));
             assert!(drag_distance((0.0, 0.0), (3.0 * scale, 4.0 * scale), scale));
         }
+    }
+    #[test]
+    fn hand_anchor_tracks_cursor_at_all_dpis_and_negative_coordinates() {
+        for (size, offset) in [(256, 147), (320, 183), (384, 220)] {
+            for (cursor, expected) in [((900.0, 400.0), (900 - offset, 400)),
+                                       ((-1800.0, -500.0), (-1800 - offset, -500))] {
+                assert_eq!(drag_origin(cursor, (size, size)), expected);
+                assert_eq!(drag_origin(cursor, (size, size + 200)), (expected.0, expected.1 - 200));
+                let moved = drag_origin((cursor.0 + 37.0, cursor.1 - 29.0), (size, size));
+                assert_eq!(moved, (expected.0 + 37, expected.1 - 29));
+            }
+        }
+    }
+    #[test]
+    fn hand_anchor_recomputes_after_a_monitor_dpi_resize() {
+        assert_eq!(drag_origin((-100.0, 80.0), (256, 256)), (-247, 80));
+        assert_eq!(drag_origin((-100.0, 80.0), (384, 384)), (-320, 80));
+        assert_eq!(drag_origin((-100.0, 80.0), (320, 518)), (-283, -118));
     }
     /// P10: balon açıkken pencere yalnız YUKARI büyür; alt kenar (görev çubuğunun
     /// üstü) her DPI'da sabit kalır, karakter yerinden oynamaz.
