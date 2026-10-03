@@ -74,10 +74,10 @@ def test_orkestra_rejects_claude_before_spawn():
     assert "claude" not in allowed.lower()
 
 
-def test_asset_animation_inventory_has_27_decodable_webp_files():
+def test_asset_animation_inventory_has_28_decodable_webp_files():
     from PIL import Image
     files = list((ROOT / "windows/public/afu/durum").glob("*.webp"))
-    assert len(files) == 27
+    assert len(files) == 28
     for path in files:
         with Image.open(path) as image:
             assert image.width > 0 and image.height > 0

@@ -31,7 +31,7 @@ it("uses both new durum frames and original pet stills including drag, return an
     expect(frame.kare).not.toContain(".webp"); // Ext ends are appended later
   }
   const p = new PetModel(0);
-  p.setPose("surukleme"); p.tick(5000); expect(p.frame).toBe("akis_suzulme");
+  p.setPose("surukleme"); p.tick(5000); expect(p.frame).toBe("durum/ense_tutma");
   p.setPose("geri_donus"); p.tick(5500); expect(p.frame).toBe("akis_suzulme");
   p.land(); expect(p.frame).toBe("akis_tutunma");
   p.tick(5500 + SEKANSLAR.yaslanma[0].ms); expect(p.frame).toBe("akis_bekleme");

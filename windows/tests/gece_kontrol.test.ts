@@ -145,7 +145,7 @@ describe("gece: P8/P9 gerçek başsız soru yerleşimi", () => {
         pet.oynatici.durdur(); pet.appsMenu.remove();
         return { tutma, donus, birakma };
       });
-      expect(sonuc).toEqual({ tutma: Array(3).fill("50% 35.1562%"), donus: Array(3).fill("50% 35.1562%"), birakma: Array(3).fill("50% 100%") });
+      expect(sonuc).toEqual({ tutma: Array(3).fill("57.2917% 0%"), donus: Array(3).fill("50% 35.1562%"), birakma: Array(3).fill("50% 100%") });
     } finally { await page.close(); }
   }, 30000);
 

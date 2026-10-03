@@ -99,6 +99,7 @@ describe("AfuPet Sürükleme (Ense) Eşiği", () => {
     vi.advanceTimersByTime(100);
     
     const transformOrigin = (pet.image as unknown as { style: { transformOrigin: string } }).style.transformOrigin;
-    expect(transformOrigin).toContain("35.15625%");
+    // Fareyle taşırken elin üst ucu (ense_tutma karesi) dönme ve tutma noktasıdır.
+    expect(transformOrigin).toBe(`${(220 / 384) * 100}% 0%`);
   });
 });

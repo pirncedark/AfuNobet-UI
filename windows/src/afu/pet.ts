@@ -22,7 +22,7 @@ export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "uyku": [{ kare: "durum/uyku_masa", ms: 500 }, { kare: "tepki_uyku", ms: Infinity }],
   "yuzme": [{ kare: "uyan_yuzme", ms: 500 }],
   "etkilesim": [{ kare: "durum/inis", ms: 500 }],
-  "surukleme": [{ kare: "akis_suzulme", ms: Infinity }],
+  "surukleme": [{ kare: "durum/ense_tutma", ms: Infinity }],
   "geri_donus": [{ kare: "akis_suzulme", ms: Infinity }],
   "yaslanma": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_bekleme", ms: 600 }],
 };
@@ -105,7 +105,7 @@ export const PET_AYAR: Record<PetPose, { olcek: number; x: number; y: number }> 
   }
 };
 function studyoKareYolu(kare: string) { return kare.startsWith("durum/") ? `/afu/durum/${kare.slice(6)}.webp` : `/afu/pet/${kare}.webp`; }
-export const PET_NORMALIZE: string[] = ["donus", "uyku", "bekleme", "gecis", "uyanma", "dusunme", "uyari", "hata", "mutlu", "basari", "yuzme", "etkilesim"];
+export const PET_NORMALIZE: string[] = ["donus", "uyku", "bekleme", "gecis", "uyanma", "dusunme", "uyari", "hata", "mutlu", "basari", "yuzme", "etkilesim", "surukleme"];
 export const PET_BOYUT: Record<string, { olcek: number; x: number; y: number; kutu: [number, number, number, number] }> = {
   "akis_bekleme": {
     "olcek": 0.9437229437229437,
@@ -679,6 +679,17 @@ export const PET_BOYUT: Record<string, { olcek: number; x: number; y: number; ku
       1.0
     ]
   },
+  "durum/ense_tutma": {
+    "olcek": 0.42166344294003866,
+    "x": -0.006039450354609954,
+    "y": 0.0,
+    "kutu": [
+      0.028645833333333315,
+      0.0,
+      1.0,
+      1.0
+    ]
+  },
   "durum/gulumseme": {
     "olcek": 0.4417426545086119,
     "x": -0.004563457174675767,
@@ -912,6 +923,20 @@ export const PET_OYNATMA: Record<PetPose, { hiz: number; donguArasi: number }> =
 // STÜDYO OYNATMA SON
 export const PET_TUTMA = { guc: 50 };
 // STÜDYO AYAR SON
+
+/**
+ * Fareyle taşırken tutma noktası: karenin içinde (0–1 kesir) elin üst ucu.
+ * Bu nokta imlecin altına gelir ve sarkaç bu nokta etrafında sallanır.
+ * Listede olmayan karelerde eski ense noktası (yatay orta, 90 px) kullanılır.
+ */
+export const PET_TUTMA_NOKTASI: Record<string, { x: number; y: number }> = {
+  "durum/ense_tutma": { x: 220 / 384, y: 0 },
+};
+/** Karenin tutma noktası (pet penceresi pikseli). */
+export function tutmaNoktasi(kare: string, pencere = PET_PENCERE): { x: number; y: number } {
+  const nokta = PET_TUTMA_NOKTASI[kare];
+  return nokta ? { x: nokta.x * pencere, y: nokta.y * pencere } : { x: pencere / 2, y: 90 };
+}
 
 // P4: enseden tutma sarkacı. Hesap tamamen saf: durum (adım=hız açısı, hız=açısal hız)
 // dışarıdan verilir, yeni durum döner. Test edilebilir olsun diye sınıftan bağımsız.
@@ -1273,6 +1298,7 @@ export class AfuPet {
     let scruffTy = 0;
     let extraTransform = '';
     const isDragging = this.model.pose === "surukleme" || this.model.pose === "geri_donus";
+    const tutma = tutmaNoktasi(next);
     // Hareket azaltma tercihinde sallanma, uzama ve nefes hiç uygulanmaz.
     if (!this.reduced.matches && (this.dragRaf !== null || isDragging)) {
       const stretch = sarkacUzama(this.swingVel);
@@ -1284,10 +1310,13 @@ export class AfuPet {
         const kare = next;
         const scale = (PET_NORMALIZE.includes(this.model.pose) ? (PET_BOYUT[kare] || { olcek: 1 }).olcek : 1) * ayar.olcek / 100;
         
-        const targetTx = this.clickX - (PET_PENCERE / 2);
-        const targetTy = this.clickY - 90;
-        const startTx = 0;
-        const startTy = 166 * (1 - scale);
+        // Tutma noktası (ense ya da elin üst ucu) imlecin tuttuğu yere gelir;
+        // başlangıç karenin ayakları pencere altında olacak şekildedir.
+        const kayma = PET_NORMALIZE.includes(this.model.pose) ? (PET_BOYUT[kare] || { x: 0, y: 0 }) : { x: 0, y: 0 };
+        const targetTx = this.clickX - tutma.x - kayma.x * PET_PENCERE * ayar.olcek / 100;
+        const targetTy = this.clickY - tutma.y - kayma.y * PET_PENCERE * ayar.olcek / 100;
+        const startTx = (PET_PENCERE / 2 - tutma.x) * (1 - scale);
+        const startTy = (PET_PENCERE - tutma.y) * (1 - scale);
         
         scruffTx = startTx + (targetTx - startTx) * easeOut;
         scruffTy = startTy + (targetTy - startTy) * easeOut;
@@ -1305,9 +1334,10 @@ export class AfuPet {
       // Ölçülmüş alfa kutusu her kare için geçerli; kare yoksa tüm çerçeve sayılır.
       const kutu = olculu?.kutu ?? ([0, 0, 1, 1] as [number, number, number, number]);
       
-      const fitted = sigdir(kutu, rawScale, rawTx, rawTy, PET_PENCERE, 6, isDraggingNow ? 90 : PET_PENCERE);
-      
-      image.style.transformOrigin = isDraggingNow ? `50% ${90 / PET_PENCERE * 100}%` : "50% 100%";
+      // Alt kenarda pay yok: ayaklar görev çubuğuna (pencerenin altına) değer.
+      const fitted = sigdir(kutu, rawScale, rawTx, rawTy, PET_PENCERE, 6, isDraggingNow ? tutma.y : PET_PENCERE, isDraggingNow ? tutma.x : PET_PENCERE / 2, 0);
+
+      image.style.transformOrigin = isDraggingNow ? `${tutma.x / PET_PENCERE * 100}% ${tutma.y / PET_PENCERE * 100}%` : "50% 100%";
       image.style.translate = `${fitted.x}px ${fitted.y}px`;
       image.style.scale = String(fitted.olcek);
       image.style.transform = extraTransform;
@@ -1334,19 +1364,19 @@ export function sigdir(
   y: number,
   pencere = 256,
   pay = 6,
-  originY = 256
+  originY = 256,
+  originX = pencere / 2,
+  altPay = pay
 ) {
   const [L_ratio, T_ratio, R_ratio, B_ratio] = kutu;
   const L0 = L_ratio * pencere;
   const T0 = T_ratio * pencere;
   const R0 = R_ratio * pencere;
   const B0 = B_ratio * pencere;
-  const originX = pencere / 2;
-
   const w0 = R0 - L0;
   const h0 = B0 - T0;
   const maxW = pencere - 2 * pay;
-  const maxH = pencere - 2 * pay;
+  const maxH = pencere - pay - altPay;
 
   let yeniOlcek = olcek;
   if (w0 > 0 && w0 * yeniOlcek > maxW) yeniOlcek = maxW / w0;
@@ -1364,7 +1394,7 @@ export function sigdir(
   const scaledT = (T0 - originY) * yeniOlcek + originY;
   const scaledB = (B0 - originY) * yeniOlcek + originY;
   const minY = pay - scaledT;
-  const maxY = pencere - pay - scaledB;
+  const maxY = pencere - altPay - scaledB;
 
   let yeniY = y;
   if (yeniY < minY) yeniY = minY;
