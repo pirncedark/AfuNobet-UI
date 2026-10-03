@@ -30,9 +30,12 @@ describe("Konuşan Afu", () => {
     m.gorunur(true, 20000); expect(m.aktif?.id).toBe("a");
     expect(m.kapat()).toBe(true);
   });
-  it("Unicode metni 140 karaktere üç noktayla keser", () => {
-    expect(Array.from(kisalt("😀".repeat(200))).length).toBe(140);
+  it("Unicode metni 80 karakter içinde üç noktayla kelime sınırında keser", () => {
+    expect(kisalt("😀".repeat(200))).toBe("😀".repeat(79) + "…");
+    expect(Array.from(kisalt("😀".repeat(200))).length).toBe(80);
     expect(kisalt("kısa")).toBe("kısa"); expect(kisalt("x".repeat(200)).endsWith("…")).toBe(true);
+    expect(kisalt("😀 ".repeat(10) + "kelime ".repeat(20).trim()))
+      .toBe("😀 ".repeat(10) + Array(8).fill("kelime").join(" ") + "…");
   });
   it("son 5 dakikada mesaj gelen ajanı işaretler", () => {
     const m = new BalonKuyrugu(); m.ekle(mesaj("a"), 1000);
@@ -50,10 +53,10 @@ describe("Konuşan Afu", () => {
     expect(bolunBaslik("Claude:\nİş bitti. Devam ediyorum.")).toEqual({ etiket: "Claude", govde: "İş bitti. Devam ediyorum." });
     expect(bolunBaslik("Sadece metin")).toEqual({ etiket: null, govde: "Sadece metin" });
   });
-  it("balon 140 karakteri geçmez, gövde iki cümlede biter", () => {
+  it("balon 80 karakteri geçmez, gövde iki cümlede biter", () => {
     const yazi = balonMetni({ ...mesaj("a", "x ".repeat(300) + " Son. Burada biter."), ajan: "codex" });
     expect(yazi.etiket).toBe("Codex");
-    expect(Array.from(yazi.govde).length).toBeLessThanOrEqual(140);
+    expect(Array.from(yazi.govde).length).toBeLessThanOrEqual(80);
     expect(yazi.govde.endsWith("…")).toBe(true);
   });
   it("balona tıklama tam mesajı kart açıcıya verir ve pet sürüklemesini engeller", () => {

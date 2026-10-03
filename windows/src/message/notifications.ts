@@ -1,4 +1,5 @@
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { Bridge } from "../core/bridge";
 import { MessageQueue, type QueuedMessage } from "./queue";
 import type { MesajAjan } from "./message";
 import type { Mesaj } from "./message";
@@ -22,6 +23,7 @@ export class MessageNotifications {
   private enabled = true;
   private raised = false;
   private disposed = false;
+  private onayBekliyor = false;
   private operations: Promise<void> = Promise.resolve();
   private before: Promise<{ visible: boolean; top: boolean } | null> | null = null;
   constructor(private queue: MessageQueue, private window: MessageWindow) {}
@@ -53,6 +55,11 @@ export class MessageNotifications {
     for (const listener of this.listeners) listener();
   }
   private refresh() {
+    const onay = [...this.messages.values()].some(message => message.type === "question");
+    if (onay !== this.onayBekliyor) {
+      this.onayBekliyor = onay;
+      this.operations = this.operations.then(() => Bridge.petOnayBekliyor(onay)).catch(() => {});
+    }
     const message = this.current();
     if ((message?.id ?? null) === this.activeId) return;
     if (this.timer != null) clearTimeout(this.timer);

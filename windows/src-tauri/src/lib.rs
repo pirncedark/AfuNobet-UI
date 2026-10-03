@@ -215,6 +215,11 @@ fn pet_balon(app: AppHandle, shared: State<Shared>, on: bool) {
     glide::balon(&app, &shared.pet_runtime, &shared.gate, on);
 }
 #[tauri::command]
+fn pet_onay_bekliyor(shared: State<Shared>, on: bool) {
+    shared.pet_runtime.onay_bekliyor.store(on, Ordering::Release);
+    shared.pet_runtime.wake_up();
+}
+#[tauri::command]
 async fn pet_drag(app: AppHandle, shared: State<'_, Shared>) -> Result<bool, String> {
     let runtime = shared.pet_runtime.clone();
     tauri::async_runtime::spawn_blocking(move || glide::drag(app, runtime)).await
@@ -350,6 +355,7 @@ pub fn run() {
             refresh_state,
             pet_mode,
             pet_drag,
+            pet_onay_bekliyor,
             pet_balon,
             pet_apps_popup,
             tray_mode,

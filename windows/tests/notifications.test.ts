@@ -25,6 +25,8 @@ describe("message alerts", () => {
     pet.showNotification({ id: "pet", type: "notification", timestamp: 0 });
     await pet.settled();
     await vi.advanceTimersByTimeAsync(8000); await pet.settled();
+    expect(pet.isOpen).toBe(true); expect(top).toBe(true); expect(visible).toBe(true);
+    pet.close("pet"); await pet.settled();
     expect(pet.isOpen).toBe(false); expect(top).toBe(true); expect(visible).toBe(true);
     pet.dispose();
   });
@@ -55,11 +57,15 @@ describe("message alerts", () => {
     await own.settled(); await vi.advanceTimersByTimeAsync(8000); await own.settled();
     expect(hidden).toBe(false); own.dispose();
   });
-  it("hides after exactly eight seconds and deduplicates after closure", async () => {
+  it("stays open after eight seconds, closes on read and deduplicates after closure", async () => {
     alerts.showNotification({ id: "a", type: "notification", timestamp: 0, text: "Bitti" });
     await alerts.settled(); expect(calls).toEqual(["top:true", "show"]);
     await vi.advanceTimersByTimeAsync(7999); expect(alerts.current()?.id).toBe("a");
     await vi.advanceTimersByTimeAsync(1); await alerts.settled();
+    expect(alerts.current()?.id).toBe("a"); expect(calls).toEqual(["top:true", "show"]);
+    await vi.advanceTimersByTimeAsync(60000); await alerts.settled();
+    expect(alerts.current()?.id).toBe("a"); expect(calls).toEqual(["top:true", "show"]);
+    alerts.close("a"); await alerts.settled();
     expect(alerts.isOpen).toBe(false); expect(calls).toEqual(["top:true", "show", "top:false", "hide"]);
     alerts.showNotification({ id: "a", type: "notification", timestamp: 0 });
     expect(alerts.isOpen).toBe(false);
@@ -68,8 +74,11 @@ describe("message alerts", () => {
     alerts.showNotification({ id: "n", type: "notification", timestamp: 0 });
     alerts.syncQuestions([{ id: "q", type: "question", timestamp: 1 }]);
     alerts.showNotification({ id: "last", type: "notification", timestamp: 2 });
-    await vi.advanceTimersByTimeAsync(8000); expect(alerts.current()?.id).toBe("q");
+    await vi.advanceTimersByTimeAsync(8000); await alerts.settled();
+    expect(alerts.current()?.id).toBe("n"); expect(calls).toEqual(["top:true", "show"]);
+    alerts.close("n"); await alerts.settled(); expect(alerts.current()?.id).toBe("q");
     await vi.advanceTimersByTimeAsync(60000); expect(alerts.current()?.id).toBe("q");
+    expect(calls).toEqual(["top:true", "show"]);
     alerts.syncQuestions([]); expect(alerts.current()?.id).toBe("last");
     alerts.close("last"); await alerts.settled(); expect(alerts.isOpen).toBe(false);
   });

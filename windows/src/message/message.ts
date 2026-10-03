@@ -21,7 +21,12 @@ export const BALON_KUYRUGU = 5;
 
 export function kisalt(metin: string, limit = BALON_MAX_KARAKTER): string {
   const c = Array.from(metin);
-  return c.length > limit ? c.slice(0, limit - 1).join("") + "…" : metin;
+  if (c.length <= limit) return metin;
+  // Kelime ortasından kesme: sınırdan önceki son boşlukta kes (çok kısa kalırsa sert kes).
+  const parca = c.slice(0, limit - 1);
+  const bosluk = parca.lastIndexOf(" ");
+  const kes = bosluk >= Math.floor(limit / 2) ? parca.slice(0, bosluk) : parca;
+  return kes.join("").replace(/[\s,.;:!?–-]+$/u, "") + "…";
 }
 /** Yalnız çizgi/işaretlerden oluşan süs satırı (──, ===, ---, ___, ###). */
 const CEZIR_SATIR = /^[─-╿—–«»=\-_~*#.…|/\\:\s]{2,}$/;
@@ -164,7 +169,7 @@ export function balonOlustur(
   const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket";
   etiket.textContent = etiketAd.text; etiket.title = etiketAd.title || tam;
 
-  const bicim = bicimle(yazi.govde);
+  const bicim = bicimle(tam.replace(/^(claude|codex|gemini|opencode)\s*[:\-–—]\s*/i, ""));
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
 
   if (bicim.maddeler.length > 0) {
@@ -175,7 +180,11 @@ export function balonOlustur(
     const ul = belge.createElement("ul");
     ul.style.margin = "2px 0"; ul.style.paddingLeft = "14px";
     for (const m of bicim.maddeler.slice(0, 2)) {
-      const li = belge.createElement("li"); li.textContent = m.length > 50 ? m.slice(0, 49) + "…" : m; ul.append(li);
+      const preview = m.slice(0, 49);
+      const boundary = preview.lastIndexOf(" ");
+      const li = belge.createElement("li");
+      li.textContent = m.length > 50 ? (boundary > 0 ? preview.slice(0, boundary) : preview).trimEnd() + "…" : m;
+      ul.append(li);
     }
     metin.append(ul);
   } else {

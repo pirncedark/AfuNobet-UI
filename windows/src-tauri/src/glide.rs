@@ -38,13 +38,14 @@ pub struct PetRuntime {
     pub active: AtomicBool,
     /// P10: görev/ajan mesajı balonu açık mı? Pencere yalnız bu durumda büyür.
     pub balon: AtomicBool,
+    pub onay_bekliyor: AtomicBool,
     pub generation: AtomicU64,
     pub dragging: AtomicBool,
     signal: Mutex<()>,
     wake: Condvar,
 }
 impl PetRuntime {
-    pub fn new() -> Self { Self { mutation: Mutex::new(()), busy: AtomicBool::new(false), tray: AtomicBool::new(false), active: AtomicBool::new(false), balon: AtomicBool::new(false), generation: AtomicU64::new(0), dragging: AtomicBool::new(false), signal: Mutex::new(()), wake: Condvar::new() } }
+    pub fn new() -> Self { Self { mutation: Mutex::new(()), busy: AtomicBool::new(false), tray: AtomicBool::new(false), active: AtomicBool::new(false), balon: AtomicBool::new(false), onay_bekliyor: AtomicBool::new(false), generation: AtomicU64::new(0), dragging: AtomicBool::new(false), signal: Mutex::new(()), wake: Condvar::new() } }
     pub fn begin_drag(&self) -> Option<u64> {
         let _guard = self.mutation.lock().unwrap();
         if !self.active.load(Ordering::Acquire) || self.busy.load(Ordering::Acquire) || self.dragging.load(Ordering::Acquire) { return None; }
@@ -84,6 +85,9 @@ impl PetRuntime {
 /// (PET_PENCERE, PET_BALON_PAY, PET_BALON_YUKSEKLIK, PET_BALON_BOSLUK) —
 /// iki taraf aynı sayıları kullanır, biri değişirse diğeri de değişir.
 pub const PET_PENCERE: f64 = 256.0;
+pub fn pet_gizli_mi(on: bool, tam_ekran: bool, onay: bool) -> bool {
+    on && tam_ekran && !onay
+}
 pub const PET_BALON_PAY: f64 = 24.0;
 pub const PET_BALON_YUKSEKLIK: f64 = 120.0;
 pub const PET_BALON_BOSLUK: f64 = 14.0;
@@ -251,7 +255,7 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
         if runtime.generation.load(Ordering::Acquire) != generation { return; }
         let start = (origin.x + (old_size.width as i32 - size) / 2, origin.y);
         // P11: Bekleyen onay/soru varsa gizleme yapma
-        let hidden = false; // TODO: on && crate::taskbar::tam_ekran_acik() && !runtime.has_pending_message()
+        let hidden = pet_gizli_mi(on, crate::taskbar::tam_ekran_acik(), runtime.onay_bekliyor.load(Ordering::Acquire));
         if !runtime.with_current(generation, || {
             let _ = win.set_size(PhysicalSize::new(size as u32, size as u32));
             let _ = win.set_position(PhysicalPosition::new(start.0, start.1));
@@ -292,7 +296,12 @@ pub fn watch_fullscreen(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crat
             let generation = runtime.generation.load(Ordering::Acquire);
             let active = runtime.active.load(Ordering::Acquire);
             if active && generation != last_generation { hidden = false; last_target = None; last_generation = generation; }
-            let fullscreen = crate::taskbar::tam_ekran_acik();
+            let onay = runtime.onay_bekliyor.load(Ordering::Acquire);
+            let fullscreen = pet_gizli_mi(true, crate::taskbar::tam_ekran_acik(), onay);
+            if onay {
+                let _ = win.show();
+                let _ = win.set_always_on_top(true);
+            }
             if fullscreen != hidden {
                 hidden = fullscreen;
                 if active {
@@ -344,6 +353,23 @@ pub fn balon(app: &AppHandle, runtime: &PetRuntime, gate: &crate::island::PollGa
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn fullscreen_hides_pet_only_without_pending_approval() {
+        assert!(!super::pet_gizli_mi(true, true, true));
+        assert!(super::pet_gizli_mi(true, true, false));
+        assert!(!super::pet_gizli_mi(false, true, false));
+        assert!(!super::pet_gizli_mi(true, false, false));
+    }
+    #[test]
+    fn pending_approval_starts_false_and_survives_pet_transitions() {
+        let runtime = super::PetRuntime::new();
+        assert!(!runtime.onay_bekliyor.load(super::Ordering::Acquire));
+        runtime.onay_bekliyor.store(true, super::Ordering::Release);
+        runtime.begin();
+        assert!(runtime.onay_bekliyor.load(super::Ordering::Acquire));
+        runtime.cancel();
+        assert!(runtime.onay_bekliyor.load(super::Ordering::Acquire));
+    }
     use super::*;
     #[test]
     fn drag_threshold_is_logical_at_all_dpis() {
