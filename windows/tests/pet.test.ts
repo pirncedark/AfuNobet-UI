@@ -30,7 +30,7 @@ describe("mini pet", () => {
   });
   it("hover floats and leaves to idle, idle visits all breathing and blink frames", () => {
     const p = new PetModel(0);
-    p.hover(true); expect(p.frame).toBe("durum/inis_oturma");
+    p.hover(true); expect(p.frame).toBe("uyan_yuzme"); // studio edit d71c313
     p.hover(false); expect(p.pose).toBe("bekleme");
     const frames = new Set<string>();
     for (let t = 0; t <= 30000; t += 30) { p.tick(t); frames.add(p.frame); }
@@ -54,7 +54,7 @@ describe("mini pet", () => {
   it("every sequence references actual cut assets", () => {
     for (const sequence of Object.values(SEKANSLAR)) for (const frame of sequence) {
       const isDurum = frame.kare.startsWith("durum/");
-      const resolved = isDurum ? path.resolve("../afu-character/video/durumlar", frame.kare.slice(6) + ".webp") : path.resolve("../afu-character/pet", frame.kare + ".png");
+      const resolved = isDurum ? path.resolve("public/afu/durum", frame.kare.slice(6) + ".webp") : path.resolve("../afu-character/pet", frame.kare + ".png");
       if (!existsSync(resolved)) throw new Error("MISSING ASSET: " + resolved);
       expect(existsSync(resolved)).toBe(true);
     }

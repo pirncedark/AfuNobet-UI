@@ -126,8 +126,3 @@ describe("Konuşan Afu", () => {
     expect(host.hidden).toBe(true); expect(host.children).toHaveLength(0);
   });
  });
-    class El {
-      className = ""; textContent = ""; hidden = false; title = ""; children: El[] = [];
-      handlers: Record<string, Function> = {};
-      append(...els: El[]) { this.children.push(...els); }
-      replaceChildren(...els: El[]) { this.children = els; }

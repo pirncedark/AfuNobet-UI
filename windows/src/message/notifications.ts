@@ -5,8 +5,9 @@ import type { Mesaj } from "./message";
 
 export interface NotificationMessage extends QueuedMessage { text?: string; ajan?: MesajAjan; requiresReply?: boolean; raw?: Mesaj }
 export interface MessageWindow {
-  isVisible(): Promise<boolean>;
-  isAlwaysOnTop(): Promise<boolean>;
+  /** Optional readers; a window without them is treated as hidden and not on top (plain island). */
+  isVisible?(): Promise<boolean>;
+  isAlwaysOnTop?(): Promise<boolean>;
   setAlwaysOnTop(on: boolean): Promise<void>;
   show(): Promise<void>;
   hide(): Promise<void>;
@@ -67,13 +68,12 @@ export class MessageNotifications {
     if (raise === this.raised) return;
     this.raised = raise;
     // Start reading before subscribers change the shared pet/island window.
-    if (raise && !this.before) this.before = Promise.all([
-      this.window.isVisible(), this.window.isAlwaysOnTop(),
-    ]).then(([visible, top]) => ({ visible, top })).catch(() => null);
+    if (raise && !this.before) this.before = this.readWindow();
     const before = this.before;
     // Serializing prevents an old, slow show() from winning over a later hide().
     this.operations = this.operations.then(async () => {
-      const previous = await before;
+      // Raising never depends on the earlier state; only the restore step waits for it.
+      const previous = raise ? null : await before;
       if (!raise && !previous) {
         if (!this.raised && this.before === before) this.before = null;
         return; // Unknown state must never hide a pet; retry on the next message.
@@ -82,6 +82,13 @@ export class MessageNotifications {
       try { if (raise || previous!.visible) await this.window.show(); else await this.window.hide(); } catch { /* next event can recover */ }
       if (!raise && !this.raised && this.before === before) this.before = null;
     });
+  }
+  /** Reads the pre-message state synchronously; a failing reader yields null (never hide). */
+  private readWindow(): Promise<{ visible: boolean; top: boolean } | null> {
+    try {
+      return Promise.all([this.window.isVisible?.() ?? false, this.window.isAlwaysOnTop?.() ?? false])
+        .then(([visible, top]) => ({ visible, top })).catch(() => null);
+    } catch { return Promise.resolve(null); }
   }
   dispose() {
     if (this.disposed) return;

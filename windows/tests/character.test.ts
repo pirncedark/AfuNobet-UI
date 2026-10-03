@@ -53,9 +53,9 @@ describe("AfuCharacter animasyon eşleme ve statik yedek", () => {
     character.sync("working", false, false, true);
     expect(character.animImage.src).toMatch(/dusunme\.webp$/);
     
-    // studying -> kitap_buyu.webp
+    // studying -> calisma_yazma.webp (SONUC_ANIM3: eskiden kitap_buyu)
     character.sync("studying", false, false, true);
-    expect(character.animImage.src).toMatch(/kitap_buyu\.webp$/);
+    expect(character.animImage.src).toMatch(/calisma_yazma\.webp$/);
     
     // success -> basari.webp
     character.sync("success", false, false, true);
