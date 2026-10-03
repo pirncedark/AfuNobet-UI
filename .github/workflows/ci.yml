@@ -57,7 +57,9 @@ jobs:
 
   rust:
     name: Rust (cargo test)
-    runs-on: windows-latest
+    # windows/.cargo/config.toml CMAKE_GENERATOR="Visual Studio 17 2022" ister;
+    # windows-latest artik VS 2022 icermiyor.
+    runs-on: windows-2022
     timeout-minutes: 45
     env:
       # whisper-rs -> whisper-rs-sys -> bindgen LLVM'e ihtiyac duyar.
