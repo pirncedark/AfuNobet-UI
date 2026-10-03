@@ -23,7 +23,7 @@ export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "yuzme": [{ kare: "uyan_yuzme", ms: 500 }],
   "etkilesim": [{ kare: "durum/inis", ms: 500 }],
   "surukleme": [{ kare: "durum/ense_tutma", ms: Infinity }],
-  "geri_donus": [{ kare: "akis_suzulme", ms: Infinity }],
+  "geri_donus": [{ kare: "durum/ense_tutma", ms: Infinity }],
   "yaslanma": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_bekleme", ms: 600 }],
 };
 // STÜDYO AYAR BAŞLANGIÇ
