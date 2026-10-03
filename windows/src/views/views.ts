@@ -61,7 +61,7 @@ export class AfuViews {
   readonly petButton: HTMLButtonElement;
   /** Alt satır: alt görünümdeyken "Görevlere dön". */
   readonly backButton: HTMLButtonElement;
-  /** Sayfa geçişleri görünür; Daha fazla yalnız Mini pet ayarını içerir. */
+  /** Dar kartta sayfa geçişleri Daha fazla içinde yer alır. */
   readonly moreButton: HTMLButtonElement;
   readonly menu: HTMLElement;
   /** Q2: menüyü kapanıran görünür düğme (Esc ve dışarı tıklama dışında yol). */
@@ -85,8 +85,8 @@ export class AfuViews {
     if (typeof window !== "undefined") window.addEventListener("afu-flash", (e) => this.flash((e as CustomEvent).detail));
     const item = (cls: string, label: string, run: () => void) => h("button", { class: `text-button menu-item ${cls}`.trim(), type: "button", role: "menuitem", text: label, title: label,
       onclick: () => { this.closeMenu(false); run(); } });
-    const page = (label: string, run: () => void) => h("button", { class: "text-button page-button", type: "button", text: label, title: label,
-      onclick: () => { this.closeMenu(false); run(); } });
+    const page = (label: string, run: () => void) => h("button", { class: "text-button page-button", type: "button", title: label, "aria-label": label,
+      onclick: () => { this.closeMenu(false); run(); } }, h("span", { class: "btn-icon", "aria-hidden": "true" }), h("span", { class: "btn-label", text: label }));
     this.quotaButton = page(UI_TR.quota, () => actions.quota());
     this.appsButton = page(UI_TR.apps, () => actions.apps?.());
     this.orkestraButton = page(UI_TR.orkestra, () => actions.orkestra?.());
@@ -107,6 +107,28 @@ export class AfuViews {
     this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: actions.collapse });
     this.sorButton = h("button", { class: "primary-button sor-button", type: "button", text: UI_TR.ask, onclick: () => actions.sor?.() });
     this.footer = h("footer", {}, this.backButton, this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton, this.moreButton, this.primary, h("span", { class: "footer-gap" }), this.sorButton);
+    this.modal.closeButton.className = "modal-close icon-button";
+    this.backButton.setAttribute("aria-label", UI_TR.back);
+    this.primary.setAttribute("aria-label", UI_TR.collapse);
+    this.sorButton.setAttribute("aria-label", UI_TR.ask);
+    // Gerçek kart genişliği değişince ikincil sayfalar menüye taşınır.
+    if (typeof ResizeObserver !== "undefined") {
+      const observer = new ResizeObserver(([entry]) => {
+        const narrow = entry.contentRect.width < 560;
+        for (const button of [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton]) {
+          if (narrow) {
+            button.setAttribute("role", "menuitem");
+            button.className = "text-button page-button menu-item";
+            this.menu.insertBefore(button, this.petButton);
+          } else {
+            button.removeAttribute("role");
+            button.className = "text-button page-button";
+            this.footer.insertBefore(button, this.moreButton);
+          }
+        }
+      });
+      observer.observe(this.footer);
+    }
     this.card.addEventListener("click", (e: Event) => { if (!this.fromButton(e)) this.openDetail(); });
     this.card.addEventListener("keydown", (e: Event) => {
       const k = (e as KeyboardEvent).key;
@@ -200,6 +222,7 @@ export class AfuViews {
     this.backButton.hidden = !inSub;
     (this.backButton.lastChild as HTMLElement | null)?.replaceChildren?.(ui("back"));
     this.backButton.setAttribute("title", ui("back"));
+    this.backButton.setAttribute("aria-label", ui("back"));
     this.moreButton.setAttribute("title", ui("more"));
     this.moreButton.setAttribute("aria-label", ui("more"));
     this.menuClose.title = ui("close");
@@ -207,15 +230,19 @@ export class AfuViews {
     (this.moreButton.lastChild as HTMLElement | null)?.replaceChildren?.(ui("more"));
     const labels: [HTMLButtonElement, MenuView, string][] = [[this.quotaButton, "quota", ui("quota")], [this.appsButton, "apps", ui("apps")], [this.orkestraButton, "orkestra", ui("orkestra")], [this.chatButton, "chat", ui("chat")]];
     for (const [button, name, label] of labels) {
-      button.textContent = label; button.setAttribute("title", label);
+      (button.lastChild as HTMLElement).replaceChildren(name === "quota" ? ui("quotaShort") : label);
+      button.setAttribute("title", label); button.setAttribute("aria-label", label);
+      button.dataset.page = name;
       button.setAttribute("aria-pressed", String(view === name));
     }
     this.sorButton.textContent = view === "sor" ? ui("askBack") : ui("ask");
     this.sorButton.setAttribute("aria-pressed", String(view === "sor"));
     this.sorButton.setAttribute("title", this.sorButton.textContent ?? "");
+    this.sorButton.setAttribute("aria-label", this.sorButton.textContent ?? "");
     const task = State.focusTask;
     const primaryText = task?.status === "Tamamlandi" ? ui("done") : ui("collapse");
     this.primary.textContent = primaryText; this.primary.setAttribute("title", primaryText);
+    this.primary.setAttribute("aria-label", primaryText);
     this.footer.hidden = view === "greeting";
   }
   // ---------------- E2 ajan pill'leri ----------------
@@ -396,7 +423,8 @@ export class AfuViews {
   }
   private menuItems(): HTMLButtonElement[] { return [this.petButton, this.menuClose]; }
   onMenuKey(e: KeyboardEvent) {
-    const items = this.menuItems();
+    const pages = [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton].filter(button => button.parentElement === this.menu);
+    const items = [...pages, ...this.menuItems()];
     const i = items.indexOf(document.activeElement as HTMLButtonElement);
     // Q2: Esc ve Tab katman sınıfında; burada yalnız ok/Home/End gezinir.
     if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus?.(); }

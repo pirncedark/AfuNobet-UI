@@ -253,3 +253,42 @@ footer .page-button{font-size:10px}
 .agent-pill.soluk[data-state=kapali]{opacity:.38}
 .agent-pill.soluk:hover{opacity:.8}
 .agent-pill.selected{background:var(--pill-bg,#23456b);border-color:var(--pill-color,#7fb6e4a8);opacity:1}
+
+/* M2: düğmeler doğal genişlikte; dar kartta sayfaları Daha fazla taşır. */
+#content{container-type:inline-size}
+footer{gap:4px;justify-content:flex-start}
+footer button{flex:0 0 auto;overflow:visible;text-overflow:clip}
+footer .text-button{display:inline-flex;align-items:center;gap:4px;padding:6px 3px}
+footer .sor-button{padding:7px 10px;margin-left:auto}
+footer .sor-button::before{content:"✦";margin-right:4px}
+.more-menu{position:absolute;right:14px;bottom:48px;z-index:20;display:flex;flex-direction:column;gap:2px;width:190px;max-width:calc(100% - 28px);max-height:calc(100% - 60px);overflow-y:auto;padding:6px;border:1px solid #7ea3d54a;border-radius:10px;background:#121a2b;box-shadow:0 8px 20px #02091680}
+.more-menu .menu-item{text-align:left;flex:none;min-height:26px;padding:5px 8px;overflow:visible;text-overflow:clip}
+.tik-bildirim:not([hidden])+.more-menu{bottom:76px;max-height:calc(100% - 88px)}
+.btn-icon{flex:none;font-size:12px}
+.page-button{display:flex;align-items:center;gap:5px}
+.page-button[data-page=quota] .btn-icon::before{content:"◔"}
+.page-button[data-page=apps] .btn-icon::before{content:"▦"}
+.page-button[data-page=orkestra] .btn-icon::before{content:"♬"}
+.page-button[data-page=chat] .btn-icon::before{content:"☏"}
+.collapse-button::before{content:"−";margin-right:3px}
+@container (max-width:360px){
+  footer .back-button .btn-label{display:none}
+  footer .collapse-button{font-size:0;width:24px;height:26px;justify-content:center;padding:5px 3px;line-height:16px}
+  footer .collapse-button::before{font-size:16px;margin:0}
+}
+/* Kart içi arama katmanı: aynı renk, yükseklik ve odak halkası. */
+.modal-backdrop{position:absolute;inset:0;z-index:30;display:flex;padding:8px;background:#080e1bee}
+.modal-dialog{display:flex;flex-direction:column;min-width:0;width:100%;min-height:0;border:1px solid #b7cef02a;border-radius:12px;background:#121a2b;padding:10px}
+.modal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex:none}
+.modal-title{font-size:16px;line-height:1.25;font-weight:650;flex:1;min-width:0}
+.icon-button{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;border:1px solid #ffffff1f;border-radius:7px;background:#ffffff08;color:#a7bbd5;font-size:14px}
+.icon-button:hover{background:#ffffff14;color:#e6eefa}
+.modal-body{min-height:0;overflow:auto;scrollbar-width:thin}
+.search-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.search-input,.search-select{width:100%;min-width:0;height:30px;padding:0 8px;border:1px solid #7ea3d54a;border-radius:7px;background:#080e1b;color:#e6edf8;font:inherit;font-size:11px;color-scheme:dark}
+.search-input{grid-column:1 / -1;user-select:text}
+.search-input:focus-visible,.search-select:focus-visible{outline:2px solid #f5b949;outline-offset:1px;border-color:#f5b949}
+.search-results{display:flex;flex-direction:column;gap:4px}
+.search-results .search-row{height:auto;min-height:30px;padding:6px;border:1px solid #b7cef01c;border-radius:7px;background:#172233}
+.search-results .search-row:hover{background:#23456b}
+.search-empty{font-size:11px;color:#a7b4c9;padding:8px 0}

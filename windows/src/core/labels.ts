@@ -5,7 +5,7 @@ export const AGENT_TR: Record<Agent, string> = { codex: "Codex", glm: "GLM", gem
 export const UI_TR = {
   brand: "AfuNöbet", waiting: "AfuNöbet bekleniyor", ready: "Afu hazır", welcome: "Afu yanında",
   orientation: "Görevlerini buradan izleyebilirsin", hint: "Üzerine gel, açmak için dokun",
-  quota: "Kota durumu", back: "Görevlere dön", collapse: "Küçült", done: "Tamam",
+  quotaShort: "Kota", quota: "Kota durumu", back: "Görevlere dön", collapse: "Küçült", done: "Tamam",
   progress: "Görev ilerlemesi", completed: "tamamlandı", nextTask: "Yeni görev gelince burada görünecek",
   quotaNote: "Kayıtlı kota bilgileri gösterilir",
   // Alt düğme satırı + menü (2 Eki): 286 px yükseklikteki panelde hiçbir düğme kırpılmaz.
@@ -22,7 +22,7 @@ export type UiKey = keyof typeof UI_TR;
 export const UI_EN: Record<UiKey, string> = {
   brand: "AfuNöbet", waiting: "Waiting for AfuNöbet", ready: "Afu is ready", welcome: "Afu is here",
   orientation: "Follow your tasks from here", hint: "Hover, then tap to open",
-  quota: "Quota status", back: "Back to tasks", collapse: "Collapse", done: "Done",
+  quotaShort: "Quota", quota: "Quota status", back: "Back to tasks", collapse: "Collapse", done: "Done",
   progress: "Task progress", completed: "completed", nextTask: "New tasks will appear here",
   quotaNote: "Recorded quota information is shown",
   ask: "Ask Afu", askBack: "Back", more: "More", apps: "Applications", chat: "Conversation", orkestra: "Orchestra",
