@@ -30,14 +30,14 @@ header{display:flex;align-items:center;gap:9px;height:23px;flex-shrink:0;white-s
 .agent-pills::-webkit-scrollbar{display:none}
 /* An agent with nothing to do stays plainly grey and readable; the one being
    followed is the only highlighted tab. */
-.agent-pill{flex-shrink:0;white-space:nowrap;font-size:9px;letter-spacing:.07em;font-weight:650;border:1px solid #ffffff1f;border-radius:12px;background:#ffffff08;color:#9fb0c8;padding:5px 12px;transition:background .22s,border-color .22s,transform .22s}
+.agent-pill{min-height:28px;flex-shrink:0;white-space:nowrap;font-size:9px;letter-spacing:.07em;font-weight:650;border:1px solid #ffffff1f;border-radius:12px;background:#ffffff08;color:#9fb0c8;padding:5px 12px;transition:background .22s,border-color .22s,transform .22s}
 .agent-pill:hover:not(:disabled){background:#ffffff12;color:#dce7f6}
 .agent-pill.selected{color:#eaf4ff;background:#23456b;border-color:#7fb6e4a8;font-weight:700;transform:scale(1.04);transform-origin:center;border-radius:12px}
 .agent-pill:disabled{opacity:.55}
 .agent-pill[data-expression=working]:not(:disabled)::before{content:"";display:inline-block;width:4px;height:4px;margin-right:5px;border-radius:50%;background:#63d4ff;animation:pill-pulse 2s ease-in-out infinite}
 .agent-pill[data-expression=alert]{border-color:#dda95299}
 .agent-pill[data-expression=happy]{border-color:#7dd9ae77}
-.main-task{height:96px;flex-shrink:0;position:relative;margin-top:7px;padding:10px 12px 12px;background:linear-gradient(110deg,#172233,#121a2b);border:1px solid #b7cef01c;border-radius:12px;overflow:hidden}
+.main-task{height:auto;min-height:96px;flex-shrink:0;position:relative;margin-top:7px;padding:10px 12px 12px;background:linear-gradient(110deg,#172233,#121a2b);border:1px solid #b7cef01c;border-radius:12px;overflow:hidden}
 .task-eyebrow{font-size:9px;font-weight:600;letter-spacing:.08em;color:#91b7df;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
 h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.015em}
 .task-message{font-size:10px;line-height:15px;max-height:45px;color:#a7b4c9;margin-top:4px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
@@ -94,7 +94,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 .quota-row{display:grid;grid-template-columns:92px 92px 1fr;align-items:center;min-height:30px;flex-shrink:0;border-bottom:1px solid #ffffff0a;font-size:11px;color:#a7bbd5;overflow:hidden}
 .quota-row strong{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .quota-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.quota-row small{font-size:9px;color:#7a93b5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quota-row small{min-width:0;font-size:9px;line-height:13px;color:#7a93b5;white-space:normal;overflow-wrap:anywhere;padding:4px 0}
 .quota-note{font-size:10px;line-height:16px;color:#7890b1;margin-top:10px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #island[data-mode=hidden] *{animation-play-state:paused!important}
 @keyframes afu-breathe{0%,100%{transform:translate(var(--look-x),var(--look-y)) scale(1)}50%{transform:translate(var(--look-x),calc(var(--look-y) - 2px)) scale(1.015,1.025)}}
@@ -184,7 +184,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  }
  
 /* Proje eylemi sabit kartın üst satırında kalır; uzun açıklama altında kırpılmaz. */
-.main-task .task-project{position:absolute;top:3px;right:8px;font-size:9px;padding:5px 2px;max-width:70px;}
+.main-task .task-project{min-height:28px;position:absolute;top:3px;right:8px;font-size:9px;padding:5px 2px;max-width:70px;}
 .main-task:has(.task-project:not([hidden])) .task-eyebrow{padding-right:72px;}
 /* Tık geri bildirimi (2026-10-02): her düğmede üzerine gelme, basılı, odak ve seçili hâli görünür. */
 .text-button{border-radius:7px;padding:6px 6px;transition:background .15s,color .15s,transform .12s,box-shadow .15s}

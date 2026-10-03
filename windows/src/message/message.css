@@ -6,7 +6,13 @@
 #afu-pet-balon .soru-karti{max-height:180px;overflow:auto;gap:3px;padding:5px 7px;font-size:12px}
 #afu-pet-balon .soru-baslik{font-size:13px}
 #afu-pet-balon .soru-govde{flex-shrink:0;max-height:80px}
-#afu-character>.afu-konusma-balonu{top:-12px;left:0;right:0;font-size:12px;max-height:120px;overflow:auto}
+/* Card preview: three complete lines, with ellipsis; click opens the full message.
+   The fixed heading row reserves space for Okudum; at most half the pet is covered. */
+#afu-character>.afu-konusma-balonu{display:block;top:-12px;left:0;right:0;font-size:12px;max-height:104px;overflow:hidden}
+#afu-character>.afu-konusma-balonu .afu-balon-etiket{height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#afu-character>.afu-konusma-balonu .afu-balon-metin{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding-right:0;line-height:16px;max-height:48px}
+#afu-character>.afu-konusma-balonu .afu-balon-metin .soru-baslik{font-size:12px;line-height:16px}
+#afu-character>.afu-konusma-balonu:has(.afu-balon-ek){padding-bottom:19px}
 .afu-baglanti{font-size:11px;margin:3px 0 7px;color:#879bb6;white-space:nowrap}
 .afu-baglanti .bagli{color:#75d9a4}
 .afu-mesaj-ipucu{font-size:12px;line-height:1.4;color:#b5cce8;margin:4px 0 8px}

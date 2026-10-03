@@ -17,21 +17,25 @@ const server = await createServer({ root, configLoader: 'runner',
   optimizeDeps: { noDiscovery: true, include: [], exclude: ['@tauri-apps/api'] },
   server: { port: 0, strictPort: false, host: '127.0.0.1', watch: { ignored: /(?:target|dist|test-results)/ } } });
 let browser;
-const cases = ['balon-okudum', 'kart-mesaj', 'kart-bilgi'];
+const cases = ['balon-okudum', 'kart-mesaj', 'kart-bilgi', 'quota-360', 'quota-panel-360', 'working-640-150'];
 try {
   await server.listen();
   browser = await chromium.launch({ headless: true });
   const origin = `http://127.0.0.1:${server.httpServer.address().port}`;
   for (const name of cases) {
     // fitScale * KART_OLCEK = 1: 640px standard card, 100% text.
-    const page = await browser.newPage({ viewport: name === 'balon-okudum' ? { width: 256, height: 414 } : { width: 720, height: 320 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+    const viewport = name.startsWith('quota-') ? { width: 360, height: 320 }
+      : name === 'working-640-150' ? { width: 640, height: 480 }
+      : name === 'balon-okudum' ? { width: 256, height: 414 } : { width: 720, height: 320 };
+    const page = await browser.newPage({ viewport, deviceScaleFactor: 1, reducedMotion: 'reduce' });
     const errors = [];
     page.on('pageerror', e => errors.push(e.message));
     try {
       await page.addInitScript(showHint => {
         if (!showHint) localStorage.setItem('afu-konusan-ipucu-v1', 'seen');
       }, name === 'ipucu');
-      await page.goto(`${origin}/tests/preview.html?case=idle`, { waitUntil: 'networkidle' });
+      const previewCase = name === 'quota-360' ? 'quota' : name === 'quota-panel-360' ? 'quota-panel' : name === 'working-640-150' ? 'working' : 'idle';
+      await page.goto(`${origin}/tests/preview.html?case=${previewCase}`, { waitUntil: 'networkidle' });
       await page.waitForFunction(() => document.documentElement.dataset.ready === 'true');
       await page.evaluate(async name => {
         const { island, State } = window.afuTest;
@@ -42,6 +46,11 @@ try {
         Bridge.voiceListenTurn = () => new Promise(() => {});
         Bridge.voiceCancel = Bridge.voiceSilence = async () => {};
         Bridge.orkestraProjects = async () => ['AfuNobet-UI'];
+        if (name.startsWith('quota-') || name === 'working-640-150') {
+          island.fsm.pinned = true;
+          if (name === 'working-640-150') document.body.style.zoom = '1.5';
+          return;
+        }
         const now = new Date().toISOString();
         const task = (id, agent, status, title, extra = {}) => ({ id, agent, status, task: title, repo: 'AfuNobet-UI', updated_at: now, ...extra });
         island.applySnapshot({ version: 1, mesaj: '', tasks: [
@@ -87,6 +96,9 @@ try {
         menu: ['footer'], ayarlar: ['.ifade-toggle', '.alert-toggle', '.pet-toggle', '.studio-open'],
         ara: ['.search-input', '.search-select', '.search-row'],
         'kart-bilgi': ['.agent-pills', '.main-task'],
+        'quota-360': ['.main-task', '.task-message'],
+        'quota-panel-360': ['.quota-view', '.quota-row small'],
+        'working-640-150': ['.agent-pills', '.main-task'],
         'sesli-sohbet': ['text=Sesli sohbeti başlat'], 'sesli-dinliyor': ['text=Dinliyor…'],
         ipucu: ['.afu-mesaj-ipucu'], devir: ['.task-handoff'], kota: ['.quota-view'], orkestra: ['.orkestra-select', '.orkestra-input'],
       };
@@ -110,6 +122,24 @@ try {
         if (!balloon || balloon.width < 200) errors.push('Gerçek pet balonu standart genişlikte çizilmiyor');
       }
       if (name === 'balon-okudum' && await page.locator('.afu-balon-metin li').count() !== 2) errors.push('İki madde görünmüyor');
+      if (name === 'kart-mesaj') {
+        const m = await page.locator('#afu-character > .afu-konusma-balonu').evaluate(el => {
+          const text = el.querySelector('.afu-balon-metin'), ok = el.querySelector('.afu-balon-kapat');
+          const p = el.parentElement.getBoundingClientRect();
+          return { clamp: getComputedStyle(text).webkitLineClamp, overflow: el.scrollHeight > el.clientHeight,
+            overlaps: ok.getBoundingClientRect().bottom > text.getBoundingClientRect().top,
+            covers: el.getBoundingClientRect().bottom > p.top + p.height / 2 };
+        });
+        if (m.clamp !== '3' || m.overflow || m.overlaps || m.covers) errors.push(`Kart balonu: ${JSON.stringify(m)}`);
+      }
+      if (['quota-360', 'working-640-150'].includes(name)) {
+        const m = await page.locator('.main-task').evaluate(el => ({ h: el.clientHeight, scroll: el.scrollHeight }));
+        if (m.scroll > m.h) errors.push(`Görev dikey kırpılıyor: ${JSON.stringify(m)}`);
+      }
+      if (name === 'quota-panel-360') {
+        const cut = await page.locator('.quota-row small').evaluateAll(els => els.some(el => el.scrollWidth > el.clientWidth || el.scrollHeight > el.clientHeight));
+        if (cut) errors.push('Kota yenilenme metni kırpılıyor');
+      }
       if (name === 'menu') for (const label of ['Kota', 'Uygulamalar', 'Orkestra', 'Sohbet', 'Daha fazla', 'Küçült', "Afu'ya sor"]) {
         if (!await page.locator('footer button').filter({ hasText: label }).first().isVisible()) errors.push(`Menü etiketi eksik: ${label}`);
       }
@@ -140,7 +170,7 @@ const unique = new Set(files.map(r => r.md5)).size === files.length;
 say(`MD5 kontrolü: ${files.length} dosya, ${unique ? 'tümü farklı' : 'TEKRAR VAR'}`);
 const failed = results.filter(r => r.errors.length);
 const complete = failed.length === 0 && unique && files.length === cases.length;
-const report = `${complete ? 'SONUC: TAMAM - 3 görüntü' : 'SONUC: YARIM - ' + failed.map(r => r.file + ': ' + r.errors.join('; ')).join(' | ')}\n\nGerçek ürün DOM ve CSS; başsız Chromium; deviceScaleFactor=1; standart kart 640px; ürün kodu değişmedi.\n\nÇıktı: ${out}\n\n${files.length} PNG üretildi; ${results.filter(r => !r.errors.length).length} senaryo kabul kontrolünden geçti. Başarısız kareler tanıtım için kabul edilmemelidir; gerçek mevcut davranışın kanıtıdır.\n\nPet balonu ve kart ayrıntısı Okudum düğmesi gösterir.\n\n| Dosya | Ölçü | Bayt | MD5 |\n|---|---|---:|---|\n${files.map(r => `| ${r.file} | ${r.width}×${r.height} | ${r.bytes} | ${r.md5} |`).join('\n')}\n\nGerçek konsol çıktısı:\n\n\`\`\`text\n${log.join('\n')}\n\`\`\`\n`;
+const report = `${complete ? `SONUC: TAMAM - ${cases.length} görüntü` : 'SONUC: YARIM - ' + failed.map(r => r.file + ': ' + r.errors.join('; ')).join(' | ')}\n\nGerçek ürün DOM ve CSS; başsız Chromium; deviceScaleFactor=1; standart kart 640px; ürün kodu değişmedi.\n\nÇıktı: ${out}\n\n${files.length} PNG üretildi; ${results.filter(r => !r.errors.length).length} senaryo kabul kontrolünden geçti. Başarısız kareler tanıtım için kabul edilmemelidir; gerçek mevcut davranışın kanıtıdır.\n\nPet balonu ve kart ayrıntısı Okudum düğmesi gösterir.\n\n| Dosya | Ölçü | Bayt | MD5 |\n|---|---|---:|---|\n${files.map(r => `| ${r.file} | ${r.width}×${r.height} | ${r.bytes} | ${r.md5} |`).join('\n')}\n\nGerçek konsol çıktısı:\n\n\`\`\`text\n${log.join('\n')}\n\`\`\`\n`;
 await writeFile(path.join(out, 'SONUC_TANITIM_GORUNTU.md'), report);
 await writeFile(path.join(out, 'verification.json'), JSON.stringify({ complete, unique, results }, null, 2));
 process.exitCode = complete ? 0 : 1;
