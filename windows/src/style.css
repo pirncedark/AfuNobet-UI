@@ -53,8 +53,8 @@ h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow
 .main-task[data-expression=alert]{border-color:#cc9b4555}
 .main-task[data-expression=error]{border-color:#e2777155}
 .main-task[data-expression=error] .task-message{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block;max-height:15px}
-.other-tasks{margin-top:6px;display:flex;flex-direction:column;gap:1px;flex-shrink:0;overflow:hidden}
-.task-row{height:19px;min-height:19px;display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:transparent;color:#a6b4cb;font-size:9px;border-radius:5px;padding:0 3px}
+.other-tasks{margin-top:6px;display:flex;flex-direction:column;gap:4px;flex-shrink:0;overflow:hidden}
+.task-row{height:28px;min-height:28px;display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:transparent;color:#a6b4cb;font-size:11px;border-radius:5px;padding:0 3px}
 .task-row:hover{background:#ffffff0a}
 .row-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-status{width:74px;flex-shrink:0;text-align:right;color:#7f95b5;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -213,7 +213,8 @@ button.tiklandi{animation:tik-nabiz .32s ease-out}
 .sor-view{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .apps-view{flex:1 1 auto;min-height:0}
 .tik-bildirim[hidden]{display:none}
-.overview{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.overview{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.overview .main-task{flex-shrink:1;min-height:28px;overflow-y:auto;scrollbar-width:thin}
 /* Orkestra görünümü kartın içinde kalır, alt düğme satırını (Görevlere dön) itip gizlemez. */
 .orkestra-view{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:2px 4px 6px 0;font-size:10px;color:#c9d6e8}
 .orkestra-view h1{font-size:15px;margin:2px 0 6px}
@@ -268,8 +269,8 @@ footer button{flex:0 0 auto;overflow:visible;text-overflow:clip}
 footer .text-button{display:inline-flex;align-items:center;gap:4px;padding:6px 3px}
 footer .sor-button{padding:7px 10px;margin-left:auto}
 footer .sor-button::before{content:"✦";margin-right:4px}
-.more-menu{position:absolute;right:14px;bottom:48px;z-index:20;display:flex;flex-direction:column;gap:2px;width:190px;max-width:calc(100% - 28px);max-height:calc(100% - 60px);overflow-y:auto;padding:6px;border:1px solid #7ea3d54a;border-radius:10px;background:#121a2b;box-shadow:0 8px 20px #02091680}
-.more-menu .menu-item{text-align:left;flex:none;min-height:26px;padding:5px 8px;overflow:visible;text-overflow:clip}
+.more-menu{position:absolute;right:14px;bottom:48px;z-index:20;display:flex;flex-direction:column;gap:4px;width:190px;max-width:calc(100% - 28px);max-height:calc(100% - 60px);overflow-y:auto;padding:6px;border:1px solid #7ea3d54a;border-radius:10px;background:#121a2b;box-shadow:0 8px 20px #02091680}
+.more-menu .menu-item{text-align:left;flex:none;min-height:28px;padding:5px 8px;overflow:visible;text-overflow:clip}
 .tik-bildirim:not([hidden])+.more-menu{bottom:76px;max-height:calc(100% - 88px)}
 .btn-icon{flex:none;font-size:12px}
 .page-button{display:flex;align-items:center;gap:5px}
@@ -280,7 +281,7 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 .collapse-button::before{content:"−";margin-right:3px}
 @container (max-width:360px){
   footer .back-button .btn-label{display:none}
-  footer .collapse-button{font-size:0;width:24px;height:26px;justify-content:center;padding:5px 3px;line-height:16px}
+  footer .collapse-button{font-size:0;width:28px;height:28px;justify-content:center;padding:5px 3px;line-height:16px}
   footer .collapse-button::before{font-size:16px;margin:0}
 }
 /* Kart içi arama katmanı: aynı renk, yükseklik ve odak halkası. */
@@ -288,7 +289,7 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 .modal-dialog{display:flex;flex-direction:column;min-width:0;width:100%;min-height:0;border:1px solid #b7cef02a;border-radius:12px;background:#121a2b;padding:10px}
 .modal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex:none}
 .modal-title{font-size:16px;line-height:1.25;font-weight:650;flex:1;min-width:0}
-.icon-button{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;border:1px solid #ffffff1f;border-radius:7px;background:#ffffff08;color:#a7bbd5;font-size:14px}
+.icon-button{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;border:1px solid #ffffff1f;border-radius:7px;background:#ffffff08;color:#a7bbd5;font-size:14px}
 .icon-button:hover{background:#ffffff14;color:#e6eefa}
 .modal-body{min-height:0;overflow:auto;scrollbar-width:thin}
 .search-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
@@ -302,7 +303,7 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 
 /* M3: standart kartta dört sayfa; dar pencerede okunabilir yerleşim. */
 footer .page-button .btn-icon{display:none}
-footer .page-button,footer .more-button,footer .collapse-button,footer .sor-button{min-height:28px}
+footer .page-button,footer .more-button,footer .collapse-button,footer .sor-button{min-height:28px;min-width:28px}
 footer{height:auto;min-height:32px;padding-top:4px}
 .overview{padding-bottom:5px}
 .task-insight{font-size:9px;line-height:14px;color:#a7bbd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -318,3 +319,15 @@ footer{height:auto;min-height:32px;padding-top:4px}
  #island[data-mode=expanded] #content{grid-column:1;padding-top:8px;padding-bottom:8px}
  footer .collapse-button{min-height:28px}
 }
+
+/* M11: consistent hit areas, including secondary controls inside panels. */
+#content :is(button, summary, input, select, a[href]),
+#afu-pet-balon :is(button, summary, a[href]){min-width:28px;min-height:28px}
+#content header{height:28px}
+#content .log-link{display:inline-flex;align-items:center;justify-content:center}
+#content .menu-advanced[open] summary{margin-bottom:4px}
+#content .menu-advanced .menu-item{width:100%}
+#content .chat-actions{flex-wrap:wrap;gap:4px}
+#content .orkestra-actions{flex-wrap:wrap}
+
+#afu-pet-balon .afu-balon-kapat{min-width:28px;min-height:28px}

@@ -16,14 +16,19 @@ const log = [];
 const say = line => { log.push(String(line)); console.log(line); };
 
 // Ekran tanımları: ad, preview.html case'i, ürüne özel hazırlık ve gerçek tıklamalar.
+const sayfaAc = async (p, ad) => {
+  const button = p.locator("footer .page-button", { hasText: ad }).first();
+  if (await button.isVisible()) await button.click();
+  else { await p.locator(".more-button").click(); await p.locator(".more-menu .page-button", { hasText: ad }).click(); }
+};
 const ekranlar = [
   { ad: "genel-bakis", case: "working" },
   { ad: "gorev-karti", case: "uzun" },
-  { ad: "kota", case: "working", adimlar: [p => p.locator("footer .page-button", { hasText: "Kota" }).first().click()] },
-  { ad: "uygulamalar", case: "working", adimlar: [p => p.locator("footer .page-button", { hasText: "Uygulamalar" }).first().click(), p => p.waitForTimeout(400)] },
-  { ad: "orkestra", case: "working", adimlar: [p => p.locator("footer .page-button", { hasText: "Orkestra" }).first().click(), p => p.locator(".orkestra-input").waitFor(), p => p.locator(".orkestra-input").fill("M10 ekran taramasi")] },
+  { ad: "kota", case: "working", adimlar: [p => sayfaAc(p, "Kota")] },
+  { ad: "uygulamalar", case: "working", adimlar: [p => sayfaAc(p, "Uygulamalar"), p => p.waitForTimeout(400)] },
+  { ad: "orkestra", case: "working", adimlar: [p => sayfaAc(p, "Orkestra"), p => p.locator(".orkestra-input").waitFor(), p => p.locator(".orkestra-input").fill("M10 ekran taramasi")] },
   { ad: "sohbet", case: "sohbet" },
-  { ad: "sesli-sohbet", case: "sohbet", adimlar: [p => p.getByRole("button", { name: "Sesli sohbeti başlat" }).click(), p => p.getByText("Dinliyor…", { exact: true }).waitFor()] },
+  { ad: "sesli-sohbet", case: "working", hazirla: async () => { window.afuTest.island.setView("chat"); await window.afuTest.island.chat.refresh(); }, adimlar: [p => p.getByRole("button", { name: "Sesli sohbeti başlat" }).click(), p => p.getByText("Dinliyor…", { exact: true }).waitFor()] },
   { ad: "daha-fazla", case: "working", adimlar: [p => p.locator(".more-button").click()] },
   { ad: "ayarlar", case: "working", adimlar: [p => p.locator(".more-button").click(), p => p.locator(".menu-advanced summary").click()] },
   { ad: "gorev-ara", case: "busy", adimlar: [p => p.locator(".search-button").click(), p => p.locator(".search-input").fill("a"), p => p.waitForTimeout(250)] },
@@ -110,11 +115,26 @@ const DENETIM = giris => {
     const sinif = String(el.className || "").trim().split(/\s+/).filter(Boolean).slice(0, 2).join(".");
     return `${el.tagName.toLowerCase()}${sinif ? `.${sinif}` : ""}`;
   };
+  const gorunenAlan = el => {
+    const r = el.getBoundingClientRect();
+    let l = Math.max(0, r.left), t = Math.max(0, r.top), right = Math.min(innerWidth, r.right), b = Math.min(innerHeight, r.bottom);
+    for (let p = el.parentElement; p; p = p.parentElement) {
+      const s = getComputedStyle(p), a = p.getBoundingClientRect();
+      if (s.display === "none" || s.visibility === "hidden" || Number(s.opacity) === 0) return null;
+      if (p.tagName === "DETAILS" && !p.open && !p.querySelector(":scope > summary")?.contains(el)) return null;
+      if (s.overflowX !== "visible") { l = Math.max(l, a.left); right = Math.min(right, a.right); }
+      if (s.overflowY !== "visible") { t = Math.max(t, a.top); b = Math.min(b, a.bottom); }
+    }
+    if (right <= l || b <= t) return null;
+    // Occluded controls belong to another layer, not the active click surface.
+    const points = [[(l+right)/2,(t+b)/2], [l+1,t+1], [right-1,b-1]];
+    return points.some(([x,y]) => { const top = document.elementFromPoint(x,y); return top && (el.contains(top) || top.contains(el)); }) ? { l,t,r:right,b } : null;
+  };
   const gorunur = el => {
     const s = getComputedStyle(el);
     if (s.display === "none" || s.visibility === "hidden" || Number(s.opacity) === 0) return false;
     const r = el.getBoundingClientRect();
-    return r.width > 0 && r.height > 0;
+    return r.width > 0 && r.height > 0 && !!gorunenAlan(el);
   };
   const hepsi = [...new Set(kokler.flatMap(k => [...k.querySelectorAll("*")]))].filter(gorunur);
   const dokunulabilir = hepsi.filter(el => el.matches("button, summary, a[href], input, textarea, select, [role=switch], [role=menuitem], [role=menuitemcheckbox], [tabindex]:not([tabindex='-1'])"));
@@ -130,7 +150,7 @@ const DENETIM = giris => {
   }
   for (const el of hepsi) {
     const r = el.getBoundingClientRect();
-    if (r.right > window.innerWidth + 1 || r.left < -1) {
+    if ((r.right > window.innerWidth + 1 || r.left < -1) && !el.matches("img.pet-image, canvas.pet-image")) {
       if (!kayan(el)) sorunlar.push({ tip: "yatay-tasma", nerede: ad(el), olcu: `sol ${r.left.toFixed(0)} sağ ${r.right.toFixed(0)} pencere ${window.innerWidth}` });
     }
   }
@@ -141,15 +161,18 @@ const DENETIM = giris => {
     }
   }
   // 3) birbirine yapışık tıklanabilirler (<4px boşluk)
-  const dikdortgen = el => { const r = el.getBoundingClientRect(); return { el, l: r.left, t: r.top, r: r.right, b: r.bottom }; };
+  const dikdortgen = el => ({ el, ...gorunenAlan(el) });
   const kutular = dokunulabilir.map(dikdortgen);
   for (let i = 0; i < kutular.length; i++) for (let j = i + 1; j < kutular.length; j++) {
     const a = kutular[i], b = kutular[j];
     if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+    // A foreground menu/modal intentionally overlays the underlying page.
+    const layer = el => el.closest(".modal-backdrop, .more-menu, .soru-kap, .afu-mesaj-detayi, .sistem-panel");
+    if (layer(a.el) !== layer(b.el)) continue;
     const ortusX = Math.min(a.r, b.r) - Math.max(a.l, b.l), ortusY = Math.min(a.b, b.b) - Math.max(a.t, b.t);
     const boslukY = Math.max(a.t, b.t) - Math.min(a.b, b.b), boslukX = Math.max(a.l, b.l) - Math.min(a.r, b.r);
-    if (ortusX > 1 && boslukY < 4) sorunlar.push({ tip: "yapisik-dugme", nerede: `${ad(a.el)} | ${ad(b.el)}`, olcu: `dikey boşluk ${boslukY.toFixed(1)}px` });
-    else if (ortusY > 1 && boslukX < 4) sorunlar.push({ tip: "yapisik-dugme", nerede: `${ad(a.el)} | ${ad(b.el)}`, olcu: `yatay boşluk ${boslukX.toFixed(1)}px` });
+    if (ortusX > 1 && boslukY < 4 * zoom - 0.5) sorunlar.push({ tip: "yapisik-dugme", nerede: `${ad(a.el)} | ${ad(b.el)}`, olcu: `dikey boşluk ${boslukY.toFixed(1)}px` });
+    else if (ortusY > 1 && boslukX < 4 * zoom - 0.5) sorunlar.push({ tip: "yapisik-dugme", nerede: `${ad(a.el)} | ${ad(b.el)}`, olcu: `yatay boşluk ${boslukX.toFixed(1)}px` });
   }
   // 4) 28px'ten küçük tıklama alanı (mantıksal ölçü: zoom bölünür)
   for (const el of dokunulabilir) {
