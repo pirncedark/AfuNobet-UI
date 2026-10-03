@@ -8,8 +8,14 @@ import sys
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-# Worktree'de calisildigi icin gercek depo 3 ust dizinde
-sys.path.insert(0, str(ROOT.parents[2] / "AfuNobet"))
+# Kardes AfuNobet deposu (afu paketi): ortam degiskeni, yan klasor ya da
+# afuproject altindaki herhangi bir ust dizinde aranir; CI'da yoksa modul atlanir.
+_adaylar = [Path(os.environ["AFUNOBET_DIR"])] if os.environ.get("AFUNOBET_DIR") else []
+_adaylar += [p / "AfuNobet" for p in ROOT.parents] + [p / "afuproject" / "AfuNobet" for p in ROOT.parents]
+_kardes = next((p for p in _adaylar if (p / "afu" / "__init__.py").is_file()), None)
+if _kardes is None:
+    pytest.skip("Kardes AfuNobet deposu (afu paketi) bulunamadi; AFUNOBET_DIR ile goster.", allow_module_level=True)
+sys.path.insert(0, str(_kardes))
 spec = importlib.util.spec_from_file_location("ui_state_loop_delivery", ROOT / "delivery/AfuNobet/afu/ui_state_loop.py")
 loop = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(loop)
