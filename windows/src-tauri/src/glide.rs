@@ -172,10 +172,19 @@ fn screen(win: &tauri::WebviewWindow) -> (i32, i32, i32, i32) {
         let p = m.position(); let s = m.size(); (p.x, p.y, p.x + s.width as i32, p.y + s.height as i32)
     }).unwrap_or((0, 0, 1920, 1080))
 }
+/// R2: petin bulunduğu ekranın çalışma alanı (görev çubukları hariç).
+fn calisma_alani(win: &tauri::WebviewWindow) -> Option<(i32, i32, i32, i32)> {
+    win.current_monitor().ok().flatten().map(|m| {
+        let w = m.work_area(); (w.position.x, w.position.y, w.position.x + w.size.width as i32, w.position.y + w.size.height as i32)
+    })
+}
+/// R2: yer her çağrıda petin şu anki ekranından hesaplanır; izleyici 2 sn'de
+/// bir çağırdığı için ekran/çözünürlük/ölçek değişince yer kendiliğinden düzelir.
 fn destination(win: &tauri::WebviewWindow, size: i32) -> (i32, i32) {
     let bounds = screen(win);
-    let bar = crate::taskbar::cubuk().unwrap_or(crate::taskbar::Cubuk { rect: (bounds.0, bounds.3 - 48, bounds.2, bounds.3), kenar: crate::taskbar::Kenar::Alt, oto_gizli: true });
-    crate::taskbar::pet_konumu(&bar, crate::taskbar::baslat_rect(), size, size, bounds)
+    let calisma = calisma_alani(win).unwrap_or(bounds);
+    let bar = crate::taskbar::cubuk();
+    crate::yaslanma::pet_yeri(bounds, calisma, bar.as_ref(), crate::taskbar::baslat_rect(), size, size)
 }
 /// Pet penceresinin hedef ölçüsü ve konumu: (x, y, fiziksel yükseklik).
 /// Balon açıksa genişlik değişmez, yalnız YUKARI büyür ve alt kenar
