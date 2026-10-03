@@ -1,10 +1,15 @@
 name: CI
 
+# Pull request'lerde (hedef dal fark etmez) ve main'e push'ta calisir.
+# workflow_dispatch: Actions sekmesinden elle tetiklemek icin.
 on:
   pull_request:
+    branches:
+      - '**'
   push:
     branches:
       - main
+  workflow_dispatch:
 
 # Ayni dal icin eski kosulari iptal et, en son durum gecerli olsun.
 concurrency:
@@ -19,6 +24,8 @@ permissions:
 jobs:
   node:
     name: Node (tsc + vitest)
+    # Testler Windows yol bicimine (\\) ve win32 davranisina dayaniyor;
+    # bu yuzden ubuntu yerine windows-latest.
     runs-on: windows-latest
     timeout-minutes: 20
     defaults:
@@ -28,10 +35,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Node LTS kur (package-lock.json v3 -> Node 18+)
+      - name: Node 20 kur
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '20'
           cache: 'npm'
           cache-dependency-path: windows/package-lock.json
 
@@ -41,8 +48,8 @@ jobs:
       - name: Tip kontrolu
         run: npx tsc --noEmit
 
-      - name: Birim testler
-        run: npm test
+      - name: Birim testler (vitest)
+        run: npx vitest run tests --configLoader runner
 
   rust:
     name: Rust (cargo test)
@@ -52,6 +59,9 @@ jobs:
       # whisper-rs -> whisper-rs-sys -> bindgen LLVM'e ihtiyac duyar.
       # windows-latest goruntusunde LLVM kuruludur; yol burada acikca verilir.
       LIBCLANG_PATH: C:\Program Files\LLVM\bin
+    defaults:
+      run:
+        working-directory: windows/src-tauri
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,28 +69,33 @@ jobs:
       - name: Rust stable
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Rust derleme/onbellek onbellegi
+      - name: Rust derleme onbellegi
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: windows -> windows/Cargo.lock
+          # Cargo workspace koku windows/ (src-tauri onun uyesi), target orada.
+          workspaces: windows -> target
 
       # tauri build betigi frontendDist (../dist) dizinini arar; dist .gitignore'lu,
-      # bu yuzden derimeden once bos bir yer tutucu olusturulur.
+      # bu yuzden derlemeden once bos bir yer tutucu olusturulur.
       - name: Dist yer tutucu
         shell: pwsh
+        working-directory: windows
         run: |
-          New-Item -ItemType Directory -Force windows/dist | Out-Null
-          if (-not (Test-Path windows/dist/index.html)) {
-            New-Item -ItemType File -Force windows/dist/index.html | Out-Null
+          New-Item -ItemType Directory -Force dist | Out-Null
+          if (-not (Test-Path dist/index.html)) {
+            New-Item -ItemType File -Force dist/index.html | Out-Null
           }
 
       - name: Birim ve sozlesme testleri
-        run: cargo test --manifest-path windows/Cargo.toml --locked
+        run: cargo test --locked
 
   python:
     name: Python (pytest)
+    # tests/ _winapi gibi Windows'a ozel moduller kullaniyor.
     runs-on: windows-latest
     timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -90,10 +105,15 @@ jobs:
         with:
           python-version: '3.11'
 
+      # Kokte requirements dosyasi yok; varsa onu da kur.
       - name: Test bagimliliklari
-        run: python -m pip install --upgrade pip pytest pillow numpy
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
+          python -m pip install pytest pillow numpy
 
       # KOK dizinindeki tests/ klasoru: kapi_test.py elle calistirilan bir
       # yardimci betiktir, pytest taramasina girmez (uygulama acmaya calisir).
       - name: Birim testler (kok)
-        run: python -m pytest -q tests
+        run: python -m pytest -q tests -p no:cacheprovider
