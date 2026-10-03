@@ -28,6 +28,7 @@ mod kimlik;
 mod protokol;
 mod mesajlar;
 mod ipc;
+mod claude_hook;
 
 use island::{PollGate, ScreenInfo};
 use serde::Serialize;
@@ -88,6 +89,11 @@ async fn codex_action<T: Send + 'static>(app: AppHandle, action: impl FnOnce(Arc
     tauri::async_runtime::spawn_blocking(move || action(codex_bridge(&app)?)).await
         .map_err(|_| "Asistan yanıt veremedi. Yeniden dene.".to_owned())?
 }
+#[tauri::command]
+async fn is_claude_hook_installed() -> bool {
+    claude_hook::is_installed()
+}
+
 #[tauri::command]
 async fn codex_status(app: AppHandle) -> Result<codex::CodexStatus, String> {
     codex_action(app, |bridge| bridge.status().map_err(|error| codex::durum_metni(&error).to_owned())).await
@@ -368,7 +374,8 @@ pub fn run() {
             app_download,
             project_open,
             studio_open,
-            codex_status,
+            is_claude_hook_installed,
+             codex_status,
             codex_send,
             codex_cancel,
             codex_login,

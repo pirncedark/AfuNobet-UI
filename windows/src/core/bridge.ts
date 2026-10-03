@@ -26,6 +26,7 @@ export const Bridge = {
   codexCancel: () => action<unknown>("codex_cancel"),
   codexLogin: () => action<void>("codex_login"),
   bildirimAyarlari: () => action<{ muted: boolean }>("bildirim_ayarlari"),
+  sesSessiz: (muted: boolean) => action<{ muted: boolean }>("ses_sessiz", { muted }),
   codexLoginCancel: () => action<unknown>("codex_login_cancel"),
   codexInstall: () => action<void>("codex_install"),
   voiceOpenSettings: (kind: "speech" | "microphone" | "network") => action<void>("voice_open_settings", { kind }),
@@ -66,6 +67,7 @@ export const Bridge = {
   setPet: (on: boolean) => call<boolean>("set_pet", { on }),
   trayMode: (on: boolean) => call<void>("tray_mode", { on }),
   trayStatus: (durum: string, title: string) => call<void>("set_tray_status", { durum, title }),
+  claudeHookInstalled: () => call<boolean>("is_claude_hook_installed"),
 };
 export async function onEvent<T>(name: string, handler: (payload: T) => void) {
   if (!IS_TAURI) return () => {};

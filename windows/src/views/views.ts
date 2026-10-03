@@ -238,35 +238,56 @@ export class AfuViews {
     for (const row of rows.filter(t => t.id !== task?.id).slice(0, Math.max(0, ROW_LIMIT - Math.min(subs.length, ROW_LIMIT)))) this.others.append(this.taskRow(row));
     if (view === "quota") this.renderQuota();
   }
-  private healthCheck = { codex: false, ses: false, mesajlar: [] as KopruMesaj[] };
+  private isCodexReady(status: unknown): boolean {
+    return typeof status !== "string" && (status as any)?.status === "hazir" && (status as any)?.loggedIn === true;
+  }
+  
+  private healthCheck = { codex: false, ses: false, hookInstalled: false, mesajlar: [] as KopruMesaj[] };
   private async updateHealth() {
     try { this.healthCheck.ses = !(await Bridge.bildirimAyarlari()).muted; } catch { this.healthCheck.ses = false; }
-    try { const c = await Bridge.codexStatus(); this.healthCheck.codex = typeof c !== "string" && c?.loggedIn === true; } catch { this.healthCheck.codex = false; }
+    try { const c = await Bridge.codexStatus(); this.healthCheck.codex = this.isCodexReady(c); } catch { this.healthCheck.codex = false; }
     try { this.healthCheck.mesajlar = (await Bridge.mesajlar()) ?? []; } catch { /* mesajlar yoksa kopru yalnizca gorevlere bakar */ }
+    try { this.healthCheck.hookInstalled = (await Bridge.claudeHookInstalled()) === true; } catch { this.healthCheck.hookInstalled = false; }
     const afuOk = !State.snapshot.sourceUnavailable;
-    // Claude icin ust satirdaki "Afu baglantisi" ile ayni kaynak: son 5 dk'da
-    // mesaj ya da ada canli is (kopru.ts).
-    const claudeOk = kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, Date.now()).bagli;
+    const now = Date.now();
+    const kd = kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, now);
+    const claudeOk = this.healthCheck.hookInstalled;
+    const claudeCanli = claudeOk && kd.bagli;
+    
     const codexOk = this.healthCheck.codex;
     const sesOk = this.healthCheck.ses;
 
-    // Kucuk hap/rozetler: yesil ✓, gri ✗. Ham metin degil, kartin stiline uyan
-    // rozetler; her rozet durumu hem renkte hem isarette tek tek anlatir.
-    const pill = (ad: string, ok: boolean) => h("span", { class: `health-pill${ok ? " ok" : " kapali"}`, "data-ok": String(ok), title: `${ad} ${ok ? "calisiyor" : "kapali"}`, role: "img", "aria-label": `${ad} ${ok ? "calisiyor" : "kapali"}` },
-      h("span", { class: "hp-ad", text: ad }), " ", h("span", { class: "hp-isaret", text: ok ? "✓" : "✗", "aria-hidden": "true" }));
+    const pill = (ad: string, ok: boolean, canli?: boolean) => {
+      const p = h("span", { class: `health-pill${ok ? " ok" : " kapali"}`, "data-ok": String(ok), title: `${ad} ${ok ? "calisiyor" : "kapali"}`, role: "img", "aria-label": `${ad} ${ok ? "calisiyor" : "kapali"}` },
+        h("span", { class: "hp-ad", text: ad }), " ", h("span", { class: "hp-isaret", text: ok ? "✓" : "✗", "aria-hidden": "true" }));
+      if (canli) {
+        p.className += " canli";
+        p.append(h("span", { class: "hp-dot", title: "Son 5 dk içinde etkinlik" }));
+      }
+      return p;
+    };
+
     this.healthStrip.replaceChildren(
       pill("AfuNöbet", afuOk),
-      pill("Codex", codexOk),
-      pill("Sesler", sesOk),
-      pill("Claude", claudeOk)
+      pill("GPT", codexOk),
+      pill("Ses", sesOk),
+      pill("Claude", claudeOk, claudeCanli)
     );
 
     this.healthStrip.onclick = () => {
-      if (!afuOk) this.flash("AfuNöbet kapalı, uygulamayı yeniden başlat.");
-      else if (!codexOk) this.flash("Codex oturumu yok, 'Afu'ya sor' kısmından giriş yap.");
-      else if (!sesOk) this.flash("Sesler kapalı, tepsi (sağ alt) menüsünden açabilirsin.");
-      else if (!claudeOk) this.flash("Claude görünmüyor, Claude Code hook'unun kurulu olduğundan emin ol.");
-      else this.flash("Tüm sistemler aktif ve çalışıyor.");
+      if (!afuOk) {
+        this.flash("Afu izlemeyi durdurdu, yeniden başlatmak için dokun.");
+      } else if (!codexOk) {
+        this.flash("GPT hesabına bağlı değil, bağlanmak için dokun.");
+        void Bridge.codexLogin();
+      } else if (!sesOk) {
+        this.flash("Afu'nun sesi kapalı, açmak için dokun.");
+        void Bridge.sesSessiz(false);
+      } else if (!claudeOk) {
+        this.flash("Claude mesajları Afu'ya gelmiyor.");
+      } else {
+        this.flash("Her şey çalışıyor.");
+      }
     };
   }
   private syncFooter(view: ViewName) {

@@ -214,15 +214,16 @@ describe("5) Arama ve filtre (F7)", () => {
 
 // ============================================================ 6) Sağlık şeridi
 describe("6) Sağlık şeridi", () => {
-  it("şerit dört rozet gösterir: AfuNöbet, Codex, Sesler, Claude", () => {
+  it("şerit dört rozet gösterir: AfuNöbet, GPT, Ses, Claude", () => {
     const kaynak = readFileSync("src/views/views.ts", "utf8");
-    for (const ad of ["AfuNöbet", "Codex", "Sesler", "Claude"]) expect(kaynak).toContain(`pill("${ad}"`);
+    for (const ad of ["AfuNöbet", "GPT", "Ses", "Claude"]) expect(kaynak).toContain(`pill("${ad}"`);
     expect(kaynak).toContain('class: "health-strip"');
     expect(kaynak).toContain("health-pill");
   });
-  it("Claude rozeti tek kaynağı (kopru.ts) okur; başka kaynak yok", () => {
+  it("Claude rozeti köprünün kurulu olmasına bakar; canlı nokta kopru.ts'den", () => {
     const kaynak = readFileSync("src/views/views.ts", "utf8");
-    expect(kaynak).toContain("kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, Date.now()).bagli");
+    expect(kaynak).toContain("Bridge.claudeHookInstalled()");
+    expect(kaynak).toContain("kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, now)");
     expect(kaynak).not.toContain("Afu baglantisi satiri");
   });
   it("kopru: son 5 dakikada mesaj VEYA canlı görev bağlı sayılır", () => {
