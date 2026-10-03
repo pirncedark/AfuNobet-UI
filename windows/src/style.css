@@ -194,7 +194,14 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 .task-row:active,.app-open:active:not(:disabled){transform:scale(.97)}
 button.tiklandi{animation:tik-nabiz .32s ease-out}
 @keyframes tik-nabiz{0%{box-shadow:0 0 0 0 #f5b949b3}100%{box-shadow:0 0 0 9px #f5b94900}}
-.tik-bildirim{position:static;align-self:center;margin:auto auto 6px auto;flex-shrink:0;max-width:92%;padding:6px 12px;border-radius:9px;background:#1d3150f2;border:1px solid #7fb6e466;color:#e6f1ff;font-size:10px;line-height:1.35;text-align:center;z-index:5;pointer-events:none;box-shadow:0 6px 18px #0008}
+/* W2: kısa bildirim kendi satırında durur: alt düğme satırının hemen üstünde,
+   akış içinde (position:static). Hiçbir düğmenin üstüne binmez; tek satır,
+   sığmazsa "…" ile kısalır. Görünümler küçülür (flex:1;min-height:0), bildirim
+   ve alt satır küçülmez; %150 ölçekte ve dar kartta da aynı kural geçerli. */
+.tik-bildirim{position:static;align-self:center;margin:auto auto 5px auto;flex:0 0 auto;box-sizing:border-box;max-width:100%;min-width:0;height:22px;padding:0 12px;border-radius:9px;background:#1d3150f2;border:1px solid #7fb6e466;color:#e6f1ff;font-size:10px;line-height:20px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 2px 8px #0006}
+.tik-bildirim:not([hidden])~footer{margin-top:0}
+.sor-view{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.apps-view{flex:1 1 auto;min-height:0}
 .tik-bildirim[hidden]{display:none}
 .overview{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 /* Orkestra görünümü kartın içinde kalır, alt düğme satırını (Görevlere dön) itip gizlemez. */

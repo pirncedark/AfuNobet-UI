@@ -3,7 +3,7 @@ import "../apps.css";
 import { appRows, type AppsSnapshot } from "../core/apps";
 export type ViewName = "overview" | "quota" | "greeting" | "apps" | "chat" | "orkestra" | "sor";
 import { AGENT_TR, STATUS_TR, UI_TR, ui } from "../core/labels";
-import { NAMES, State, currentTasks, elapsedText, expressionFor, listedTasks, preferredTask, quotaRows, taskMessage, taskSummary, type Agent, type Task } from "../core/state";
+import { NAMES, State, maskeleBildirim, currentTasks, elapsedText, expressionFor, listedTasks, preferredTask, quotaRows, taskMessage, taskSummary, type Agent, type Task } from "../core/state";
 import { Bridge } from "../core/bridge";
 import { Modal } from "./modal";
 import { Katman, kapatDugmesi } from "./overlay";
@@ -411,7 +411,9 @@ export class AfuViews {
   setSorContent(content: HTMLElement) { this.sor.replaceChildren(content); }
   setAppsMessage(message: string) { this.appsMessage.textContent = message; }
   flash(message: string) {
-    this.bildirim.textContent = message; this.bildirim.hidden = false;
+    // W2: yol/komut maskelenir; tek satıra sığmazsa tam (maskeli) metin title'da kalır.
+    const metin = maskeleBildirim(message);
+    this.bildirim.textContent = metin; this.bildirim.setAttribute("title", metin); this.bildirim.hidden = false;
     this.bildirim.animate?.([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 160, easing: "ease-out" });
     if (this.bildirimTimer !== null) clearTimeout(this.bildirimTimer);
     this.bildirimTimer = setTimeout(() => { this.bildirimTimer = null; this.bildirim.hidden = true; }, 2600) as unknown as number;
