@@ -19,3 +19,7 @@ dist/
 
 # Sahte test modu (docs/SAHTE_TEST_MODU.md) - her calistirmada yeniden uretilir
 test_durum/
+
+# kurtarma: yerel gorev/log dosyalari depoya girmez
+/~/
+/_gorev/
