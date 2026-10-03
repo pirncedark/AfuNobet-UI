@@ -73,7 +73,11 @@ fn resolve_interpreter(root: &Path, configured: Option<&Path>, exe: Option<&Path
         candidates.push(parent.join("ses/cbenv/Scripts/python.exe"));
     }
     if let Some(project) = root.parent() {
+        candidates.push(project.join("ses/cbenv/Scripts/python.exe"));
         if let Some(parent) = project.parent() { candidates.push(parent.join("_deneme/ses/cbenv/Scripts/python.exe")); }
+    }
+    for parent in root.ancestors() {
+        candidates.push(parent.join("_deneme/ses/cbenv/Scripts/python.exe"));
     }
     // Keep the older development virtual environments as last-resort compatibility.
     candidates.push(root.join(".venv/Scripts/python.exe"));
@@ -95,10 +99,18 @@ pub fn speak(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str,
     speak_with_interpreter(root, directory, choice, text, generation, ticket, python.as_deref())
 }
 fn speak_with_interpreter(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64, python: Option<&Path>) -> Answer {
+    speak_worker(root, directory, choice, text, generation, ticket, python, false)
+}
+#[cfg(test)]
+pub fn speak_headless(root: &Path, directory: &Path, text: &str, generation: &AtomicU64) -> Answer {
+    let python = interpreter(root);
+    speak_worker(Some(root), directory, &Choice::default(), text, generation, 1, python.as_deref(), true)
+}
+fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64, python: Option<&Path>, headless: bool) -> Answer {
     let fallback = || Answer::Fallback("Ayrıntıları ekranda görebilirsin.".into());
     if generation.load(Ordering::Acquire) != ticket { return Answer::Cancelled; }
     let (Some(root), Some(python)) = (root, python) else { return Answer::Fallback(NOT_INSTALLED.into()); };
-    let request = serde_json::json!({"text":text,"ses":choice.ses,"filtre":choice.filtre});
+    let request = serde_json::json!({"text":text,"ses":choice.ses,"filtre":choice.filtre,"headless":headless});
     if fs::write(directory.join("request.json"), request.to_string()).is_err() { return fallback(); }
     let mut command = Command::new(python);
     command.args(["-B"]).arg(root.join("uygulama_sesi.py")).arg(directory)
@@ -138,6 +150,17 @@ fn speak_with_interpreter(root: Option<&Path>, directory: &Path, choice: &Choice
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn worktree_finds_shared_interpreter() {
+        let dir = job_directory();
+        let root = dir.join("_wt/w9-ses/ses_deneme");
+        let shared = dir.join("_deneme/ses/cbenv/Scripts/python.exe");
+        fs::create_dir_all(&root).unwrap();
+        fs::create_dir_all(shared.parent().unwrap()).unwrap();
+        fs::write(&shared, b"placeholder").unwrap();
+        assert_eq!(resolve_interpreter(&root, None, None), Some(shared));
+        fs::remove_dir_all(dir).unwrap();
+    }
     #[test]
     fn interpreter_paths_follow_portable_priority_and_skip_missing_files() {
         let dir = job_directory();

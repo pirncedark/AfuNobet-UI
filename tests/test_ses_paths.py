@@ -13,6 +13,15 @@ spec.loader.exec_module(afu)
 
 
 class SesPathsTest(unittest.TestCase):
+    def test_worktree_finds_shared_installation_without_configuration(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            base = Path(temporary)
+            root = base / '_wt' / 'w9-ses' / 'ses_deneme'
+            root.mkdir(parents=True)
+            shared = base / '_deneme' / 'ses'
+            shared.mkdir(parents=True)
+            self.assertEqual(afu.resolve_local(root), shared)
+
     def test_priority_missing_candidates_and_moved_directory(self):
         with tempfile.TemporaryDirectory() as temporary:
             base = Path(temporary)

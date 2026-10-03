@@ -21,6 +21,7 @@ def resolve_local(root=ROOT, configured=None):
         candidates.append(Path(configured).expanduser())
     candidates.extend((root.parent / 'ses', root / 'ses',
                        root.parent.parent / '_deneme' / 'ses'))
+    candidates.extend(parent / '_deneme' / 'ses' for parent in root.parents)
     return next((path for path in candidates if path.is_dir()), None)
 
 LOCAL = resolve_local(configured=os.environ.get('AFU_SES_DIZIN'))
@@ -185,8 +186,18 @@ def chunk_quality(text, seconds, transcript=None):
     if not 0.025 * len(text) <= seconds <= max(3, 0.18 * len(text)):
         return 'duration_ratio'
     if transcript is not None:
-        from dogrula_sohbet import word_comparison
-        if word_comparison(text, transcript)['word_error_rate'] > 0.15:
+        # Keep validation in the worker; development proof scripts are not shipped.
+        def words(value):
+            return re.findall(r'\w+', value.replace('İ', 'i').lower())
+        expected, heard = words(text), words(transcript)
+        previous = list(range(len(heard) + 1))
+        for row, word in enumerate(expected, 1):
+            current = [row]
+            for column, actual in enumerate(heard, 1):
+                current.append(min(current[-1] + 1, previous[column] + 1,
+                                   previous[column - 1] + (word != actual)))
+            previous = current
+        if previous[-1] / max(1, len(expected)) > 0.15:
             return 'whisper_mismatch'
     return None
 
@@ -363,6 +374,7 @@ class Voice:
                 time.sleep(10)
         self.ref = Path(self.config.get('reference', OUT / 'reference.wav'))
         if not self.config.get('reference'):
+            self.ref.parent.mkdir(parents=True, exist_ok=True)
             subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(LOCAL/'2-Afu-Minik-Kiz.mp3'), '-ac', '1', '-ar', '24000', str(self.ref)], check=True, creationflags=HIDDEN)
 
     def generate(self, text, target, preset):
