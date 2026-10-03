@@ -8,7 +8,8 @@ import { Bridge } from "../core/bridge";
 import { Modal } from "./modal";
 import { Katman, kapatDugmesi } from "./overlay";
 import { kopruDurumu, type KopruMesaj } from "../core/kopru";
-import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, pillAgentOf, stageSteps, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
+import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, pillAgentOf, stageSteps, taskInsight, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
+import { PET_IFADE_OLAYI, loadPetIfade, savePetIfade, saveMessageAlert } from "../core/settings";
 import { ajanKimlik } from "../core/ajan_kimlik";
 
 function createPill(id: string, state: string) {
@@ -26,10 +27,10 @@ type MenuView = "quota" | "apps" | "orkestra" | "chat";
 
 export class AfuViews {
   readonly summary = h("span", { class: "summary", text: "0/0" });
-  /** F7: 10+ görevde görünen arama düğmesi (ana ekranı kalabalık etmez). */
+  /** M3: en az bir görev varsa arama düğmesi görünür. */
   readonly searchButton = h("button", { class: "icon-button search-button", type: "button", text: "⌕", "aria-label": UI_TR.search, title: UI_TR.search, hidden: true, onclick: () => this.openSearch() });
   readonly header = h("header", {}, h("span", { class: "brand", text: UI_TR.brand }), this.summary, this.searchButton,
-    h("span", { class: "claude-lock", text: "🔒 Claude KORUNUYOR" }));
+    h("span", { class: "claude-lock", text: "🔒 Claude KORUNUYOR", title: UI_TR.claudeProtection, "aria-label": UI_TR.claudeProtection }));
   readonly pills = h("nav", { class: "agent-pills", "aria-label": "Ajanlar" });
   readonly card = h("section", { class: "main-task", "aria-live": "polite", tabindex: "0", role: "button", "aria-label": UI_TR.detail });
   readonly others = h("div", { class: "other-tasks" });
@@ -94,10 +95,15 @@ export class AfuViews {
     this.petButton = item("pet-toggle", UI_TR.petOn, () => actions.pet?.());
     this.petButton.setAttribute("role", "menuitemcheckbox");
     this.petButton.setAttribute("aria-checked", "true");
+    this.petButton.title = "Mini pet: Afu küçük karakter olarak görünür.";
+    this.petButton.setAttribute("aria-label", this.petButton.title);
     // Q2: menüyü kapanıran düğme; Esc ve dışarı tıklama dışında görünür yol.
     this.menuClose = kapatDugmesi("text-button menu-item menu-close", ui("close"), () => this.closeMenu(true), "menuitem");
     this.menu = h("div", { class: "more-menu", role: "menu", "aria-label": UI_TR.more, hidden: true },
-      this.petButton, this.menuClose);
+      h("h2", { class: "menu-heading", text: "Ayarlar" }),
+      this.petButton, h("small", { class: "menu-description", text: "Afu küçük karakter olarak görünür." }), this.settingToggle("ifade-toggle", "Arada ifade yap", "Afu boştayken kısa ifadeler yapar.", loadPetIfade, enabled => { if (!savePetIfade(enabled)) return false; window.dispatchEvent(new Event(PET_IFADE_OLAYI)); return true; }),
+      this.settingToggle("alert-toggle", "Mesaj gelince öne gel", "Yeni mesaj geldiğinde Afu görünür.", () => State.settings.messageAlert !== false, enabled => { if (!saveMessageAlert(enabled)) return false; State.settings.messageAlert = enabled; window.dispatchEvent(new Event("afu-message-setting")); return true; }),
+      h("details", { class: "menu-advanced" }, h("summary", { text: "Gelişmiş" }), item("studio-open", "Animasyon stüdyosunu aç", () => { void Bridge.studioOpen().catch(() => this.flash("Stüdyo açılamadı; kurulumunu kontrol et.")); })), this.menuClose);
     this.menu.addEventListener("keydown", (e: Event) => this.onMenuKey(e as KeyboardEvent));
     this.menuKatmani = new Katman(this.menu, () => this.closeMenu(true));
     this.moreButton = h("button", { class: "text-button more-button", type: "button", "aria-haspopup": "menu", "aria-expanded": "false", title: UI_TR.more, "aria-label": UI_TR.more,
@@ -114,7 +120,7 @@ export class AfuViews {
     // Gerçek kart genişliği değişince ikincil sayfalar menüye taşınır.
     if (typeof ResizeObserver !== "undefined") {
       const observer = new ResizeObserver(([entry]) => {
-        const narrow = entry.contentRect.width < 560;
+        const narrow = entry.contentRect.width < 400;
         for (const button of [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton]) {
           if (narrow) {
             button.setAttribute("role", "menuitem");
@@ -137,6 +143,14 @@ export class AfuViews {
     this.el = h("div", { id: "content" }, this.header, this.overview, this.quota, this.apps, this.chat, this.sor, this.orkestra, this.greeting, this.bildirim, this.menu, this.footer, this.modal.el);
     setInterval(() => this.updateHealth(), 5000);
     this.updateHealth();
+  }
+  private settingToggle(cls: string, label: string, description: string, read: () => boolean, save: (enabled: boolean) => boolean) {
+    const button = h("button", { class: `text-button menu-item ${cls}`, type: "button", role: "menuitemcheckbox", title: description, "aria-label": `${label}. ${description}` });
+    const paint = () => { button.setAttribute("aria-checked", String(read())); button.replaceChildren(h("span", { text: label }), h("small", { text: description })); };
+    paint();
+    button.addEventListener("click", () => { if (!save(!read())) this.flash("Ayar kaydedilemedi; yeniden dene."); paint(); });
+    if (typeof window !== "undefined") { window.addEventListener(PET_IFADE_OLAYI, paint); window.addEventListener("afu-message-setting", paint); }
+    return button;
   }
   private fromButton(e: Event) {
     const t = e.target as { closest?: (s: string) => unknown } | null;
@@ -311,6 +325,8 @@ export class AfuViews {
         h("h1", { text: title.text, title: title.title }));
       if (handoff) this.card.append(h("p", { class: "task-handoff", text: handoff, title: handoff }));
       this.card.append(h("p", { class: `task-message${handoff ? " short" : ""}`, text: message, title: message }));
+      const insight = taskInsight(task);
+      if (insight) this.card.append(h("p", { class: "task-insight", text: insight, title: insight }));
       const steps = stageSteps(task);
       if (steps) this.card.append(this.stageBar(steps, true));
       else this.card.append(h("div", { class: "task-meta" },

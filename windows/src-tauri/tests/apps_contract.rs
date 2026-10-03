@@ -3,6 +3,17 @@ mod apps;
 #[path = "../src/apps_state.rs"]
 mod apps_state;
 use apps::{ExeLauncher, Kayit};
+
+#[test]
+fn studyo_yalniz_sabit_mevcut_dosyayi_acar() {
+    let f = Fixture::new();
+    assert!(apps::animasyon_studyo_dogrula(&f.root).is_err());
+    let file = f.file("studyo/animasyon_studyo.html", b"<!doctype html>");
+    assert_eq!(apps::animasyon_studyo_dogrula(&f.root).unwrap(), file.canonicalize().unwrap());
+    std::fs::remove_file(&file).unwrap();
+    std::fs::create_dir(&file).unwrap();
+    assert!(apps::animasyon_studyo_dogrula(&f.root).is_err());
+}
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 use std::{

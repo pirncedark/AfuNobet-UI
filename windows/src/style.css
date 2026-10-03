@@ -292,3 +292,22 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 .search-results .search-row{height:auto;min-height:30px;padding:6px;border:1px solid #b7cef01c;border-radius:7px;background:#172233}
 .search-results .search-row:hover{background:#23456b}
 .search-empty{font-size:11px;color:#a7b4c9;padding:8px 0}
+
+/* M3: standart kartta dört sayfa; dar pencerede okunabilir yerleşim. */
+footer .page-button .btn-icon{display:none}
+footer .page-button,footer .more-button,footer .collapse-button,footer .sor-button{min-height:28px}
+footer{height:auto;min-height:32px;padding-top:4px}
+.overview{padding-bottom:5px}
+.task-insight{font-size:9px;line-height:14px;color:#a7bbd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-heading{font-size:11px;padding:4px 8px;color:#e6edf8}
+.menu-description{font-size:9px;padding:0 8px;color:#a7bbd5}
+.more-menu .menu-item small{display:block;font-size:9px;color:#a7bbd5;white-space:normal;line-height:13px}
+.more-menu .menu-item[aria-checked=true]::before{content:"✓ ";color:#79d8b0}
+.menu-advanced summary{font-size:10px;padding:7px 8px;cursor:pointer}
+@media(max-width:719px){
+ #island[data-mode=expanded]{zoom:1!important;transform:translateX(-50%);width:100%!important;height:100%!important}
+ #island[data-mode=expanded] #island-clip{grid-template-columns:minmax(0,1fr)}
+ #island[data-mode=expanded] #afu-character{display:none}
+ #island[data-mode=expanded] #content{grid-column:1;padding-top:8px;padding-bottom:8px}
+ footer .collapse-button{min-height:28px}
+}

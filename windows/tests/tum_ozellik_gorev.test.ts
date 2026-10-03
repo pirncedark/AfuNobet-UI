@@ -160,8 +160,10 @@ describe("5) Arama ve filtre (F7)", () => {
   }));
   const F = { query: "", agent: "hepsi", status: "hepsi" } as const;
 
-  it("10'dan az görevde arama gizli, 10+'da görünür", () => {
-    expect(filterVisible(hepsi(9))).toBe(false);
+  it("görev yoksa arama gizli, en az bir görevde görünür", () => {
+    expect(filterVisible(hepsi(0))).toBe(false);
+    expect(filterVisible(hepsi(1))).toBe(true);
+    expect(filterVisible(hepsi(9))).toBe(true);
     expect(filterVisible(hepsi(10))).toBe(true);
     expect(filterVisible(hepsi(50))).toBe(true);
   });

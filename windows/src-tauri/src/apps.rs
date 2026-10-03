@@ -487,3 +487,16 @@ fn shell_hedef_ac(target: &std::ffi::OsStr) -> Result<(), ()> {
 fn shell_hedef_ac(_target: &std::ffi::OsStr) -> Result<(), ()> {
     Err(())
 }
+
+/// Sabit yerel HTML; ön yüz yol veya parametre gönderemez.
+pub fn animasyon_studyo_ac(kok: &Path) -> Result<(), String> {
+    let path = animasyon_studyo_dogrula(kok)?;
+    shell_hedef_ac(path.as_os_str()).map_err(|_| "Stüdyo açılamadı; yeniden dene.".into())
+}
+pub(crate) fn animasyon_studyo_dogrula(kok: &Path) -> Result<PathBuf, String> {
+    let error = || "Stüdyo bulunamadı; kurulumunu kontrol et.".to_owned();
+    let root = kok.canonicalize().map_err(|_| error())?;
+    let path = root.join("studyo/animasyon_studyo.html").canonicalize().map_err(|_| error())?;
+    if !path.is_file() || !path.starts_with(&root) { return Err(error()); }
+    Ok(path)
+}

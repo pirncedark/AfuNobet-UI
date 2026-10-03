@@ -47,7 +47,9 @@ async function startSystemPanel() {
   ifadeToggle.setAttribute("role", "switch");
   ifadeToggle.textContent = "Arada ifade yap";
   let ifadeAcik = loadPetIfade();
-  const paintIfade = () => ifadeToggle.setAttribute("aria-checked", String(ifadeAcik));
+  const paintIfade = () => { ifadeAcik = loadPetIfade(); ifadeToggle.setAttribute("aria-checked", String(ifadeAcik)); };
+  window.addEventListener(PET_IFADE_OLAYI, paintIfade);
+  window.addEventListener("afu-message-setting", paintAlert);
   paintIfade();
   ifadeToggle.addEventListener("click", () => {
     if (!savePetIfade(!ifadeAcik)) { message.textContent = "Ayar kaydedilemedi; yeniden dene."; return; }
