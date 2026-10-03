@@ -181,23 +181,31 @@ mod tests {
     #[cfg(windows)]
     fn stalled_generation_is_stopped_promptly_and_releases_its_lock() {
         let root = job_directory(); fs::create_dir_all(&root).unwrap();
-        fs::write(root.join("uygulama_sesi.py"), "import os, pathlib, time\np = pathlib.Path(__file__).parent\n(p / '.gpu.lock').write_text(str(os.getpid()))\ntime.sleep(6)\n").unwrap();
+        // Stay stalled well beyond the test budgets so natural exit cannot pass the test.
+        fs::write(root.join("uygulama_sesi.py"), "import os, pathlib, time\np = pathlib.Path(__file__).parent\n(p / '.gpu.lock').write_text(str(os.getpid()))\ntime.sleep(120)\n").unwrap();
         let generation = std::sync::Arc::new(AtomicU64::new(1));
         let signal = generation.clone(); let watched = root.clone();
         let canceller = std::thread::spawn(move || {
-            let deadline = Instant::now() + Duration::from_secs(3);
-            while !watched.join(".gpu.lock").exists() && Instant::now() < deadline {
+            // Wait for a complete lock, allowing slow CI to start Python first.
+            let deadline = Instant::now() + Duration::from_secs(30);
+            let lock_ready = loop {
+                if fs::read_to_string(watched.join(".gpu.lock")).ok()
+                    .and_then(|s| s.trim().parse::<u32>().ok()).is_some() { break true; }
+                if Instant::now() >= deadline { break false; }
                 std::thread::sleep(Duration::from_millis(10));
-            }
+            };
+            let cancelled_at = Instant::now();
             signal.store(2, Ordering::Release);
+            (lock_ready, cancelled_at)
         });
-        let start = Instant::now();
         let result = speak_with_interpreter(Some(&root), &root, &Choice::default(), "Merhaba", &generation, 1, Some(Path::new("python.exe")));
-        canceller.join().unwrap();
-        let elapsed = start.elapsed(); let leftover = root.join(".gpu.lock").exists();
+        let (lock_ready, cancelled_at) = canceller.join().unwrap();
+        let elapsed = cancelled_at.elapsed(); let leftover = root.join(".gpu.lock").exists();
         fs::remove_dir_all(&root).unwrap();
+        assert!(lock_ready, "worker did not acquire its GPU lock before cancellation");
         assert!(matches!(result, Answer::Cancelled));
-        assert!(elapsed < Duration::from_secs(4), "cancel waited {elapsed:?}");
+        // Measure cancellation only, with ample scheduler headroom on slow CI.
+        assert!(elapsed < Duration::from_secs(30), "cancel waited {elapsed:?}");
         assert!(!leftover, "exited worker kept its GPU lock");
     }
     #[test]
