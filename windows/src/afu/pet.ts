@@ -971,6 +971,18 @@ export function sarkac(adim: number, hiz: number, dt: number, hedef = 0, sert = 
   return { adim: yeniAdim, hiz: yeniHiz };
 }
 
+/**
+ * Premium görünüm: petin ışık/kenar rengi (`data-durum`). Petin kendi tepkisi
+ * (hata, başarı, soru, uyku) önce gelir; sakin pozlarda görevin durumu gösterilir.
+ */
+export function petDurum(pose: PetPose, gorevDurum: string): string {
+  if (pose === "hata" || pose === "uyari") return "hata";
+  if (pose === "basari" || pose === "mutlu") return "basari";
+  if (pose === "dusunme") return "onay-bekliyor";
+  if (pose === "uyku") return "uyku";
+  return gorevDurum;
+}
+
 export class PetModel {
   pose: PetPose = "bekleme";
   balloon: "!" | "?" | null = null;
@@ -1047,6 +1059,7 @@ export class AfuPet {
   readonly appsMenu = h("div", { class: "pet-apps-menu", hidden: true, role: "dialog", "aria-label": "Afu uygulamaları" });
   private appsSnapshot: AppsSnapshot = { apps: [], durumlar: {} };
   private appOpener: ((id: string) => Promise<string | null | void>) | null = null;
+  private gorevDurum = "bosta";
   constructor(open: () => void, private appsRequested?: () => void, private appsVisible?: (on: boolean) => void) {
     this.el = h("button", { id: "afu-pet", hidden: true, "aria-label": "Afu kartını aç", onclick: () => {
       const activate = () => { this.hideApps(); this.model.acknowledge(); open(); };
@@ -1224,9 +1237,12 @@ export class AfuPet {
     this.paint();
     this.dragRaf = requestAnimationFrame(() => this.runPhysics());
   }
+  /** Görevin durumu (adadan gelir); petin kendi tepkisi yoksa ışık rengi bunu izler. */
+  setDurum(durum: string) { this.gorevDurum = durum; this.el.dataset.durum = petDurum(this.model.pose, durum); }
   private paint() {
     const next = this.reduced.matches && ["bekleme", "gecis", "yuzme", "uyanma"].includes(this.model.pose) ? "idle_normal" : this.model.frame;
     this.el.dataset.pose = this.model.pose;
+    this.el.dataset.durum = petDurum(this.model.pose, this.gorevDurum);
     // STÜDYO ÇİZİM BAŞLANGIÇ
     const ayar = PET_AYAR[this.model.pose];
     let scruffTx = 0;
