@@ -1,5 +1,5 @@
 use windows::core::w;
-use windows::Win32::UI::Shell::{SHAppBarMessage, SHQueryUserNotificationState, APPBARDATA, ABM_GETTASKBARPOS, ABM_GETSTATE, ABS_AUTOHIDE, QUNS_RUNNING_D3D_FULL_SCREEN, QUNS_BUSY, QUNS_PRESENTATION_MODE};
+use windows::Win32::UI::Shell::{SHAppBarMessage, SHQueryUserNotificationState, APPBARDATA, ABM_GETTASKBARPOS, ABM_GETSTATE, ABS_AUTOHIDE, QUNS_RUNNING_D3D_FULL_SCREEN, QUNS_PRESENTATION_MODE};
 
 #[derive(Clone, Copy, Debug)]
 pub enum Kenar { Alt, Ust, Sol, Sag }
@@ -79,6 +79,34 @@ pub fn pet_konumu(cubuk: &Cubuk, baslat: Option<(i32, i32, i32, i32)>, w: i32, h
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn pet_size_and_position_respect_work_area_at_each_dpi() {
+        for (scale, size) in [(1.0, 256), (1.25, 320), (1.5, 384)] {
+            for taskbar_height in [40, 48, 72] {
+                let work = (-1920, 0, 0, 1080 - taskbar_height);
+                // Primary taskbar coordinates must not place a secondary pet below its work area.
+                let bar = Cubuk { rect: (0, 1032, 1920, 1080), kenar: Kenar::Alt, oto_gizli: true };
+                let (actual_size, (x, y)) = (crate::dpi::physical_for(256.0, scale) as i32, pet_konumu(&bar, None, size, size, work));
+                assert_eq!(actual_size, size);
+                assert!(x >= work.0 && x + size <= work.2);
+                assert_eq!(y + size, work.3);
+            }
+        }
+    }
+    #[test]
+    fn release_destination_uses_start_and_all_taskbar_edges_at_each_dpi() {
+        for (scale, size) in [(1.0, 256), (1.25, 320), (1.5, 384)] {
+            for (rect, edge, work, start, expected) in [
+                ((0,1032,1920,1080), Kenar::Alt, (0,0,1920,1032), (780,1032,828,1080), (780-size,1032-size)),
+                ((0,0,1920,48), Kenar::Ust, (0,48,1920,1080), (780,0,828,48), (780-size,48)),
+                ((0,0,48,1080), Kenar::Sol, (48,0,1920,1080), (0,20,48,68), (48,68)),
+                ((1872,0,1920,1080), Kenar::Sag, (0,0,1872,1080), (1872,20,1920,68), (1872-size,68)),
+            ] {
+                let bar = Cubuk { rect, kenar: edge, oto_gizli:false };
+                assert_eq!((crate::dpi::physical_for(256.0, scale) as i32, pet_konumu(&bar, Some(start), size, size, work)), (size, expected));
+            }
+        }
+    }
     const SCREEN: (i32, i32, i32, i32) = (0, 0, 1920, 1080);
     fn bottom() -> Cubuk { Cubuk { rect: (0, 1032, 1920, 1080), kenar: Kenar::Alt, oto_gizli: false } }
     #[test]
@@ -96,11 +124,11 @@ mod tests {
     #[test]
     fn every_edge_and_negative_monitor_origin_stays_in_bounds() {
         for (rect, kenar) in [((1872, 0, 1920, 1080), Kenar::Sag), ((0, 0, 48, 1080), Kenar::Sol), ((0, 0, 1920, 48), Kenar::Ust)] {
-            let (x, y) = pet_konumu(&Cubuk { rect, kenar, oto_gizli: false }, None, 128, 128, SCREEN);
-            assert!(x >= 0 && y >= 0 && x + 128 <= 1920 && y + 128 <= 1080);
+            let (x, y) = pet_konumu(&Cubuk { rect, kenar, oto_gizli: false }, None, 256, 256, SCREEN);
+            assert!(x >= 0 && y >= 0 && x + 256 <= 1920 && y + 256 <= 1080);
         }
         let c = Cubuk { rect: (-1920, 1032, 0, 1080), ..bottom() };
-        assert_eq!(pet_konumu(&c, None, 128, 128, (-1920, 0, 0, 1080)), (-1896, 904));
+        assert_eq!(pet_konumu(&c, None, 256, 256, (-1920, 0, 0, 1080)), (-1896, 776));
     }
     #[test]
     fn full_screen_rect_comparison() {

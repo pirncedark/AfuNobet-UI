@@ -89,7 +89,15 @@ describe("Soru kartı", () => {
     const kart = kartOlustur(belge, s, g.gonder, 2) as unknown as Fake;
     expect(kart.find("soru-kimden")[0].textContent).toBe("Codex soruyor · 2 soru");
     expect(kart.find("soru-ayrinti")[0].textContent).toBe("C:\\proje");
-    const d = kart.find("soru-dugme");
+    // Ayrıntı varsayılan kapalı: kod kutusu soru kartını doldurmaz.
+    expect(kart.find("soru-ayrinti")[0].hidden).toBe(true);
+    const ac = kart.find("soru-ayrinti-dugme")[0];
+    expect(kart.find("soru-ayrinti")[0].hidden).toBe(true);
+    expect(ac.textContent).toBe("Ayrıntı");
+    ac.fire("click");
+    expect(kart.find("soru-ayrinti")[0].hidden).toBe(false);
+    expect(ac.textContent).toBe("Ayrıntıyı kapat");
+    const d = kart.find("soru-dugme").filter(x => x.className.includes("soru-dugme") && !x.className.includes("soru-ayrinti-dugme"));
     expect(d.map(x => x.textContent)).toEqual(["İzin ver", "Reddet"]);
     expect(d[0].className).toContain("birincil");
     d[1].fire("click"); d[0].fire("click");
@@ -120,7 +128,8 @@ describe("Soru kartı", () => {
     const [s] = sorulariAyikla([ham()], 0);
     const g = gonderen(async () => { throw new Error("Bu soru artık geçerli değil."); });
     const kart = kartOlustur(belge, s, g.gonder) as unknown as Fake;
-    kart.find("soru-dugme")[0].fire("click");
+    const ilk = kart.find("soru-dugme").filter(x => !x.className.includes("soru-ayrinti-dugme"));
+    ilk[0].fire("click");
     await bekle(); await bekle();
     expect(kart.find("soru-hata")[0].textContent).toBe("Bu soru artık geçerli değil.");
     expect(kart.find("soru-dugme").every(x => !x.disabled)).toBe(true);

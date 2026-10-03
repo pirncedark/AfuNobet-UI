@@ -1,0 +1,99 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+# Ayni dal icin eski kosulari iptal et, en son durum gecerli olsun.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Bu is akisi tamamen acik ve gizli anahtar kullanmaz; butun bagimliliklar
+# kilit dosyalarindan (package-lock.json, Cargo.lock) kurulur.
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Node (tsc + vitest)
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node LTS kur (package-lock.json v3 -> Node 18+)
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+          cache-dependency-path: windows/package-lock.json
+
+      - name: Bagimliliklari kur
+        run: npm ci
+
+      - name: Tip kontrolu
+        run: npx tsc --noEmit
+
+      - name: Birim testler
+        run: npm test
+
+  rust:
+    name: Rust (cargo test)
+    runs-on: windows-latest
+    timeout-minutes: 45
+    env:
+      # whisper-rs -> whisper-rs-sys -> bindgen LLVM'e ihtiyac duyar.
+      # windows-latest goruntusunde LLVM kuruludur; yol burada acikca verilir.
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust derleme/onbellek onbellegi
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: windows -> windows/Cargo.lock
+
+      # tauri build betigi frontendDist (../dist) dizinini arar; dist .gitignore'lu,
+      # bu yuzden derimeden once bos bir yer tutucu olusturulur.
+      - name: Dist yer tutucu
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force windows/dist | Out-Null
+          if (-not (Test-Path windows/dist/index.html)) {
+            New-Item -ItemType File -Force windows/dist/index.html | Out-Null
+          }
+
+      - name: Birim ve sozlesme testleri
+        run: cargo test --manifest-path windows/Cargo.toml --locked
+
+  python:
+    name: Python (pytest)
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Test bagimliliklari
+        run: python -m pip install --upgrade pip pytest pillow numpy
+
+      # KOK dizinindeki tests/ klasoru: kapi_test.py elle calistirilan bir
+      # yardimci betiktir, pytest taramasina girmez (uygulama acmaya calisir).
+      - name: Birim testler (kok)
+        run: python -m pytest -q tests

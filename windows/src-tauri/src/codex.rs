@@ -302,6 +302,17 @@ pub fn close_pending(p: &Pending, err: CodexHata) {
     }
 }
 pub fn resolve_exe() -> Option<PathBuf> {
+    if let Some(p) = std::env::var_os("LOCALAPPDATA") {
+        let base = PathBuf::from(&p).join("OpenAI").join("Codexin");
+        if let Ok(entries) = std::fs::read_dir(&base) {
+            for entry in entries.flatten() {
+                let exe = entry.path().join("codex.exe");
+                if exe.is_file() {
+                    return Some(exe);
+                }
+            }
+        }
+    }
     if let Some(p) = std::env::var_os("APPDATA") {
         let p=PathBuf::from(p).join("npm/node_modules/@openai/codex/node_modules/@openai/codex-win32-x64/vendor/x86_64-pc-windows-msvc/bin/codex.exe");
         if p.is_file() {

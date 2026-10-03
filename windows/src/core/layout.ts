@@ -1,13 +1,63 @@
 // Original window sizes; keep these in step with unchanged island.rs.
 export type IslandMode = "hidden" | "compact" | "expanded" | "pet" | "tray";
-export type IslandViewName = "overview" | "quota" | "greeting" | "apps" | "chat" | "orkestra";
-export const PANEL_W = 720, PANEL_H = 320;
+export type IslandViewName = "overview" | "quota" | "greeting" | "apps" | "chat" | "orkestra" | "sor";
+/**
+ * Kartın büyütme oranı (P8). Tasarım 720x320 CSS px'te yazıldı; pencere
+ * KART_OLCEK katına çıkarılır ve ada `zoom` ile aynı oranda büyütülür, böylece
+ * yazı, boşluk, düğme ve karakter *aynı* oranda büyür ve hiçbir kural ayrı
+ * ayrı güncellenmez. CSS'teki karşılığı `--kart-olcek`.
+ */
+export const KART_OLCEK = 1.5;
+/** Tasarım ölçüsü: kart CSS px'te bu boyutta yazıldı. */
+export const DESIGN_W = 720, DESIGN_H = 320;
+/** Pencere ölçüsü: tasarımın KART_OLCEK katı. Rust tarafındaki karşılığı
+ *  `src-tauri/src/dpi.rs` (KART_OLCEK, PANEL_W, PANEL_H) — ikisi de aynı olmalı. */
+export const PANEL_W = 1080, PANEL_H = 480;
 export const NOTCH_W = 184, NOTCH_H = 32, COMPACT_W = 288, EXPANDED_W = 640;
 export const ROUNDED_CORNER = 14, EXPANDED_CORNER = 22;
 /** Smallest scale the island may shrink to before it would be unreadable. */
 export const MIN_FIT = 0.5;
+export const PET_PENCERE = 256;
+/**
+ * P10 — mini pet modundayken görev/ajan mesajı balonu karakterin BAŞININ
+ * ÜSTÜNDE, çizgi-roman balonu olarak durur. Balon, 256 px'lik pet kutusundan
+ * ayrı bir şeritte çizilir: ölçülen alfa kutularından en yükseği (`ozel_dosya_
+ * yakala`, üst ≈ 32 px) pet kutusunun tepesine kadar geldiği için balon asla
+ * pet kutusuyla çakışmaz. Pencerenin alt kenarı (görev çubuğu üstü) sabit
+ * kalır, karakter yerinden oynamaz; büyüme yalnız YUKARI doğrudur.
+ *
+ * Karşılığı Rust tarafında `src-tauri/src/glide.rs` (PET_BALON_PAY,
+ * PET_BALON_YUKSEKLIK, PET_BALON_BOSLUK) — iki taraf aynı sayıları kullanır.
+ */
+/** Pencerenin tepesinde kalan şeffaf pay. island.rs isabet kutusuna HIT_MARGIN
+ *  (14 px) eklediği için bu pay 14'ten büyük olmak zorunda: aksi hâlde balonun
+ *  üstündeki "boş" kısım tıklamayı yutar ve tıklama masaüstüne geçmez. */
+export const PET_BALON_PAY = 24;
+export const PET_BALON_YUKSEKLIK = 120;
+export const PET_BALON_GENISLIK = 248;
+/** Balon kuyruğu ile karakterin başı arasındaki boşluk. */
+export const PET_BALON_BOSLUK = 14;
+/** Balon kutusunun alt kenarı, pencerenin alt kenarından bu kadar yukarıda. */
+export const PET_BALON_TABAN = PET_PENCERE + PET_BALON_BOSLUK;
+/** Balon görünürken pet penceresinin yüksekliği (yalnız YUKARI büyür). */
+export function petPencereYuksekligi(balon: boolean): number {
+  return balon ? PET_BALON_TABAN + PET_BALON_YUKSEKLIK + PET_BALON_PAY : PET_PENCERE;
+}
+/** Balonun üstünde kalan şeffaf pay: isabet kutusu bu satırdan başlar. */
+export function petBalonUst(balon: boolean): number { return balon ? PET_BALON_PAY : 0; }
+/**
+ * Kesme: ekranın üstü yetmezse pencere tepeden kırpılır ve balon da kısalır.
+ * Balon kutusu pencerenin altına PET_BALON_TABAN sabit mesafeyle bağlı olduğu
+ * için kalan yer kadar yükseklikte çizilir: kuyruk ucu (karakterin başına bakan
+ * ::after) hep görünür, yalnız metnin üstü kırpılır.
+ */
+export function petBalonKutusu(pencereYuksekligi: number): number {
+  if (!(pencereYuksekligi > 0)) return PET_BALON_YUKSEKLIK;
+  return Math.max(0, Math.min(PET_BALON_YUKSEKLIK, pencereYuksekligi - PET_BALON_TABAN - PET_BALON_PAY));
+}
+
 export function islandSize(mode: IslandMode, view: IslandViewName): { w: number; h: number } {
-  if (mode === "pet") return { w: 128, h: 128 };
+  if (mode === "pet") return { w: PET_PENCERE, h: PET_PENCERE };
   if (mode === "hidden" || mode === "tray") return { w: NOTCH_W, h: 0 };
   if (mode === "compact") return { w: COMPACT_W, h: NOTCH_H };
   return { w: EXPANDED_W, h: view === "greeting" ? 160 : 286 };

@@ -183,8 +183,8 @@ describe("state.json user-facing contract", () => {
   });
 
   it.each([
-    [null, "idle"], ["Hazirlaniyor", "working"], ["Calisiyor", "working"],
-    ["Bekliyor", "thinking"], ["Duraklatildi", "alert"], ["Tamamlandi", "happy"], ["Hata", "error"],
+    [null, "idle"], ["Hazirlaniyor", "working"], ["Calisiyor", "studying"],
+    ["Bekliyor", "working"], ["Duraklatildi", "question"], ["Tamamlandi", "success"], ["Hata", "error"],
   ] as const)("maps %s to the Afu expression %s", (status, expression) => {
     expect(expressionFor(status)).toBe(expression);
   });
@@ -207,7 +207,7 @@ describe("state.json user-facing contract", () => {
     State.apply({ version: 1, tasks: [row({ id: "old", status: "Tamamlandi" })], mesaj: "" });
     State.apply({ version: 1, tasks: [row({ id: "old", status: "Tamamlandi" }), row({ id: "new", status: "Calisiyor" })], mesaj: "" });
     expect(State.focusTask?.id).toBe("new");
-    expect(State.effectiveState).toBe("working");
+    expect(State.effectiveState).toBe("studying");
     State.apply({ version: 1, tasks: [], mesaj: "" });
   });
 
@@ -216,7 +216,7 @@ describe("state.json user-facing contract", () => {
     State.setFocus("chosen");
     State.apply({ version: 1, tasks: [row({ id: "automatic", progress: 80 }), row({ id: "chosen", agent: "gemini", status: "Bekliyor" })], mesaj: "" });
     expect(State.focusTask?.id).toBe("chosen");
-    expect(State.effectiveState).toBe("thinking");
+    expect(State.effectiveState).toBe("working");
     State.apply({ version: 1, tasks: [row({ id: "automatic", progress: 90 })], mesaj: "" });
     expect(State.focusTask?.id).toBe("automatic");
     State.apply({ version: 1, tasks: [], mesaj: "" });

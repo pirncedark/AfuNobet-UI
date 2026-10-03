@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="tr">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Afu · Animasyon stüdyosu</title>
+<style>
+:root{color-scheme:dark;font:14px 'Segoe UI',sans-serif;background:#0c111b;color:#e5edf8;--line:#293447;--blue:#81bcff}*{box-sizing:border-box}body{margin:0}button,input,select{font:inherit}button,select,input[type=text],input[type=number]{border:1px solid var(--line);border-radius:8px;background:#1a2332;color:inherit;padding:9px}button{cursor:pointer}button:hover{border-color:var(--blue);background:#243349}button:focus-visible,input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}button:disabled{opacity:.4;cursor:default}header{padding:22px 26px 16px;border-bottom:1px solid var(--line)}h1{font-size:22px;letter-spacing:-.5px;margin:0 0 9px}h2{font-size:14px;margin:0 0 14px}p{color:#99aac3;line-height:1.5;margin:8px 0}.top{display:flex;align-items:center;justify-content:space-between;gap:20px}.actions,.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.primary{background:#91c6ff;color:#081629;border:0;font-weight:650;padding:13px 25px}.primary:hover{background:#b7dbff}#status{font-size:12px;min-height:20px;color:#a5c9ec}main{display:grid;grid-template-columns:285px minmax(300px,1fr) 280px;gap:16px;padding:18px 24px;max-width:1800px;margin:auto}.panel{background:#121a27;border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}aside{max-height:calc(100vh - 160px);overflow:auto}.sequence-list{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}.sequence-list button{font-size:12px;padding:6px 9px}.selected{border-color:var(--blue)!important;background:#233c5b!important}#seqName{width:100%;margin-bottom:8px}.frame{display:grid;grid-template-columns:42px minmax(0,1fr) 27px 27px;gap:5px;align-items:center;border:1px solid var(--line);border-radius:9px;padding:7px;margin:7px 0;cursor:grab}.frame.active{border-color:#81bcff;background:#1c3049}.frame img{width:42px;height:48px;object-fit:contain}.frame small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px;font-size:10px;color:#9eb1cd}.frame inpu... (line truncated to 2000 chars)
+.size-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0}.size-actions button{flex:1;margin:0!important;width:auto!important}.size-actions label{white-space:nowrap}.mini{position:relative;display:block;overflow:hidden;flex:none}.mini img{position:absolute!important;left:0;bottom:0;top:auto;width:100%!important;height:100%!important;object-fit:contain;object-position:center bottom;transform-origin:50% 100%}.frame .mini{width:42px;height:42px}.tile .mini{width:63px;height:63px;max-width:100%;margin:auto}#preview .mini{width:184px;height:184px}#pet img,#pet canvas{transform-origin:50% 100%}
+@keyframes fx-nefes{0%,100%{transform:scaleY(1)}50%{transform:scaleY(var(--fx-nefes, 1))}}
+@keyframes fx-ziplama{0%,100%{transform:translateY(0) scale(1,1)}10%{transform:translateY(0) scale(1.1,0.9)}30%{transform:translateY(calc(var(--fx-ziplama, 0) * -1px)) scale(0.95,1.05)}50%{transform:translateY(0) scale(1.05,0.95)}60%{transform:translateY(0) scale(1,1)}}
+@keyframes fx-sallanma{0%,100%{transform:translateX(0)}25%{transform:translateX(calc(var(--fx-sallanma, 0) * -1px))}75%{transform:translateX(calc(var(--fx-sallanma, 0) * 1px))}}
+@keyframes fx-kivilcim{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-20px) scale(0);opacity:0}}
+#petShadow{position:absolute;left:calc(50% - 30px);bottom:0;width:60px;height:12px;background:radial-gradient(ellipse,rgba(0,0,0,var(--fx-golge,0)),transparent);border-radius:50%;pointer-events:none;transition:transform 0.1s}
+#pet.zipliyor #petShadow{transform:scale(0.5);opacity:0.5}
+#petImage.fx-nefes{animation:fx-nefes 2.4s infinite ease-in-out}
+#petImage.fx-ziplama{animation:fx-ziplama 1s infinite cubic-bezier(0.28, 0.84, 0.42, 1)}
+#petImage.fx-sallanma{animation:fx-sallanma 0.5s infinite linear}
+.kivilcim{position:absolute;width:6px;height:6px;background:gold;border-radius:50%;pointer-events:none;animation:fx-kivilcim 0.8s ease-out forwards;box-shadow:0 0 4px gold; z-index:10;}
+.effect-row{display:flex;align-items:center;gap:6px;font-size:12px}
+.effect-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--blue);cursor:pointer}
+.effect-row input[type=range]{flex:1;margin:0;cursor:pointer}
+.effect-row span{width:80px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#petImage.crossfade{transition:opacity var(--fx-gecis, 0s) ease-in-out}
+</style>
+<header><div class="top"><h1>Afu <span style="font-weight:400;color:#99aac3">/ Animasyon stüdyosu</span></h1><div class="actions"><button id="import">İçe aktar</button><button id="reset">Varsayılana dön</button><button id="export" class="primary">Dışa aktar</button></div></div><p>Sekansı seç, kareleri sürükle, süreleri ayarla, bitince Dışa aktar'a bas ve dosyayı Claude'a ver.</p><div id="status" role="status" aria-live="polite">Değişikliklerin otomatik kaydedilir.</div></header>
+<main>
+<aside class="panel"><h2>Sekanslar</h2><div class="row"><button id="new">+ Yeni sekans</button></div><div id="sequences" class="sequence-list"></div><label for="seqName">Sekans adı</label><input id="seqName" type="text" maxlength="64"><button id="rename">Yeniden adlandır</button><p style="font-size:11px">Sıralamak için kareleri sürükle. Süresiz bekleme için ∞ yaz.</p><div id="frames"></div></aside>
+<section class="panel scene"><h2>Sahne</h2><div id="stage"><div class="desktop-mark"></div><div class="guide"></div><div id="pet" aria-label="Afu konumunu sürükle"><img id="petImage" alt="Afu" draggable="false"><canvas id="frozen"></canvas></div><div class="taskbar"><div class="start" aria-label="Başlat"><i></i><i></i><i></i><i></i></div><span class="clock">14:30</span></div></div><div class="controls"><button id="back" aria-label="Önceki kare">◀</button><button id="play">Durdur</button><button id="forward" aria-label="Sonraki kare">▶</button><label for="speed">Hız</label><input id="speed" type="range" min="0.25" max="2" step="0.25" value="1"><output id="speedValue">1×</output></div><div id="frameInfo"></div><div class="settings"><label>Boyut <output id="scaleValue"></output><input id="scale" type="range" min="25" max="200" step="1"></label><label>Sağa / Sola <output id="xValue"></output><input id="x" type="range" min="-400" max="400" step="1"></label><label>Yukarı / Aşağı <output id="yValue"></output><input id="y" type="range" min="-400" max="400" step="1"></label><label>Sallanma gücü <output id="tutmaGucValue"></output><input id="tutmaGuc" type="range" min="0" max="100" step="1" aria-label="Sallanma gücü"></label></div><button id="align">Ayaklar çubuğa değsin</button><details><summary>Gelişmiş · Kayıt ve uygulama</summary><p>Eski pet penceresi 256 × 256, çizim alanı 256 × 256 pikseldir. Varsayılan konum Başlat simgesinin hemen soludur. Yukarı negatif, aşağı pozitif değer alır.</p><p>∞, JSON içinde null olarak saklanır; uygulamada Infinity olur. Hız sekansın kare sürelerini değiştirir. Animasyonlu WebP'nin kendi iç kareleri Oynat sırasında dosyanın doğal hızında oynar; Durdur görüntüyü dondurur.</p><p>Kare adları eski pet için uzantısız, yeni kareler için durum/ad biçimindedir. Uygulamak için uygula.py kullanılır; varsayılan yalnız fark gösterir. Dosyayı uygulamadan önce eski pet kaynağı kullanılmalıdır.</p></details></section>
+<aside class="panel library"><details open class="effects-panel" style="margin-bottom:15px; border-bottom:1px solid var(--line); padding-bottom:15px"><summary style="font-weight:600; color:var(--blue); font-size:14px">Efektler</summary><div class="presets row" style="margin:10px 0"><button id="presetSakin">Sakin</button><button id="presetNeseli">Neşeli</button><button id="presetUykulu">Uykulu</button><button id="presetHeyecanli">Heyecanlı</button></div><div id="effectList" style="display:grid; gap:8px"></div><button id="hideEffects" style="width:100%; margin-top:10px; background:#1c2a3b" aria-label="Efektleri gizle">Efektsiz göster (basılı tut)</button></details><h2>Kareler</h2><div class="tabs" role="tablist"><button id="petTab" role="tab" aria-selected="true" class="selected">Eski pet · 44</button><button id="durumTab" role="tab" aria-selected="false">Durum · 27</button></div><p style="font-size:12px">Kareye tıkla, sekansa ekle.</p><div id="gallery" class="gallery"></div></aside>
+</main><input id="file" type="file" accept=".json,application/json"><div id="preview" hidden><img alt="Kare önizleme"><div></div></div>
+<script>
+'use strict';
+const ASSETS = [{"kare": "akis_bekleme", "group": "pet", "file": "akis_bekleme.webp", "path": "../windows/public/afu/pet/akis_bekleme.webp", "width": 517, "height": 460, "alphaBottom": 458}, {"kare": "akis_gorunme", "group": "pet", "file": "akis_gorunme.webp", "path": "../windows/public/afu/pet/akis_gorunme.webp", "width": 517, "height": 460, "alphaBottom": 458}, {"kare": "akis_kuculme", "group": "pet", "file": "akis_kuculme.webp", "path": "../windows/public/afu/pet/akis_kuculme.webp", "width": 517, "height": 460, "alphaBottom": 458}, {"kare": "akis_normal", "group": "pet", "file": "akis_normal.webp", "path": "../windows/public/afu/pet/akis_normal.webp", "width": 517, "height": 460, "alphaBottom": 458}, {"kare": "akis_suzulme", "group": "pet", "file": "akis_suzulme.webp", "path": "../windows/public/afu/pet/akis_suzulme.webp", "width": 517, "height": 460, "alphaBottom": 458}, {"kare": "akis_tutunma", "group": "pet", "file": "akis_tutunma.webp", "path": "../windows/public/afu/pet/akis_tutunma.webp", "width": 517, "height": 460, "alphaBottom": 458}, {"kare": "durum_bakis", "group": "pet", "file": "durum_bakis.webp", "path": "../windows/public/afu/pet/durum_bakis.webp", "width": 512, "height": 512, "alphaBottom": 510}, {"kare": "durum_dusunme", "group": "pet", "file": "durum_dusunme.webp", "path": "../windows/public/afu/pet/durum_dusunme.webp", "width": 512, "height": 512, "alphaBottom": 510}, {"kare": "durum_etkilesim", "group": "pet", "file": "durum_etkilesim.webp", "path": "../windows/public/afu/pet/durum_etkilesim.webp", "width": 512, "height": 512, "alphaBottom": 510}, {"kare": "durum_goz_kirpma", "group": "pet", "file": "durum_goz_kirpma.webp", "path": "../windows/public/afu/pet/durum_goz_kirpma.webp", "width": 512, "height": 512, "alphaBottom": 510}, {"kare": "durum_idle", "group": "pet", "file": "durum_idle.webp", "path": "../windows/public/afu/pet/durum_idle.webp", "width": 512, "height": 512, "alphaBottom": 509}, {"kare": "durum_mutlu", "group": "pet", "file":... (line truncated to 2000 chars)
+const DEFAULT = {"sekanslar": {"donus": [{"kare": "akis_tutunma", "ms": 120}, {"kare": "akis_gorunme", "ms": 200}, {"kare": "akis_suzulme", "ms": 250}, {"kare": "akis_kuculme", "ms": 180}], "bekleme": [{"kare": "idle_normal", "ms": 2400}, {"kare": "idle_nefes", "ms": 900}, {"kare": "idle_normal", "ms": 1800}, {"kare": "idle_goz_kapali", "ms": 90}, {"kare": "idle_goz_acilis", "ms": 90}, {"kare": "idle_normal", "ms": 2000}, {"kare": "idle_sol", "ms": 1400}, {"kare": "idle_normal", "ms": 600}, {"kare": "idle_sag", "ms": 1400}], "gecis": [{"kare": "akis_kuculme", "ms": 180}, {"kare": "akis_suzulme", "ms": 250}, {"kare": "akis_gorunme", "ms": 200}, {"kare": "akis_tutunma", "ms": 120}, {"kare": "akis_bekleme", "ms": 600}], "uyanma": [{"kare": "uyan_gizli", "ms": 300}, {"kare": "uyan_gozukme", "ms": 500}, {"kare": "uyan_yukselme", "ms": 400}, {"kare": "uyan_tam", "ms": 600}, {"kare": "uyan_dikkat", "ms": 900}], "dusunme": [{"kare": "tepki_dusunme", "ms": 6000}], "uyari": [{"kare": "tepki_uyari", "ms": null}], "hata": [{"kare": "tepki_hata", "ms": null}], "mutlu": [{"kare": "tepki_mutlu", "ms": 1500}, {"kare": "tepki_goz_kirpma", "ms": 90}], "basari": [{"kare": "tepki_basari", "ms": 2500}], "uyku": [{"kare": "tepki_uyku", "ms": null}], "yuzme": [{"kare": "uyan_yuzme", "ms": null}], "etkilesim": [{"kare": "tepki_mutlu", "ms": 260}, {"kare": "tepki_mutlu", "ms": 300}]}, "ayar": {"donus": {"olcek": 100, "x": 0, "y": 0}, "bekleme": {"olcek": 100, "x": 0, "y": 0}, "gecis": {"olcek": 100, "x": 0, "y": 0}, "uyanma": {"olcek": 100, "x": 0, "y": 0}, "dusunme": {"olcek": 100, "x": 0, "y": 0}, "uyari": {"olcek": 100, "x": 0, "y": 0}, "hata": {"olcek": 100, "x": 0, "y": 0}, "mutlu": {"olcek": 100, "x": 0, "y": 0}, "basari": {"olcek": 100, "x": 0, "y": 0}, "uyku": {"olcek": 100, "x": 0, "y": 0}, "yuzme": {"olcek": 100, "x": 0, "y": 0}, "etkilesim": {"olcek": 100, "x": 0, "y": 0}}, "tutma": {"guc": 50}, "surum": 1};
+const NORMALIZATION = {"akis_bekleme": {"olcek": 0.9437229437229437, "x": 0.015515754393897518, "y": 0.001825382869870338}, "akis_gorunme": {"olcek": 1.3624999999999998, "x": 0.0013176982591876496, "y": 0.0026353965183753}, "akis_kuculme": {"olcek": 0.7676056338028168, "x": 0.0, "y": 0.001484730432887493}, "akis_normal": {"olcek": 0.4932126696832579, "x": 0.00047699484495478117, "y": 0.000953989689909611}, "akis_suzulme": {"olcek": 0.55470737913486, "x": 0.0, "y": 0.0010729349693130994}, "akis_tutunma": {"olcek": 0.7985347985347985, "x": 0.0007722773680220452, "y": 0.0015445547360441322}, "durum_bakis": {"olcek": 2.0960357551970854, "x": 0.08597021652175546, "y": 0.004093819834369307}, "durum_dusunme": {"olcek": 1.9989970628268499, "x": 0.07027724049000644, "y": 0.003904291138333691}, "durum_etkilesim": {"olcek": 1.9626516616845435, "x": 0.08433268858800774, "y": 0.003833304026727624}, "durum_goz_kirpma": {"olcek": 1.8773189807417374, "x": 0.07699941131948529, "y": 0.003666638634261206}, "durum_idle": {"olcek": 1.9989970628268499, "x": 0.08784655061250807, "y": 0.007808582276667382}, "durum_mutlu": {"olcek": 1.8773189807417374, "x": 0.027499789756959048, "y": 0.003666638634261206}, "durum_saskin": {"olcek": 1.980657640232108, "x": 0.03868471953578334, "y": 0.003868471953578336}, "durum_uyku": {"olcek": 2.225687451394843, "x": 0.08694091607011106, "y": 0.004347045803505553}, "gecis_kayma": {"olcek": 0.55470737913486, "x": 0.0, "y": 0.0010729349693130994}, "gecis_kompakt": {"olcek": 0.7676056338028168, "x": 0.0, "y": 0.001484730432887493}, "idle_goz_acilis": {"olcek": 1.0, "x": 0.0, "y": 0.0019342359767892114}, "idle_goz_kapali": {"olcek": 1.0139534883720929, "x": 0.0009806126580000907, "y": 0.0019612253160002234}, "idle_nefes": {"olcek": 0.9083333333333333, "x": 0.0008784655061250812, "y": 0.0017569310122502004}, "idle_normal": {"olcek": 1.0, "x": 0.0, "y": 0.0019342359767892114}, "idle_sag": {"olcek": 0.9688888888888888, "x": 0.015929507844401447, "y": 0.00187405974... (line truncated to 2000 chars)
+const KEY = 'afu-animasyon-studyo-v1';
+const $ = id => document.getElementById(id);
+const clone = value => JSON.parse(JSON.stringify(value));
+const known = new Map(ASSETS.map(a=>[a.kare,a]));
+const forbidden = ['__proto__','prototype','constructor'];
+function validName(name){return typeof name==='string' && /^[A-Za-z_][A-Za-z0-9_]{0,63}$/.test(name) && !forbidden.includes(name);}
+function number(value,min,max){return typeof value==='number' && Number.isFinite(value) && value>=min && value<=max;}
+function validate(data){
+ if(data?.normalize!==undefined && typeof data.normalize!=='boolean')throw Error('Geçersiz normalizasyon');
+ if(data?.normalizeSekanslar!==undefined && (!Array.isArray(data.normalizeSekanslar) || !data.normalize || data.normalizeSekanslar.some(n=>!Object.hasOwn(data.sekanslar||{},n)) || new Set(data.normalizeSekanslar).size!==data.normalizeSekanslar.length))throw Error('Geçersiz normalizasyon sekansları');
+ if(!data || data.surum!==1 || !data.sekanslar || !data.ayar || Array.isArray(data.sekanslar) || Array.isArray(data.ayar)) throw Error('Geçersiz kayıt');
+ if(data.tutma!==undefined){
+  if(typeof data.tutma!=='object'||Array.isArray(data.tutma)||!number(data.tutma.guc,0,100)) throw Error('Geçersiz tutma ayarı');
+ } else {
+  data.tutma = {guc: 50};
+ }
+ const names=Object.keys(data.sekanslar);
+ if(!names.length || names.length>100 || Object.keys(data.ayar).length!==names.length) throw Error('Geçersiz sekanslar');
+ if(data.efektler){
+  if(typeof data.efektler!=='object'||Array.isArray(data.efektler)) throw Error('Geçersiz efektler');
+  const eNames=Object.keys(data.efektler);
+  if(eNames.length!==names.length || eNames.some(n=>!names.includes(n))) throw Error('Efekt sekansları eşleşmiyor');
+  for(const n of eNames){
+   const ef=data.efektler[n];
+   if(typeof ef!=='object'||Array.isArray(ef)) throw Error('Geçersiz efekt nesnesi');
+   for(const [k,v] of Object.entries(ef)){
+    if(!['nefes','ziplama','sallanma','yumusak_gecis','golge','parilti','kivilcim','goz_kirpma'].includes(k)) throw Error('Geçersiz efekt adı');
+    if(typeof v!=='object'||Array.isArray(v)||typeof v.acik!=='boolean'||!number(v.guc,0,100)) throw Error('Geçersiz efekt değeri');
+    if(k==='parilti'&&v.renk!==undefined&&(typeof v.renk!=='string'||(v.renk!=='gold'&&!/^#[0-9a-fA-F]{6}$/.test(v.renk)))) throw Error('Geçersiz parıltı rengi');
+   }
+  }
+ }
+ for(const name of names){
+  const frames=data.sekanslar[name], a=data.ayar[name];
+  if(!validName(name) || !Array.isArray(frames) || !frames.length || frames.length>1000 || !a || Object.keys(a).sort().join(',')!=='olcek,x,y' || !number(a.olcek,25,200) || !number(a.x,-400,400) || !number(a.y,-400,400)) throw Error('Geçersiz ayarlar');
+  for(const f of frames) if(!f || Object.keys(f).sort().join(',')!=='kare,ms' || !known.has(f.kare) || !(f.ms===null || number(f.ms,1,600000))) throw Error('Geçersiz kare');
+ }
+ return clone(data);
+}
+let state=clone(DEFAULT), selected=Object.keys(state.sekanslar).includes('bekleme')?'bekleme':Object.keys(state.sekanslar)[0], index=0, playing=true, speed=1, elapsed=0, last=0, group='pet', dragged=null;
+function status(message){$('status').textContent=message;}
+try{const saved=localStorage.getItem(KEY);if(saved)state=validate(JSON.parse(saved));}catch{status('Kayıt okunamadı; varsayılanlar açıldı, gerekirse JSON dosyanı içe aktar.');}
+let showEffects=true;
+const EFFECTS=[{id:'nefes',label:'Nefes'},{id:'ziplama',label:'Zıplama'},{id:'sallanma',label:'Sallanma'},{id:'yumusak_gecis',label:'Yumuşak geçiş'},{id:'golge',label:'Gölge'},{id:'parilti',label:'Parıltı'},{id:'kivilcim',label:'Kıvılcım'},{id:'goz_kirpma',label:'Göz kırpma'}];
+function ensureEffects(){
+ if(!state.efektler) state.efektler={};
+ for(const n of Object.keys(state.sekanslar)) if(!state.efektler[n]) state.efektler[n]={};
+ for(const n of Object.keys(state.efektler)) if(!state.sekanslar[n]) delete state.efektler[n];
+}
+function renderEffects(){
+ ensureEffects();
+ const ef = state.efektler[selected], list = $('effectList');
+ list.replaceChildren();
+ EFFECTS.forEach(e=>{
+  const v = ef[e.id] || {acik:false, guc:50}, row = document.createElement('div'); row.className='effect-row';
+  const cb = document.createElement('input'); cb.type='checkbox'; cb.checked=v.acik;
+  const span = document.createElement('span'); span.textContent=e.label;
+  const r = document.createElement('input'); r.type='range'; r.min=0; r.max=100; r.value=v.guc;
+  const update=()=>{remember(); if(!state.efektler[selected][e.id]) state.efektler[selected][e.id]={acik:false,guc:50}; state.efektler[selected][e.id].acik=cb.checked; state.efektler[selected][e.id].guc=Number(r.value); if(!cb.checked&&event.target===r){cb.checked=true; state.efektler[selected][e.id].acik=true;} save(); applyEffects();};
+  cb.onchange=update; r.oninput=update;
+  if(e.id==='parilti'){
+   const c=document.createElement('input');c.type='color';c.value=v.renk||'#ffd700';c.style.width='24px';c.style.height='24px';c.style.padding='0';c.style.border='none';c.style.background='none';c.style.cursor='pointer';
+   c.oninput=()=>{remember();if(!state.efektler[selected][e.id])state.efektler[selected][e.id]={acik:false,guc:50};state.efektler[selected][e.id].renk=c.value;save();applyEffects();};
+   row.append(cb,span,c,r);
+  }else{
+   row.append(cb,span,r);
+  }
+  list.append(row);
+ });
+}
+const shadow = document.createElement('div'); shadow.id='petShadow'; $('pet').prepend(shadow);
+function applyEffects(){
+ const ef = state.efektler?.[selected] || {}, pet = $('pet'), img = $('petImage');
+ pet.className = ''; img.className = ''; img.style.filter = ''; pet.style.setProperty('--fx-golge', '0');
+ pet.style.setProperty('--fx-nefes', '1'); pet.style.setProperty('--fx-ziplama', '0');
+ pet.style.setProperty('--fx-sallanma', '0'); pet.style.setProperty('--fx-gecis', '0s');
+ if(!showEffects) return;
+ if(ef.nefes?.acik){ img.classList.add('fx-nefes'); pet.style.setProperty('--fx-nefes', String(1 + ef.nefes.guc * 0.0006)); }
+ if(ef.ziplama?.acik){ img.classList.add('fx-ziplama'); pet.classList.add('zipliyor'); pet.style.setProperty('--fx-ziplama', String(ef.ziplama.guc * 0.4)); }
+ if(ef.sallanma?.acik){ img.classList.add('fx-sallanma'); pet.style.setProperty('--fx-sallanma', String(ef.sallanma.guc * 0.15)); }
+ if(ef.golge?.acik){ pet.style.setProperty('--fx-golge', String(0.2 + ef.golge.guc * 0.006)); }
+ if(ef.parilti?.acik){ img.style.filter = `drop-shadow(0 0 ${ef.parilti.guc * 0.2}px ${ef.parilti.renk || '#ffd700'})`; }
+ if(ef.yumusak_gecis?.acik){ img.classList.add('crossfade'); pet.style.setProperty('--fx-gecis', `${ef.yumusak_gecis.guc * 4}ms`); }
+}
+const presets = {
+ Sakin: { nefes:{acik:true,guc:30}, yumusak_gecis:{acik:true,guc:50}, golge:{acik:true,guc:40} },
+ Neseli: { ziplama:{acik:true,guc:60}, kivilcim:{acik:true,guc:80}, golge:{acik:true,guc:50}, parilti:{acik:true,guc:50} },
+ Uykulu: { nefes:{acik:true,guc:80}, yumusak_gecis:{acik:true,guc:100}, goz_kirpma:{acik:true,guc:70} },
+ Heyecanli: { sallanma:{acik:true,guc:40}, ziplama:{acik:true,guc:40}, kivilcim:{acik:true,guc:100} }
+};
+for(const [k,v] of Object.entries(presets)) $(`preset${k}`).onclick=()=>{ remember(); ensureEffects(); state.efektler[selected]=clone(v); save(); renderEffects(); applyEffects(); };
+$('hideEffects').onpointerdown=()=>{ showEffects=false; applyEffects(); };
+$('hideEffects').onpointerup=()=>{ showEffects=true; applyEffects(); };
+$('hideEffects').onpointercancel=()=>{ showEffects=true; applyEffects(); };
+if(!state.sekanslar[selected])selected=Object.keys(state.sekanslar)[0];
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));status('Kaydedildi · '+new Date().toLocaleTimeString('tr-TR'));}catch{status('Otomatik kayıt yapılamadı; değişikliklerini Dışa aktar ile sakla.');}}
+function frames(){return state.sekanslar[selected];}
+function button(text,fn,label){const b=document.createElement('button');b.textContent=text;b.onclick=fn;if(label)b.setAttribute('aria-label',label);return b;}
+function select(name){selected=name;index=0;elapsed=0;render();gallery();}
+const history=[];
+function remember(){history.push({state:clone(state),selected,index});if(history.length>50)history.shift();$('undo').disabled=false;}
+function isNormalized(name=selected){return state.normalize===true && (!state.normalizeSekanslar || state.normalizeSekanslar.includes(name));}
+function normalization(kare,enabled=true){return enabled && Object.hasOwn(NORMALIZATION,kare)?NORMALIZATION[kare]:{olcek:1,x:0,y:0};}
+function styleNormalization(image,kare,size,enabled=true){const n=normalization(kare,enabled);image.style.transform=`translate(${n.x*size}px,${n.y*size}px) scale(${n.olcek})`;}
+function mini(image,kare,size,enabled=true){const box=document.createElement('div');box.className='mini';box.append(image);styleNormalization(image,kare,size,enabled);return box;}
+function renderSequences(){const root=$('sequences');root.replaceChildren();for(const name of Object.keys(state.sekanslar)){const b=button(name,()=>select(name));b.classList.toggle('selected',name===selected);root.append(b);}$('seqName').value=selected;}
+function change(fn){remember();fn();elapsed=0;index=Math.min(index,frames().length-1);save();render();}
+function renderFrames(){
+ const root=$('frames');root.replaceChildren();
+ frames().forEach((f,i)=>{
+  const row=document.createElement('div');row.className='frame';row.draggable=true;row.dataset.index=i;row.classList.toggle('active',i===index);
+  const img=document.createElement('img');img.src=known.get(f.kare).path;img.alt=f.kare;img.draggable=false;
+  const info=document.createElement('div'),name=document.createElement('small'),input=document.createElement('input');name.textContent=f.kare;name.title=f.kare;input.type='text';input.inputMode='numeric';input.value=f.ms===null?'∞':f.ms;input.setAttribute('aria-label',`${i+1}. kare süresi (ms)`);
+  input.onchange=()=>{const text=input.value.trim(),value=(text==='∞'||text==='Infinity')?null:Number(text);if(value!==null&&!number(value,1,600000)){input.value=f.ms===null?'∞':f.ms;status('Kare süresi geçersiz; 1–600000 ms veya ∞ yaz.');return;}change(()=>f.ms=value);};
+  info.append(name,input);
+  const copy=button('⧉',()=>change(()=>{if(frames().length<1000)frames().splice(i+1,0,{...f});}), 'Kareyi kopyala');
+  const remove=button('×',()=>change(()=>{frames().splice(i,1);}), 'Kareyi sil');remove.disabled=frames().length===1;
+  row.append(mini(img,f.kare,42,isNormalized()),info,copy,remove);
+  row.onclick=e=>{if(e.target===row||e.target===img||e.target===name){playing=false;index=i;elapsed=0;paint();}};
+  row.ondragstart=e=>{if(e.target===input){e.preventDefault();return;}dragged=i;e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',String(i));};
+  row.ondragover=e=>{e.preventDefault();row.classList.add('drag-over');};row.ondragleave=()=>row.classList.remove('drag-over');
+  row.ondrop=e=>{e.preventDefault();row.classList.remove('drag-over');if(dragged!==null&&dragged!==i){const from=dragged;change(()=>{const item=frames().splice(from,1)[0];frames().splice(i,0,item);index=i;});}dragged=null;};row.ondragend=()=>{dragged=null;document.querySelectorAll('.drag-over').forEach(r=>r.classList.remove('drag-over'));};root.append(row);
+ });
+}
+function settings(){const a=state.ayar[selected];for(const [id,key,unit] of [['scale','olcek','%'],['x','x',' px'],['y','y',' px']]){$(id).value=a[key];$(id+'Value').textContent=a[key]+unit;}$('tutmaGuc').value=state.tutma.guc;$('tutmaGucValue').textContent=state.tutma.guc;}
+function freeze(){const img=$('petImage'), canvas=$('frozen');if(!img.complete||!img.naturalWidth)return;canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;canvas.getContext('2d').drawImage(img,0,0);img.style.visibility='hidden';canvas.style.display='block';}
+function paint(){
+ const f=frames()[index],a=state.ayar[selected],img=$('petImage'),canvas=$('frozen');const path=known.get(f.kare).path;
+ if(img.getAttribute('src')!==path){
+  if(playing && showEffects && state.efektler?.[selected]?.yumusak_gecis?.acik && img.complete && img.naturalWidth){
+   canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+   canvas.getContext('2d').clearRect(0,0,canvas.width,canvas.height);
+   canvas.getContext('2d').drawImage(img,0,0);
+   canvas.style.display='block';canvas.style.opacity='1';canvas.style.transition='none';
+   img.style.opacity='0';img.style.transition='none';
+   img.src=path;styleNormalization(img,f.kare,256,isNormalized());
+   void img.offsetWidth;
+   const ms=state.efektler[selected].yumusak_gecis.guc*4;
+   img.style.transition=`opacity ${ms}ms ease-in-out`;canvas.style.transition=`opacity ${ms}ms ease-in-out`;
+   img.style.opacity='1';canvas.style.opacity='0';
+  }else{
+   img.style.transition='none';img.style.opacity='1';canvas.style.display='none';img.src=path;
+  }
+  img.style.visibility='visible';
+ }
+ let extraTransform='';
+ if(physicsLoop||drag){
+  const stretch=drag?Math.min(1.06,1+Math.abs(swingVel)*0.01):1;
+  const breathe=drag?Math.sin((performance.now()-dragStart)/600*Math.PI*2)*2:0;
+  extraTransform=` translate(0px,-26px) rotate(${swingAngle}deg) scaleY(${stretch}) translate(0px,26px) translateY(${breathe}px)`;
+ }
+ $('pet').style.transform=`translate(${a.x}px,${a.y}px) scale(${a.olcek/100})${extraTransform}`;
+ styleNormalization(img,f.kare,256,isNormalized());styleNormalization($('frozen'),f.kare,256,isNormalized());
+ if(!playing) freeze();
+ $('play').textContent=playing?'Durdur':'Oynat';$('frameInfo').textContent=`${selected} · ${index+1} / ${frames().length} · ${f.kare} · ${f.ms===null?'∞ bekleme':f.ms+' ms'}`;
+ document.querySelectorAll('.frame').forEach((r,i)=>r.classList.toggle('active',i===index));
+}
+$('petImage').onload=()=>{if(!playing)freeze();};$('petImage').onerror=()=>status('Kare yüklenemedi; HTML dosyasını studyo klasöründe aç.');
+function render(){renderSequences();renderFrames();settings();paint();renderEffects();applyEffects();}
+function gallery(){const root=$('gallery');root.replaceChildren();for(const a of ASSETS.filter(a=>a.group===group)){const tile=button('',()=>{if(frames().length>=1000){status('Sekans dolu; önce bir kare sil.');return;}change(()=>{frames().push({kare:a.kare,ms:500});});});tile.className='tile';tile.title=a.file;tile.setAttribute('aria-label',a.kare+' karesini ekle');const img=document.createElement('img');img.src=a.path;img.alt=a.kare;img.draggable=false;const name=document.createElement('span');name.textContent=a.kare.replace('durum/','');tile.append(mini(img,a.kare,63),name);tile.onpointerenter=e=>preview(a,e);tile.onpointermove=e=>placePreview(e);tile.onpointerleave=()=>{$('preview').hidden=true;};tile.onfocus=()=>{const r=tile.getBoundingClientRect();preview(a,{clientX:r.left,clientY:r.top});};tile.onblur=()=>{$('preview').hidden=true;};root.append(tile);}}
+function placePreview(e){$('preview').style.left=Math.max(8,Math.min(innerWidth-228,e.clientX+18))+'px';$('preview').style.top=Math.max(8,Math.min(innerHeight-270,e.clientY+15))+'px';}
+function preview(a,e){const image=$('preview').querySelector('img');if(!image.parentElement.classList.contains('mini')){const box=document.createElement('div');box.className='mini';image.before(box);box.append(image);}image.src=a.path;styleNormalization(image,a.kare,184);$('preview').lastElementChild.textContent=a.file;$('preview').hidden=false;placePreview(e);}
+for(const id of ['pet','durum'])$(id+'Tab').onclick=()=>{group=id;for(const key of ['pet','durum']){$(key+'Tab').classList.toggle('selected',key===id);$(key+'Tab').setAttribute('aria-selected',String(key===id));}gallery();};
+$('new').onclick=()=>{if(Object.keys(state.sekanslar).length>=100){status('Sekans sınırına ulaşıldı; mevcut sekanslardan birini düzenle.');return;}let i=1;while(state.sekanslar['sekans_'+i])i++;const name='sekans_'+i;remember();state.sekanslar[name]=[{kare:'idle_normal',ms:500}];state.ayar[name]={olcek:100,x:0,y:0};selected=name;index=0;ensureEffects();save();render();};
+$('rename').onclick=()=>{const name=$('seqName').value.trim();if(!validName(name)){status('Sekans adı geçersiz; harf, rakam ve alt çizgi kullan.');return;}if(name===selected)return;if(Object.hasOwn(state.sekanslar,name)){status('Bu ad kullanılıyor; farklı bir sekans adı yaz.');return;}remember();if(state.normalizeSekanslar)state.normalizeSekanslar=state.normalizeSekanslar.map(n=>n===selected?name:n);state.sekanslar[name]=state.sekanslar[selected];state.ayar[name]=state.ayar[selected];if(state.efektler)state.efektler[name]=state.efektler[selected];delete state.sekanslar[selected];delete state.ayar[selected];if(state.efektler)delete state.efektler[selected];selected=name;save();render();};
+$('play').onclick=()=>{playing=!playing;paint();};
+for(const [id,direction] of [['back',-1],['forward',1]])$(id).onclick=()=>{playing=false;index=(index+direction+frames().length)%frames().length;elapsed=0;paint();};
+$('speed').oninput=()=>{speed=Number($('speed').value);$('speedValue').textContent=String(speed).replace('.',',')+'×';};
+for(const [id,key] of [['scale','olcek'],['x','x'],['y','y']])$(id).oninput=()=>{remember();state.ayar[selected][key]=Number($(id).value);settings();paint();save();};
+$('tutmaGuc').oninput=()=>{remember();state.tutma.guc=Number($('tutmaGuc').value);settings();paint();save();status('Sallanma gücü '+state.tutma.guc+' · uygulamada aynı savrulma görünür.');};
+// P5: pet.ts ile birebir aynı sarkaç. Sayılar ve sönümlü-yay adımı kopyalanmaz,
+// tek kaynak pet.ts'tir; buradaki karşılıklar testte eşitlikle denetlenir.
+const SARKAC_MAX_ACI=25, SARKAC_HIZ_TAM=1200, SARKAC_YAY=0.3, SARKAC_SONUM=0.7, SARKAC_DONUS_YAY=0.1, SARKAC_DONUS_SONUM=0.85, SARKAC_UZAMA_MAX=1.06, SARKAC_NEFES_MS=600, SARKAC_NEFES_PIK=2, SARKAC_KARE_SN=1/60;
+// Ense noktası: 256 px pencerenin 90 px'i (pet.ts transform-origin ile aynı).
+const ENSE_PX=90, ENSE_OFSET=256-ENSE_PX;
+function sarkacSinirla(deger){if(!Number.isFinite(deger))return 0;const sinirli=Math.max(-SARKAC_MAX_ACI,Math.min(SARKAC_MAX_ACI,deger));return sinirli===0?0:sinirli;}
+// Yatay fare hızı (px/sn) → eğilme açısı. Fare sağa gidince kedi sola eğilir.
+function sarkacHedef(hiz){if(Number.isNaN(hiz))return 0;if(!Number.isFinite(hiz))return hiz>0?-SARKAC_MAX_ACI:SARKAC_MAX_ACI;return sarkacSinirla(-(hiz/SARKAC_HIZ_TAM)*SARKAC_MAX_ACI);}
+// Açısal hız (derece/kare) → scaleY, 1 ile 1,06 arasında.
+function sarkacUzama(hiz){if(!Number.isFinite(hiz))return 1;return Math.max(1,Math.min(SARKAC_UZAMA_MAX,1+Math.abs(hiz)*0.01));}
+// Geçen süre (ms) → nefes (dikey px) ve bacak (yatay px) sallanması, 0,6 sn periyot.
+function sarkacNefes(t){if(!Number.isFinite(t))return{nefes:0,bacak:0};const dalga=Math.sin((t/SARKAC_NEFES_MS)*Math.PI*2);return{nefes:dalga*SARKAC_NEFES_PIK,bacak:dalga*SARKAC_NEFES_PIK*0.35};}
+// Sönümlü yay adımı. dt saniye; 60 fps'e normalize edilir. sert=true tutarken.
+function sarkac(adim,hiz,dt,hedef=0,sert=false){if(!Number.isFinite(adim)||!Number.isFinite(hiz)||!Number.isFinite(dt))return{adim:0,hiz:0};if(dt<=0)return{adim:sarkacSinirla(adim),hiz:0};const yay=sert?SARKAC_YAY:SARKAC_DONUS_YAY,sonum=sert?SARKAC_SONUM:SARKAC_DONUS_SONUM,kare=Math.min(8,dt/SARKAC_KARE_SN);let yeniHiz=(hiz+(sarkacSinirla(hedef)-adim)*yay*kare)*Math.pow(sonum,kare),yeniAdim=adim+yeniHiz;if(yeniAdim>SARKAC_MAX_ACI){yeniAdim=SARKAC_MAX_ACI;yeniHiz=Math.min(yeniHiz,0);}else if(yeniAdim<-SARKAC_MAX_ACI){yeniAdim=-SARKAC_MAX_ACI;yeniHiz=Math.max(yeniHiz,0);}if(!Number.isFinite(yeniAdim)||!Number.isFinite(yeniHiz))return{adim:0,hiz:0};return{adim:yeniAdim,hiz:yeniHiz};}
+// "Sallanma gücü" 50'de pet.ts'in tam gücüne denk gelir; 0'da sarkaç yoktur.
+function tutmaCarpan(){return state.tutma.guc/50;}
+let drag=null, physicsLoop=null, lastMouseX=0, lastMouseAt=0, fareHiz=0, swingAngle=0, swingVel=0, dragStart=0, lastPhysicsAt=0;
+$('pet').onpointerdown=e=>{if(e.button!==0)return;remember();lastMouseX=e.clientX;lastMouseAt=e.timeStamp||performance.now();fareHiz=0;dragStart=performance.now();lastPhysicsAt=dragStart;drag={px:e.clientX,py:e.clientY,x:state.ayar[selected].x,y:state.ayar[selected].y};$('pet').setPointerCapture(e.pointerId);$('pet').classList.add('dragging');if(!physicsLoop)physicsLoop=requestAnimationFrame(runPhysics);};
+$('pet').onpointermove=e=>{if(!drag)return;const a=state.ayar[selected];a.x=Math.max(-400,Math.min(400,Math.round(drag.x+e.clientX-drag.px)));a.y=Math.max(-400,Math.min(400,Math.round(drag.y+e.clientY-drag.py)));const simdi=e.timeStamp||performance.now(),dt=Math.max(SARKAC_KARE_SN/8,(simdi-lastMouseAt)/1000),dx=e.clientX-lastMouseX;fareHiz+=((dx/dt)-fareHiz)*0.35;lastMouseX=e.clientX;lastMouseAt=simdi;settings();paint();save();};
+function endDrag(){drag=null;$('pet').classList.remove('dragging');}$('pet').onpointerup=endDrag;$('pet').onpointercancel=endDrag;
+// Bırakılınca yumuşak yay + güçlü sönüm dik konuma çeker; 0,1° altında döngü durur.
+function runPhysics(time){
+ const dt=Math.min(0.25,Math.max(0,(time-lastPhysicsAt)/1000))||SARKAC_KARE_SN;lastPhysicsAt=time;
+ const hedef=drag?sarkacHedef(fareHiz*tutmaCarpan()):0;
+ const sonuc=sarkac(swingAngle,swingVel,dt,hedef,!!drag);
+ swingAngle=sonuc.adim;swingVel=sonuc.hiz;
+ if(!drag&&Math.abs(swingAngle)<0.1&&Math.abs(swingVel)<0.1){physicsLoop=null;swingAngle=0;swingVel=0;fareHiz=0;paint();return;}
+ paint();physicsLoop=requestAnimationFrame(runPhysics);
+}
+$('align').onclick=()=>{
+ try{const img=$('petImage');if(!img.complete||!img.naturalWidth)throw Error('loading');const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(img,0,0);let bottom=-1;try{const pixels=ctx.getImageData(0,0,canvas.width,canvas.height).data;for(let y=canvas.height-1;y>=0&&bottom<0;y--)for(let x=0;x<canvas.width;x++)if(pixels[(y*canvas.width+x)*4+3]>16){bottom=y;break;}}catch(error){if(error.name!=='SecurityError')throw error;bottom=known.get(frames()[index].kare).alphaBottom;}if(bottom<0)throw Error('empty');const ratio=Math.min(256/canvas.width,256/canvas.height),renderedHeight=canvas.height*ratio;const feet=256-renderedHeight+(bottom+1)*ratio;const n=normalization(frames()[index].kare,isNormalized());remember();const normalizedFeet=256+(feet-256)*n.olcek+n.y*256;state.ayar[selected].y=Math.round((256-normalizedFeet)*state.ayar[selected].olcek/100);settings();paint();save();}
+ catch{status('Kare ölçülemedi; HTML dosyasını açıp Yukarı / Aşağı ile hizala.');}
+};
+function exportData(){return validate(state);}
+function copyFallback(text){const area=document.createElement('textarea');area.value=text;area.style.cssText='position:fixed;left:-10000px';document.body.append(area);area.select();let copied=false;try{copied=document.execCommand('copy');}catch{}area.remove();return copied;}
+$('export').onclick=async()=>{const text=JSON.stringify(exportData(),null,2),url=URL.createObjectURL(new Blob([text],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='afu_animasyon.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);let copied=false;try{if(navigator.clipboard){await navigator.clipboard.writeText(text);copied=true;}}catch{}if(!copied)copied=copyFallback(text);status(copied?'JSON indirildi ve panoya kopyalandı.':'JSON indirildi; panoya kopyalanamadı, dosyayı kullan.');};
+$('import').onclick=()=>$('file').click();$('file').onchange=async()=>{const file=$('file').files[0];try{if(!file||file.size>5000000)throw Error('size');const next=validate(JSON.parse((await file.text()).replace(/^\uFEFF/,'')));remember();state=next;selected=Object.keys(state.sekanslar)[0];index=0;elapsed=0;save();render();status('Kayıt içe aktarıldı.');}catch{status('Dosya geçersiz; stüdyodan dışa aktarılan JSON dosyasını seç.');}finally{$('file').value='';}};
+$('reset').onclick=()=>{if(!confirm('Tüm düzenlemeler varsayılana dönsün mü?'))return;remember();state=clone(DEFAULT);selected='bekleme';index=0;elapsed=0;save();render();};
+document.addEventListener('visibilitychange',()=>{last=0;});
+let sparkTimer=0, blinkTimer=3000, blinkPhase=0;
+function tick(time){
+ const dt=last?time-last:0; last=time;
+ if(playing&&!document.hidden){
+  elapsed+=dt*speed; let duration=frames()[index].ms;
+  while(duration!==null&&elapsed>=duration){
+   elapsed-=duration; index=(index+1)%frames().length; duration=frames()[index].ms; paint();
+  }
+ }
+ if(showEffects&&state.efektler&&state.efektler[selected]){
+  const ef=state.efektler[selected];
+  if(ef.kivilcim?.acik){
+   sparkTimer-=dt;
+   if(sparkTimer<=0){
+    sparkTimer=200+Math.random()*400;
+    const k=document.createElement('div'); k.className='kivilcim';
+    k.style.left=(40+Math.random()*48)+'px'; k.style.top=(40+Math.random()*48)+'px';
+    $('pet').append(k); setTimeout(()=>k.remove(), 1000);
+   }
+  }
+  if(ef.goz_kirpma?.acik&&frames()[index].kare==='idle_normal'){
+   blinkTimer-=dt;
+   if(blinkPhase===0&&blinkTimer<=0){
+    blinkPhase=1; blinkTimer=90; $('petImage').src=known.get('idle_goz_kapali').path;
+   }else if(blinkPhase===1&&blinkTimer<=0){
+    blinkPhase=2; blinkTimer=90; $('petImage').src=known.get('idle_goz_acilis').path;
+   }else if(blinkPhase===2&&blinkTimer<=0){
+    blinkPhase=0; blinkTimer=3000+Math.random()*4000; $('petImage').src=known.get('idle_normal').path;
+   }
+  }else if(blinkPhase!==0){
+   blinkPhase=0; blinkTimer=3000+Math.random()*4000;
+  }
+ }
+ requestAnimationFrame(tick);
+}
+// Keep the two one-click operations together, with the same button appearance.
+const sizeActions=document.createElement('div');sizeActions.className='size-actions';$('align').before(sizeActions);sizeActions.append($('align'));
+const normalizeButton=button('Boyutları eşitle',()=>{remember();const names=$('normalizeAll').checked?Object.keys(state.sekanslar):[selected];const enabled=isNormalized()&&!state.normalizeSekanslar?Object.keys(state.sekanslar):state.normalizeSekanslar||[];state.normalize=true;state.normalizeSekanslar=[...new Set([...enabled,...names])];save();render();gallery();status($('normalizeAll').checked?'Tüm sekansların boyutları eşitlendi.':'Seçili sekansın boyutları eşitlendi.');});normalizeButton.id='normalize';sizeActions.append(normalizeButton);
+const allLabel=document.createElement('label'),allInput=document.createElement('input');allInput.type='checkbox';allInput.id='normalizeAll';allLabel.append(allInput,document.createTextNode(' Tümüne'));sizeActions.append(allLabel);
+const undoButton=button('Geri al',()=>{const previous=history.pop();if(!previous)return;state=previous.state;selected=previous.selected;index=previous.index;elapsed=0;undoButton.disabled=!history.length;save();render();gallery();status('Son değişiklik geri alındı.');});undoButton.id='undo';undoButton.disabled=true;sizeActions.append(undoButton);
+let guideShown=false;try{guideShown=localStorage.getItem(KEY+'-boyut-yardim')==='1';}catch{}
+normalizeButton.addEventListener('click',()=>{if(guideShown)return;guideShown=true;status('Boyutlar eşitlendi; Tümüne ile hepsini eşitleyebilir, Geri al ile önceki hâle dönebilirsin.');try{localStorage.setItem(KEY+'-boyut-yardim','1');}catch{}});
+window.studyo={exportData,validate,assets:ASSETS,normalization,sarkac,sarkacHedef,sarkacUzama,sarkacNefes,ENSE_PX};
+render();gallery();requestAnimationFrame(tick);
+</script></html>

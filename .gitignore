@@ -1,4 +1,4 @@
-﻿# Local/build artefacts
+# Local/build artefacts
 windows/node_modules/
 windows/dist/
 windows/target/
@@ -16,3 +16,6 @@ dist/
 *.yedek-*
 *.yedek
 *_output.log
+
+# Sahte test modu (docs/SAHTE_TEST_MODU.md) - her calistirmada yeniden uretilir
+test_durum/

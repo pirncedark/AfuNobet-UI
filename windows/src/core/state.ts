@@ -5,17 +5,22 @@ export type Agent = typeof AGENTS[number];
 export const NAMES: Record<Agent, string> = { claude: "Claude", codex: "CODEX", glm: "GLM", gemini: "GEMINI", opencode: "OPENCODE" };
 export const STATUSES = ["Hazirlaniyor", "Calisiyor", "Bekliyor", "Duraklatildi", "Tamamlandi", "Hata"] as const;
 export type Status = typeof STATUSES[number];
-export type Expression = "idle" | "working" | "thinking" | "alert" | "happy" | "success" | "error" | "waiting" | "paused" | "listening" | "speaking";
+export type Expression = "idle" | "working" | "thinking" | "alert" | "happy" | "success" | "error" | "waiting" | "paused" | "listening" | "speaking" | "question" | "studying" | "sleeping" | "waking" | "quota_paused" | "leaving" | "leaving_soon" | "landing" | "sitting" | "gliding" | "greeting_alt" | "awaiting" | "catching";
 export interface Task {
   title: string; model: string | null; currentAction: string | null; startedAt: number | null;
   id: string; agent: Agent | null; task: string; repo: string | null; status: Status;
   file: string | null; progress: number | null;
   quota: Quota; quotaPaused: boolean;
   updatedAt: number | null;
+  stage?: string | null;
+  handoff?: { from: string | null; to: string | null; reason: string | null } | null;
+  effort?: string | null;
+  context?: { used: number | null; total: number | null; cached?: number | null; saved?: number | null } | null;
+  cost?: number | null;
 }
 export interface Quota { remaining_percent: number | null; reset_at: string | null; checked_at: string | null }
 export interface Snapshot { connected: boolean; tasks: Task[]; sourceUnavailable: boolean; quotas?: Partial<Record<Exclude<Agent, "claude">, Quota>> }
-export interface Settings { screen: "primary" | "cursor"; autoCloseInterval: number; pet: boolean; tts: boolean }
+export interface Settings { screen: "primary" | "cursor"; autoCloseInterval: number; pet: boolean; tts: boolean; messageAlert?: boolean }
 const TECHNICAL = /\b(?:pid|port|traceback|429|exception)\b|--[\w-]+|\b(?:api[_ -]?key|token|secret|password)\s*[:=]|\bbearer\s+|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\b[a-z]:[\\/]|https?:\/\/|(?:^|\s)\/(?:[^\s/]+\/)*[^\s/]+|\b\d{1,3}(?:\.\d{1,3}){3}\b|\b(?:sk|ghp|gho|AIza)[-_][a-z0-9_-]{12,}/i;
 const COMMAND = /(?:^|[;&|`:]|\b(?:run|execute|calistir)\s+)\s*(?:(?:python(?:w|3)?|powershell|pwsh|cmd|bash|sh|git|npm|npx|pip|curl|wget|node|java|dotnet|cargo|docker|ssh|cat|echo|rm|del|taskkill)(?:\s|$)|(?:codex|claude|gemini|opencode|omp)\s+(?:-\S+|exec\b|run\b|resume\b))/i;
 function object(value: unknown): Record<string, unknown> | null {
@@ -31,6 +36,23 @@ function filename(value: unknown): string | null {
 }
 function percent(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 100 ? value : null;
+}
+function amount(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+/** Optional provider measurements: never derive these from status or quota. */
+function taskMeasurements(row: Record<string, unknown>) {
+  const stage = typeof row.stage === "string" && /^(TRIAGE|SPLIT|RUN|VERIFY|MERGE)$/i.test(row.stage.trim()) ? row.stage.trim().toLowerCase() : null;
+  const effort = typeof row.effort === "string" && /^(minimal|low|medium|high|xhigh|max|ultra)$/i.test(row.effort.trim()) ? row.effort.trim().toLowerCase() : null;
+  const h = object(row.handoff);
+  const allowed = (v: unknown): v is string => typeof v === "string" && AGENTS.includes(v as Agent) && v !== "claude";
+  const reason = label(h?.reason, 60);
+  const handoff = h && allowed(h.from) && (h.to === null || allowed(h.to)) && reason
+    ? { from: h.from, to: h.to as string | null, reason } : null;
+  const c = object(row.context), used = amount(c?.used), total = amount(c?.total);
+  const context = c && used !== null && total !== null && total > 0 && used <= total
+    ? { used, total, cached: amount(c.cached), saved: amount(c.saved) } : null;
+  return { stage, effort, handoff, context, cost: amount(row.cost) };
 }
 function timestamp(value: unknown): string | null {
   return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value) && Number.isFinite(Date.parse(value)) ? value : null;
@@ -76,7 +98,7 @@ export function parseState(value: unknown): Snapshot {
     let status: Status = STATUSES.includes(row.status as Status) ? row.status as Status : "Hazirlaniyor";
     const quotaPaused = (status === "Duraklatildi" || status === "Hata") && /\b(?:kota|quota|usage limit|rate limit|429|BLOCKED|COOLDOWN)\b/i.test(String(row.mesaj ?? row.message ?? ""));
     if (quotaPaused) status = "Duraklatildi";
-tasks.push({ id: row.id, agent, status, task: label(row.task) ?? "Görev", title: taskTitle(row),
+tasks.push({ id: row.id, agent, status, ...taskMeasurements(row), task: label(row.task) ?? "Görev", title: taskTitle(row),
       model: label(row.model, 80), currentAction: label(row.current_action), startedAt: moment(row.started_at ?? row.started), repo: label(row.repo, 80),
       file: filename(row.file ?? row.current_file), progress: status === "Tamamlandi" ? 100 : percent(row.progress),
       quota: parseQuota(row.quota), quotaPaused,
@@ -149,7 +171,45 @@ export function pillStates(tasks: Task[], focus: Task | undefined): Record<Exclu
 }
 export function expressionFor(status?: Status | null): Expression {
   if (!status) return "idle";
-  return ({ Hazirlaniyor: "working", Calisiyor: "working", Bekliyor: "thinking", Duraklatildi: "alert", Tamamlandi: "happy", Hata: "error" } as const)[status];
+  return ({ Hazirlaniyor: "working", Calisiyor: "studying", Bekliyor: "working", Duraklatildi: "question", Tamamlandi: "success", Hata: "error" } as const)[status];
+}
+/** Alt ajan takibi (E3): `ajan-olaylari` yükü. Sözleşme: docs/AJAN_PROTOKOLU.md. */
+export const AJAN_DURUMLARI = ["thinking", "working", "question", "finished", "error", "rate_limit"] as const;
+export type AjanDurum = typeof AJAN_DURUMLARI[number];
+export interface AjanSatiri { oturum: string; ajan: string; ad: string; durum: AjanDurum; gorev: string | null; ust: string | null; alt: boolean; baslangic: number | null; guncelleme: number | null; bitti: boolean }
+const AJAN_ADI = /^[a-z0-9_-]{1,32}$/;
+const OTURUM = /^[A-Za-z0-9_.:-]{1,80}$/;
+const AJAN_SINIRI = 64;
+function zaman(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+export function parseAjanlar(value: unknown): AjanSatiri[] {
+  const root = object(value);
+  if (!root || root.surum !== 1 || !Array.isArray(root.satirlar)) return [];
+  const satirlar: AjanSatiri[] = [], seen = new Set<string>();
+  for (const item of root.satirlar) {
+    if (satirlar.length >= AJAN_SINIRI) break;
+    const row = object(item);
+    if (!row || typeof row.ajan !== "string" || !AJAN_ADI.test(row.ajan)) continue;
+    if (typeof row.oturum !== "string" || !OTURUM.test(row.oturum) || seen.has(row.oturum)) continue;
+    if (!AJAN_DURUMLARI.includes(row.durum as AjanDurum)) continue;
+    seen.add(row.oturum);
+    const ajan = row.ajan;
+    const ust = typeof row.ust === "string" && OTURUM.test(row.ust) ? row.ust : null;
+    satirlar.push({ oturum: row.oturum, ajan, ad: AGENTS.includes(ajan as Agent) ? NAMES[ajan as Agent] : ajan.toUpperCase(),
+      durum: row.durum as AjanDurum, gorev: label(row.gorev), ust, alt: row.alt === true,
+      baslangic: zaman(row.baslangic), guncelleme: zaman(row.guncelleme), bitti: row.bitti === true });
+  }
+  const sira = (a: AjanSatiri, b: AjanSatiri) => (a.baslangic ?? Infinity) - (b.baslangic ?? Infinity);
+  const anaSatirlar = satirlar.filter(r => !r.alt).sort(sira);
+  const anaOturumlar = new Set(anaSatirlar.map(r => r.oturum));
+  const altSatirlar = satirlar.filter(r => r.alt).sort(sira);
+  const sonuc: AjanSatiri[] = [];
+  for (const ana of anaSatirlar) sonuc.push(ana, ...altSatirlar.filter(r => r.ust === ana.oturum));
+  return sonuc.concat(altSatirlar.filter(r => r.ust === null || !anaOturumlar.has(r.ust)));
+}
+export function ajanDurumMetni(satir: AjanSatiri): string {
+  return ({ thinking: "Düşünüyor", working: "Çalışıyor", question: "Onay bekliyor", finished: "Bitti", error: "Tamamlanamadı", rate_limit: "Kota doldu, bekliyor" } as const)[satir.durum];
 }
 class AppState {
   notificationsPaused = false;
@@ -180,12 +240,37 @@ class AppState {
     this.notify();
   }
   snapshot: Snapshot = { connected: false, tasks: [], sourceUnavailable: true };
-  settings: Settings = { screen: "primary", autoCloseInterval: 15, pet: true, tts: false };
+  settings: Settings = { screen: "primary", autoCloseInterval: 15, pet: true, tts: false, messageAlert: true };
   focusId: string | null = null;
   private listeners = new Set<() => void>();
+  pendingOrkestra: { agent: string, task: string, time: number } | null = null;
+  setPendingOrkestra(agent: string, task: string) {
+    this.pendingOrkestra = { agent, task, time: Date.now() };
+    this.announce("working");
+    this.notify();
+    setTimeout(() => {
+      if (this.pendingOrkestra?.task === task) {
+        this.pendingOrkestra = null;
+        this.notify();
+        window.dispatchEvent(new CustomEvent("afu-flash", { detail: "Görev 30 saniye içinde başlayamadı, arka planı kontrol edin." }));
+      }
+    }, 30000);
+  }
 get tasks() { return this.snapshot.tasks; }
   get current() { return currentTasks(this.tasks); }
-  get focusTask() { return this.current.find(t => t.id === this.focusId) ?? preferredTask(this.current); }
+  get focusTask(): Task | undefined {
+    if (this.pendingOrkestra) {
+      return {
+        id: "pending", title: this.pendingOrkestra.task,
+        agent: AGENTS.includes(this.pendingOrkestra.agent as Agent) ? this.pendingOrkestra.agent as Agent : null, status: "Hazirlaniyor",
+        task: this.pendingOrkestra.task, repo: null, file: null, progress: null,
+        quota: { remaining_percent: null, reset_at: null, checked_at: null },
+        quotaPaused: false, startedAt: this.pendingOrkestra.time,
+        updatedAt: this.pendingOrkestra.time, currentAction: "Başlıyor...", model: null
+      };
+    }
+    return this.current.find(t => t.id === this.focusId) ?? preferredTask(this.current);
+  }
   get trayTask() {
     const current = this.current;
     return current.find(task => task.status === "Hata")
@@ -195,18 +280,27 @@ get tasks() { return this.snapshot.tasks; }
   }
   get effectiveState() {
     if (this.notificationsPaused) return "paused";
-    return this.badge ?? (this.focusTask?.status === "Tamamlandi" || this.focusTask?.status === "Hata" ? "idle" : this.focusTask?.status === "Duraklatildi" && !this.focusTask.quotaPaused ? "paused" : expressionFor(this.focusTask?.status));
+    if (this.focusTask?.status === "Duraklatildi" && this.focusTask.quotaPaused) return "quota_paused";
+    return this.badge ?? (this.focusTask?.status === "Tamamlandi" || this.focusTask?.status === "Hata" ? "idle" : this.focusTask?.status === "Duraklatildi" ? "paused" : expressionFor(this.focusTask?.status));
   }
   apply(value: unknown) {
     const next = parseState(value);
     this.snapshot = next.connected && !next.sourceUnavailable ? next : { ...this.snapshot, sourceUnavailable: true };
     if (this.codexQuota) this.snapshot.quotas = { ...this.snapshot.quotas, codex: this.codexQuota };
+    if (this.pendingOrkestra) {
+      if (this.current.some(t => t.startedAt !== null && t.startedAt >= this.pendingOrkestra!.time - 5000)) {
+        this.pendingOrkestra = null;
+      }
+    }
     const currentFocus = this.current.find(t => t.id === this.focusId);
     if (!currentFocus || (currentFocus.status === "Tamamlandi" && this.current.some(t => t.status === "Calisiyor"))) {
       this.focusId = preferredTask(this.current)?.id ?? null;
     }
     this.notify();
   }
+  ajanlar: AjanSatiri[] = [];
+  get altAjanlar() { return this.ajanlar.filter(r => r.alt); }
+  applyAjanlar(value: unknown) { this.ajanlar = parseAjanlar(value); this.notify(); }
   setFocus(id: string) { if (this.current.some(t => t.id === id)) { this.focusId = id; this.notify(); } }
   subscribe(fn: () => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   notify() { for (const fn of this.listeners) fn(); }

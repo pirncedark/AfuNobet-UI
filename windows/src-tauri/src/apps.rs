@@ -11,6 +11,7 @@ pub struct AfuApp {
     pub id: String,
     pub ad: String,
     pub yol: Option<PathBuf>,
+    pub indir_url: Option<String>,
     pub durum_dosyasi: Option<PathBuf>,
     pub simge: Option<PathBuf>,
 }
@@ -225,6 +226,7 @@ pub struct AppDto {
     pub ad: String,
     pub kurulu: bool,
     pub telefonda: bool,
+    pub indir_url: Option<String>,
     pub durum: Option<String>,
     pub ozet: Option<String>,
 }
@@ -261,12 +263,46 @@ impl Kayit {
                     ad: app.ad.clone(),
                     kurulu: app.yol.as_deref().is_some_and(exe_dosyasi),
                     telefonda: app.id == "afuremote",
+                    indir_url: etkin_indir_url(app).filter(|u| indir_url_guvenilir(u)),
                     durum: state.as_ref().map(|s| s.durum.clone()),
                     ozet: state.map(|s| s.ozet),
                 }
             })
             .collect()
     }
+
+    pub fn indir_url_ac(&self, id: &str) -> Result<(), String> {
+        let app = self.apps.iter().find(|a| a.id == id).ok_or("Uygulama bulunamadı.")?;
+        let url = etkin_indir_url(app).ok_or("İndirme bağlantısı yok.")?;
+        if !indir_url_guvenilir(&url) {
+            return Err("Geçersiz indirme bağlantısı.".into());
+        }
+        shell_hedef_ac(std::ffi::OsStr::new(&url)).map_err(|_| "Tarayıcı açılamadı; yeniden dene.".into())
+    }
+}
+
+/// Bilinen uygulamaların varsayılan indirme bağlantıları; tek kaynak budur.
+/// Eski kayıt dosyalarında `indir_url` alanı yoksa buradan doldurulur.
+pub fn varsayilan_indir_url(id: &str) -> Option<&'static str> {
+    match id {
+        "afudm" => Some("https://github.com/pirncedark/AfuDM/releases/latest"),
+        "afudesk" => Some("https://github.com/pirncedark/afudesk/releases/latest"),
+        "padkopru" => Some("https://github.com/pirncedark/afugamepad/releases/latest"),
+        "afutube" => Some("https://github.com/pirncedark/AfuDM/releases?q=afutube"),
+        "afuremote" => Some("https://github.com/pirncedark/AfuRemote/releases/latest"),
+        _ => None,
+    }
+}
+
+fn indir_url_guvenilir(url: &str) -> bool {
+    url.starts_with("https://github.com/pirncedark/")
+}
+
+/// Kayıttaki bağlantı varsa o, yoksa kimliğe göre varsayılan; kullanıcı dosyası değişmez.
+fn etkin_indir_url(app: &AfuApp) -> Option<String> {
+    app.indir_url
+        .clone()
+        .or_else(|| varsayilan_indir_url(&app.id).map(str::to_owned))
 }
 
 /// Var olan kullanıcı kaydı asla ezilmez; kök bilinmiyorsa dosya oluşturulmaz.
@@ -295,6 +331,7 @@ pub fn varsayilan_kayit_olustur(
     ]
     .into_iter()
     .map(|(id, ad, yol)| AfuApp {
+        indir_url: varsayilan_indir_url(id).map(str::to_owned),
         id: id.into(),
         ad: ad.into(),
         yol,

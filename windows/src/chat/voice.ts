@@ -3,10 +3,14 @@ import type { AfuEvent } from "../core/events";
 export type VoiceSettingsKind="speech"|"microphone"|"network";
 export interface VoiceHelp {kind:VoiceSettingsKind;label:string}
 export interface VoiceActions {
+ voiceResponse?(text:string):Promise<{warning:string|null}>;
+ voiceWarning?(handler:()=>void):Promise<()=>void>;
+ voiceChoices?():Promise<VoiceChoice>;
+ voiceChoose?(ses:string,filtre:string):Promise<VoiceChoice>;
  voiceOpenSettings?(kind:VoiceSettingsKind):Promise<unknown>;
  voiceStart(): Promise<unknown>; voiceStop(): Promise<string>; voiceCancel(): Promise<unknown>;
  voiceSpeak(text:string): Promise<unknown>; voiceSilence(): Promise<unknown>;
- voiceSupported(): Promise<{whisper:boolean;winrt_stt:boolean;tts:boolean}>;
+ voiceSupported(): Promise<{whisper:boolean;winrt_stt:boolean;tts:boolean;afu_tts?:boolean}>;
 }
 /** Yalnız bilinen kullanıcı cümleleri aktarılır; teknik hata ayrıntısı gösterilmez. */
 export function voiceErrorMessage(error:unknown,phase:"start"|"stop"):string {
@@ -24,6 +28,7 @@ export function voiceErrorMessage(error:unknown,phase:"start"|"stop"):string {
  };
  return known[reason]??(phase==="start"?"Mikrofon açılamadı; yazarak devam et.":"Ses çözümlenemedi; yazarak devam et.");
 }
+export interface VoiceChoice {ses:string;filtre:string;chosen:boolean;available:string[]}
 export function voiceHelp(error:unknown):VoiceHelp|null {
  const reason=error instanceof Error?error.message:typeof error==="string"?error:"";
  if(reason==="Windows konuşma tanıma izni kapalı; Windows ayarlarından açıp tekrar dene.")return {kind:"speech",label:"İzni aç"};
@@ -109,6 +114,15 @@ export class ResponseSpeech {
   if(!chars.length)return;
   const ticket=++this.generation;this.speaking=true;this.message="";this.changed();
   try{
+   if(this.actions.voiceResponse){
+    const unlisten=this.actions.voiceWarning?await this.actions.voiceWarning(()=>{if(ticket===this.generation&&this.enabled){this.message="Afu sesi hazır değil; Windows sesiyle devam ediyorum, daha sonra yeniden dene.";this.changed();}}):undefined;
+    try{
+     if(ticket!==this.generation||!this.enabled)return;
+     const result=await this.actions.voiceResponse(chars.join(""));
+     if(ticket===this.generation&&this.enabled&&result.warning)this.message=result.warning;
+    }finally{unlisten?.();}
+    return;
+   }
    for(let offset=0;offset<chars.length;offset+=4000){
     if(ticket!==this.generation||!this.enabled)return;
     await this.actions.voiceSpeak(chars.slice(offset,offset+4000).join(""));

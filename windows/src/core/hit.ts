@@ -18,10 +18,18 @@ export function toWindow(r: Rect, k: number): Rect { return { x: r.x * k, y: r.y
 export function cursorToCss(p: { x: number; y: number }, k: number) { return { x: p.x / k, y: p.y / k }; }
 
 /** Kart açıkken (expanded) ve pet modunda pencerenin tamamı tıklamayı tutar;
- *  kompakt/gizli modda yalnız ada şekli, gerisi alttaki masaüstüne geçer. */
-export function hitRect(mode: IslandMode, drawn: Rect, viewport: { w: number; h: number }): Rect {
+ *  kompakt/gizli modda yalnız ada şekli, gerisi alttaki masaüstüne geçer.
+ *
+ *  P10: pet modunda balon açıkken pencerenin tepesinde şeffaf bir pay kalır
+ *  (PET_BALON_PAY). O pay kutunun dışında tutulur, böylece balonun üstündeki
+ *  boş (şeffaf) kısım tıklamayı geçirir ve masaüstüne geçer. */
+export function hitRect(mode: IslandMode, drawn: Rect, viewport: { w: number; h: number }, petUstPay = 0): Rect {
   if (mode === "tray") return { x: 0, y: 0, w: 0, h: 0 };
-  if (mode === "expanded" || mode === "pet") return { x: 0, y: 0, w: viewport.w, h: viewport.h };
+  if (mode === "expanded") return { x: 0, y: 0, w: viewport.w, h: viewport.h };
+  if (mode === "pet") {
+    const pay = Math.max(0, petUstPay);
+    return { x: 0, y: pay, w: viewport.w, h: Math.max(0, viewport.h - pay) };
+  }
   return drawn;
 }
 export function ignoresClicks(mode: IslandMode) { return mode === "compact" || mode === "hidden" || mode === "tray"; }

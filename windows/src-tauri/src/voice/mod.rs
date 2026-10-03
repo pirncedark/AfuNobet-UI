@@ -1,4 +1,5 @@
 pub mod capture;
+pub mod afu;
 pub mod whisper;
 pub mod winrt;
 use serde::Serialize;
@@ -8,6 +9,8 @@ use std::sync::{
     Arc, Mutex,
 };
 use tauri::State;
+use tauri::Manager;
+use tauri::Emitter;
 #[derive(Clone, Copy, Debug)]
 pub enum SesHata {
     Microphone,
@@ -42,8 +45,13 @@ pub struct VoiceState {
     capture_generation: Arc<AtomicU64>,
     pending: Arc<Mutex<Option<(u64, Arc<AtomicBool>)>>>,
     closed: Arc<AtomicBool>,
+    afu_jobs: Arc<Mutex<Vec<std::path::PathBuf>>>,
+    afu_preferences: Mutex<()>,
 }
 impl VoiceState {
+    fn cancel_afu(&self) {
+        if let Ok(jobs) = self.afu_jobs.lock() { for directory in jobs.iter() { afu::cancel(directory); } }
+    }
     fn cancel_capture(&self) {
         let cutoff = self.capture_generation.fetch_add(1, Ordering::AcqRel) + 1;
         let pending_done = if let Ok(pending) = self.pending.try_lock() {
@@ -97,6 +105,7 @@ impl VoiceState {
             return;
         }
         self.generation.fetch_add(1, Ordering::AcqRel);
+        self.cancel_afu();
         self.cancel_capture();
     }
 }
@@ -110,6 +119,7 @@ pub struct Supported {
     pub whisper: bool,
     pub winrt_stt: bool,
     pub tts: bool,
+    pub afu_tts: bool,
 }
 #[tauri::command]
 pub async fn voice_supported() -> Supported {
@@ -117,12 +127,14 @@ pub async fn voice_supported() -> Supported {
         whisper: whisper::model_yolu().map(|p| p.is_file()).unwrap_or(false),
         winrt_stt: false,
         tts: winrt::tts_supported(),
+        afu_tts: afu::runtime().is_some(),
     })
     .await
     .unwrap_or(Supported {
         whisper: false,
         winrt_stt: false,
         tts: false,
+        afu_tts: false,
     })
 }
 #[tauri::command]
@@ -210,12 +222,70 @@ pub async fn voice_stop(state: State<'_, VoiceState>) -> Result<String, String> 
 #[tauri::command]
 pub async fn voice_cancel(state: State<'_, VoiceState>) -> Result<(), String> {
     state.generation.fetch_add(1, Ordering::AcqRel);
+    state.cancel_afu();
     state.cancel_capture();
     Ok(())
 }
 #[tauri::command]
 pub fn voice_silence(state: State<'_, VoiceState>) {
     state.generation.fetch_add(1, Ordering::AcqRel);
+    state.cancel_afu();
+}
+fn choice_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    app.path().app_data_dir().map(|p| p.join("voice.json")).map_err(|_| "Ses seçimi kaydedilemedi; yeniden dene.".into())
+}
+#[tauri::command]
+pub fn voice_choices(app: tauri::AppHandle, state: State<'_, VoiceState>) -> Result<afu::Choice, String> {
+    let _guard = state.afu_preferences.lock().map_err(|_| "Ses seçimi açılamadı; yeniden dene.")?;
+    Ok(afu::choices(&choice_path(&app)?, afu::runtime().as_deref()))
+}
+#[tauri::command]
+pub fn voice_choose(app: tauri::AppHandle, state: State<'_, VoiceState>, ses: String, filtre: String) -> Result<afu::Choice, String> {
+    let _guard = state.afu_preferences.lock().map_err(|_| "Ses seçimi kaydedilemedi; yeniden dene.")?;
+    afu::save_choice(&choice_path(&app)?, afu::runtime().as_deref(), &ses, &filtre)
+}
+#[derive(Serialize)]
+pub struct ResponseResult { warning: Option<String> }
+#[tauri::command]
+pub async fn voice_response(app: tauri::AppHandle, state: State<'_, VoiceState>, text: String) -> Result<ResponseResult, String> {
+    if state.closed.load(Ordering::Acquire) { return Err(SesHata::Speech.to_string()); }
+    let root = afu::runtime();
+    let closed = state.closed.clone();
+    let choice = afu::choices(&choice_path(&app)?, root.as_deref());
+    let generation = state.generation.clone();
+    let ticket = generation.fetch_add(1, Ordering::AcqRel) + 1;
+    state.cancel_afu();
+    let directory = afu::job_directory();
+    std::fs::create_dir_all(&directory).map_err(|_| "Yanıt okunamadı; metinden devam et.")?;
+    let jobs = state.afu_jobs.clone();
+    jobs.lock().map_err(|_| "Yanıt okunamadı; metinden devam et.")?.push(directory.clone());
+    let lock = state.speech_lock.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let result = (|| {
+            let _guard = lock.lock().map_err(|_| SesHata::Speech.to_string())?;
+            if closed.load(Ordering::Acquire) { return Ok(ResponseResult { warning: None }); }
+            match afu::speak(root.as_deref(), &directory, &choice, &text.chars().take(32000).collect::<String>(), &generation, ticket) {
+                afu::Answer::Played | afu::Answer::Cancelled => Ok(ResponseResult { warning: None }),
+                afu::Answer::Fallback(cleaned) => {
+                    if generation.load(Ordering::Acquire) != ticket { return Ok(ResponseResult { warning: None }); }
+                    if cleaned == afu::NOT_INSTALLED {
+                        return Ok(ResponseResult { warning: Some(cleaned) });
+                    }
+                    let _ = app.emit("afu-voice-fallback", ());
+                    // Fallback text has already passed the shared local cleaner.
+                    let chars: Vec<char> = cleaned.chars().collect();
+                    for chunk in chars.chunks(4000) {
+                        if generation.load(Ordering::Acquire) != ticket { return Ok(ResponseResult { warning: None }); }
+                        winrt::konus_iptalli(&chunk.iter().collect::<String>(), &generation, ticket).map_err(|_| "Ses okunamadı; metinden devam et.".to_string())?;
+                    }
+                    Ok(ResponseResult { warning: Some(afu::FALLBACK.into()) })
+                }
+            }
+        })();
+        if let Ok(mut list) = jobs.lock() { list.retain(|p| p != &directory); }
+        let _ = std::fs::remove_dir_all(&directory);
+        result
+    }).await.map_err(|_| "Yanıt okunamadı; metinden devam et.".to_string())?
 }
 #[tauri::command]
 pub async fn voice_speak(state: State<'_, VoiceState>, text: String) -> Result<(), String> {
@@ -241,6 +311,16 @@ pub async fn voice_speak(state: State<'_, VoiceState>, text: String) -> Result<(
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn shutdown_signals_afu_playback_without_waiting_for_speech() {
+        let state = VoiceState::default();
+        let dir = afu::job_directory(); std::fs::create_dir_all(&dir).unwrap();
+        state.afu_jobs.lock().unwrap().push(dir.clone());
+        let _speech = state.speech_lock.lock().unwrap();
+        state.shutdown();
+        assert!(dir.join("cancel").exists());
+        std::fs::remove_dir_all(dir).unwrap();
+    }
     #[test]
     fn shutdown_iptal_eder_ve_idempotenttir() {
         let state = VoiceState::default();

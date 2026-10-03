@@ -3,5 +3,5 @@
   "identifier": "default",
   "description": "AfuNobet-UI ada penceresi ve salt okunur durum komutlari.",
   "windows": ["island"],
-  "permissions": ["core:default"]
+  "permissions": ["core:default", "core:window:allow-set-always-on-top", "core:window:allow-show", "core:window:allow-hide"]
 }

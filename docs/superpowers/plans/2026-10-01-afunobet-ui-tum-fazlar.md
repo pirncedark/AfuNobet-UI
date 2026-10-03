@@ -1668,3 +1668,33 @@ AFU ADA
 | **E12 Web link güvenliği** | Ajan çıktısında yalnız güvenli http/https tıklanabilir; file://, özel protokol, komut benzeri link açılmaz | Link filtre testleri |
 
 Bağımlılık: E1 → (E1b, E1c) → E2, E3 → E4, E5 → diğerleri. Soru/onay kartı (Opus, `SONUC_SORU_AKISI.md`) E1 protokolünün ilk kullanıcısıdır.
+
+---
+
+## Faz F — Ürün özellik listesinden kalanlar (2 Eki 2026, kullanıcı listesi)
+
+Özet: **AfuNöbet = görevleri ve ajanları canlı izleyen, gerektiğinde kullanıcıdan onay alan, kota/ajan geçişlerini yöneten ve bütün teknik karmaşıklığı sade bir AFU karakteri üzerinden sunan masaüstü kontrol merkezi.**
+Ana ekran hedefi: yalnız **Afu karakteri + "Afu'ya sor" + aktif görev + aktif ajan + kota/durum**; ayrıntı tıklanınca açılır.
+Önceki fazlarda karşılığı olmayan maddeler:
+
+| Görev | Kapsam | Kabul ölçütü |
+|---|---|---|
+| **F1 Görev akışı aşamaları** | `TRIAGE → SPLIT → RUN → VERIFY → MERGE` aşamaları görev kartında küçük adım çubuğu | state.json'daki aşama alanından; alan yoksa gizli; test |
+| **F2 Ajan devri gösterimi** | Kota/hata/duraklamada görev başka ajana geçtiyse sebebiyle: "Codex kotası doldu → Gemini devraldı" ya da "→ bekliyor" | Claude otomatik yedek DEĞİL (2 Eki kararı); yalnız elle seçilirse görünür |
+| **F3 Model bilgisi** | Aktif model + gerektiğinde thinking/effort küçük bilgi alanında | AfuNöbet status MODEL/NOBET satırından; okunamazsa "?" |
+| **F4 Context göstergesi** | Kullanılan/kalan context, cache, saved — ayrıntı görünümünde | Ana ekranda yok; sağlayıcı vermezse gizli |
+| **F5 Maliyet bilgisi** | Sağlayıcı destekliyorsa kullanım maliyeti, ayrıntı görünümünde | Uydurma sayı yok; yoksa gizli |
+| **F6 Tray tam menü** | Tepsiden aç, gizle, durum gör, çıkış | 4 eylem de tek tıkla çalışır |
+| **F7 Arama ve filtre** | Çok görevde ajan/durum/ad filtresi | 10+ görevde görünür; test |
+| **F8 Uzun metin kontrolü** | Uzun görev adı kırpılır + tooltip/detay | Taşma testi |
+| **F9 Empty state** | Görev yokken anlaşılır başlangıç görünümü ("Afu hazır…") | Görsel test |
+| **F10 Tekrar dene** | Offline/bağlantı/geçici hatada gerçekten çalışan "Tekrar dene" | Hata simülasyonu testi |
+| **F11 Modal sistemi** | X, Esc, backdrop, odak; pencere kilitlenmez | Klavye+fare testleri |
+| **F12 Klavye erişilebilirliği** | Temel işlemler (aç, sekme, düğmeler, kapat) mouse olmadan | Tab/Enter/Esc testleri |
+| **F13 TR/EN dayanıklılığı** | Dil değişiminde ve uzun çeviride arayüz bozulmaz | EN metinlerle taşma testi |
+| **F14 Ekran ölçekleme** | 1280×720 @ %150 ve metin ölçeği %132'de kritik düğmeler erişilebilir | DPI/ölçek testleri (hit.ts ile uyumlu) |
+| **F15 İlk kullanım ipucu** | Yalnız ilk açılışta kısa yönlendirme, bir daha gösterilmez | Ayar bayrağı testi |
+| **F16 Bildirim sistemi** | Yalnız önemli olaylar: tamamlandı, hata, kota doldu, cevap gerekiyor; tekrar etmez | Olay→bildirim eşlemesi (E8 ses ile birlikte) |
+| **F17 Otomatik toparlanma** | Eksik izin/servis/bağlantı mümkünse kendiliğinden çözülür; teknik ayrıntı gösterilmez | Yeniden bağlanma testi |
+| **F18 İnsan onay kapısı** | Silme, force push, yayın, güvenlik, geri dönüşü zor işlemler onaysız ilerlemez | Soru kartı (SORU_SOZLESMESI) üzerinden; test |
+| **F19 "Afu'ya sor" tek ana düğme + yerel durum cevapları** | Sohbet + bas-konuş tek yerde; "Codex ne yapıyor?" gibi sorular state'ten, model çağrısız | Yerel soru kalıpları testi |

@@ -10,7 +10,12 @@ pub fn pet_label(app: &AppHandle, on: bool) {
 
 pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let open = MenuItem::with_id(app, "open", "AfuNöbet", true, None::<&str>)?;
+    open.set_text("Aç")?;
+    let hide = MenuItem::with_id(app, "hide", "Gizle", true, None::<&str>)?;
+    let status = MenuItem::with_id(app, "status", "Durum", true, None::<&str>)?;
     let pause = CheckMenuItem::with_id(app, "pause", "Bildirimleri duraklat", true, false, None::<&str>)?;
+    let muted = app.state::<crate::bildirim::Runtime>().settings().muted;
+    let mute = CheckMenuItem::with_id(app, "mute", if muted { "Sesleri aç" } else { "Sesleri kapat" }, true, muted, None::<&str>)?;
     let quit = MenuItem::with_id(app, "quit", "Çıkış", true, None::<&str>)?;
     let on = app.state::<crate::Shared>().settings.lock().unwrap().pet;
     let pet = MenuItem::with_id(app, "pet", if on { "Mini peti gizle" } else { "Mini peti göster" }, true, None::<&str>)?;
@@ -20,7 +25,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
     let apps = Submenu::new(app, "Afu uygulamaları", true)?;
     let init_durum = fill_apps(app, &apps)?;
     *guard.apps_menu.lock().unwrap() = Some(apps.clone());
-    let menu = Menu::with_items(app, &[&open, &apps, item.as_ref().unwrap(), &pause, &quit])?;
+    let menu = Menu::with_items(app, &[&open, &hide, &status, &apps, item.as_ref().unwrap(), &mute, &pause, &quit])?;
     drop(item);
     let builder = TrayIconBuilder::with_id("afunobet-ui")
         .tooltip("Afu yanında")
@@ -28,7 +33,7 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         .show_menu_on_left_click(false)
         .on_tray_icon_event(|tray, event| {
             if matches!(event, TrayIconEvent::Click { button: MouseButton::Left, button_state: MouseButtonState::Up, .. }) {
-                let _ = tray.app_handle().emit_to(crate::island::WINDOW_LABEL, "tray", "open");
+                show(tray.app_handle());
             }
         })
         .menu(&menu)
@@ -41,12 +46,28 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
                 }
             }
             "open" => {
-                let _ = app.emit_to(crate::island::WINDOW_LABEL, "tray", "open".to_string());
+                show(app);
+            }
+            "hide" => {
+                app.state::<crate::sistem::TepsiDurumu>().gizli.store(true, std::sync::atomic::Ordering::Release);
+                app.state::<std::sync::Arc<crate::servis::Runtime>>().panel_open(false);
+                crate::tray_mode(app.clone(), app.state(), true);
+                let _ = app.emit_to(crate::island::WINDOW_LABEL, "system-hidden", ());
+            }
+            "status" => {
+                show(app);
+                let _ = app.emit_to(crate::island::WINDOW_LABEL, "system-status", ());
             }
             "pause" => {
                 let paused = pause.is_checked().unwrap_or(false);
+                app.state::<crate::bildirim::Runtime>().pause(paused);
                 let _ = pause.set_text(if paused { "Bildirimleri sürdür" } else { "Bildirimleri duraklat" });
                 let _ = app.emit_to(crate::island::WINDOW_LABEL, "tray", if paused { "pause" } else { "resume" });
+            }
+            "mute" => {
+                let muted = mute.is_checked().unwrap_or(false);
+                let _ = app.state::<crate::bildirim::Runtime>().mute(muted);
+                let _ = mute.set_text(if muted { "Sesleri aç" } else { "Sesleri kapat" });
             }
             id if id.starts_with("app:") => {
                 if let Err(message) = crate::app_open(app.clone(), id[4..].to_owned()) {
@@ -57,6 +78,11 @@ pub fn build(app: &AppHandle) -> tauri::Result<()> {
         });
     builder.build(app)?;
     Ok(())
+}
+fn show(app: &AppHandle) {
+    app.state::<crate::sistem::TepsiDurumu>().gizli.store(false, std::sync::atomic::Ordering::Release);
+    crate::tray_mode(app.clone(), app.state(), false);
+    let _ = app.emit_to(crate::island::WINDOW_LABEL, "tray", "open");
 }
 fn fill_apps(app: &AppHandle, menu: &Submenu<tauri::Wry>) -> tauri::Result<crate::tray_icon::Durum> {
     let mut en_onemli = crate::tray_icon::Durum::Bos;

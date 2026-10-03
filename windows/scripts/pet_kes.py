@@ -37,6 +37,31 @@ def green_key(image):
     return Image.fromarray(rgba, "RGBA")
 
 
+def clean_lower_halo(image):
+    """Teslim tuvalinin alt %30'undaki açık haleyi RGB'yi değiştirmeden kaldırır."""
+    rgba = np.array(image.convert("RGBA"))
+    start = int(image.height * .70)
+    rgb = rgba[:, :, :3]
+    bright = (rgb.min(axis=2) > 165) | ((rgb[:, :, 2] > 200) &
+             (rgb[:, :, 1] > 170) & (rgb[:, :, 0] > 120))
+    removed = False
+    for _ in range(5):
+        transparent = rgba[:, :, 3] < 10
+        adjacent = ndimage.binary_dilation(transparent, structure=np.ones((3, 3)))
+        halo = adjacent & ~transparent & bright
+        halo[:start] = False
+        if not halo.any():
+            break
+        rgba[halo, 3] = 0
+        removed = True
+    if removed:
+        transparent = rgba[:, :, 3] < 10
+        edge = ndimage.binary_dilation(transparent, structure=np.ones((3, 3))) & ~transparent
+        edge[:start] = False
+        rgba[edge, 3] = np.minimum(rgba[edge, 3], 200)
+    return Image.fromarray(rgba, "RGBA")
+
+
 def bar_line(image):
     rgb = np.asarray(image.convert("RGB")).astype(np.int16)
     gray = (rgb.max(axis=2) - rgb.min(axis=2) < 48) & (rgb.min(axis=2) > 125)
@@ -149,6 +174,7 @@ def build_delivery():
             if mirrored: crop = crop.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
             x, y = (width - crop.width) // 2, height - crop.height - 1
             result = Image.new("RGBA", (width, height)); result.alpha_composite(crop, (x, y))
+            if group == "pet": result = clean_lower_halo(result)
             result.save(directory / (name + ".png"))
             if group == "pet": result.save(PUBLIC / (name + ".webp"), lossless=True, exact=True)
             manifest["frames"][group + "/" + name] = {"mirror_x": mirrored, "source": source, "box": list(box), "trim": list(trim), "offset": [x, y], "canvas": [width, height], "bar_contact": citali, "source_area_ratio": np.count_nonzero(np.array(rgba)[:, :, 3]) / (rgba.width * rgba.height), "sha256": hashlib.sha256((directory/(name+".png")).read_bytes()).hexdigest()}

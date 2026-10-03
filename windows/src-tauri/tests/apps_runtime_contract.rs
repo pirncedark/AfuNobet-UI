@@ -60,6 +60,7 @@ fn popup_bad_scale_uses_safe_default() {
 fn no_status_means_no_timer_stale_transition_stops_timer() {
     assert_eq!(apps_runtime::wait_interval(&[]), None);
     let row = apps::AppDto {
+        indir_url: None,
         id: "afudm".into(),
         ad: "AfuDM".into(),
         kurulu: false,
@@ -106,6 +107,7 @@ fn watcher_missing_status_parent_creation_is_observed() {
     std::fs::write(&registry, "[]").unwrap();
     let status = f.0.join("durum/afudm.json");
     let row = apps::AfuApp {
+        indir_url: None,
         id: "afudm".into(),
         ad: "AfuDM".into(),
         yol: None,
@@ -126,6 +128,7 @@ fn registry_rebind_watches_new_status_and_ignores_removed_status() {
     let old = f.0.join("old.json");
     let new = f.0.join("new.json");
     let row = apps::AfuApp {
+        indir_url: None,
         id: "afudm".into(),
         ad: "AfuDM".into(),
         yol: None,

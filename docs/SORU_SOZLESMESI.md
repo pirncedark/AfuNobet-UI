@@ -3,8 +3,8 @@
 Bir ajan (Codex, sonra Gemini/OpenCode) çalışırken kullanıcıdan onay ya da cevap
 isterse soru **adada** görünür; kullanıcı tek tıkla ya da kısa metinle cevaplar,
 cevap ajana geri gider. Kanal yalnız **yerel dosyalardır**: ağ yok, model çağrısı
-yok, Claude Code hook'u yok.
-
+yok.
+*(İstisna - 2026-10-03: Kullanıcı isteğiyle Claude Code için yalnız bildirim/soru köprüsü (hook) serbest bırakıldı. Ancak Claude'un otomatik iş yapması hâlâ yasaktır.)*
 ## Örnek aldığımız akış (coucou, upstream/main)
 
 | Konu | coucou | Bizde |

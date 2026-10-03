@@ -122,3 +122,42 @@ SONUC YARIM: kaynak yönü, tam Rust ses regresyonu ve Kapı1 açık. YOK görev
 ## Faz A son - 2026-10-02 13:33
 
 A13: TS165/Python18/Rust147 PASS, 4 mevcut ignored, offline pack Exit0. A14: sol bakis kayipsiz aynalandi; 50/50 ve PNG/WebP exact RGBA regresyonu PASS. A19: yeni exe 9080832 bayt; SHA256 9828bd980efed101de39a8d80d28750d6fd85a60bbeb225e3ac9a7e2bfd3c246; onceki exe dist/onceki altinda ve GERI_AL.ps1 hazir. Kisayol hedefi dogru ancak Save erisim reddi; teslim YARIM. Kapi1 UNVERIFIED. Ayrintilar SONUC_FAZ_A_SON.md ve windows/test-results/faz-a-son-* dosyalarinda.
+
+## Durum Güncellemesi — 2026-10-02 23:25 (Toplu Entegrasyon ve Kontrol)
+
+### 1. Biten İşler ve Entegrasyon Özeti (E1–E7, F1–F18, Sistem ve Protokol)
+- **E1 – E7 (Ajan ve İletişim Altyapısı):**
+  - **E1 Genel Ajan Protokolü:** Çift dilli (`agent`/`ajan`, `event`/`olay` vb.) JSON çözümleme ve çelişki reddi sağlandı (`coz` fonksiyonu ve testleri).
+  - **E1b Ortak Olay Standardı:** Standart olay eşleme tablosu (`thinking`, `working`, `question`, `finished`, `error`, `rate_limit`) tamamlandı (`esle` fonksiyonu).
+  - **E1c Yerel Generic Agent API:** Named pipe IPC `start` ve Tauri `ajan_listesi` komutları bağlandı.
+  - **E3 Alt Ajan Takibi:** Ajan ve alt ajan durumları (`State.ajanlar`, `State.altAjanlar`, `ajanOlaylariniDinle()`) entegre edildi.
+  - **E4 / E4b Güvenli Hook ve Fail-Open Köprü:** Python tarafında daemon thread ve fail-open yazma mekanizması; Rust tarafında güvenli hook kurulumu (`hook_kur.rs`) doğrulandı.
+  - **E5 Güvenli IPC:** Windows SID doğrulama, IPC kapanışında `FlushFileBuffers` kilitlenmesinin giderilmesi.
+  - **E6 Sürükle-Bırak:** Ada/karakter üzerine dosya bırakma ve `attachFiles` entegrasyonu test edildi (`windows/tests/island_connections.test.ts`).
+  - **E7 / E7b Servis Pill'leri & GitHub Bağlantısı:** GitHub servis göstergesi (`servis.rs`, `servis.ts`, `servis_github_refresh`), HTTPS/URL güvenlik kontrolü ve yalnız panel açıkken arka plan sorgusu yapısı hazır.
+  - **E8 – E12 Ek Altyapı:** Olaya bağlı yerel WAV sesleri (`ses.rs`), gizlilik odaklı log rotasyonu (`E9`), Windows Credential Manager entegrasyonu (`E11`, `kimlik.rs`), güvenli web link filtreleme (`E12`).
+
+- **F1 – F18 (Kullanıcı Deneyimi ve Arayüz Standartları):**
+  - **F6 Tepsi Tam Menü:** Duraklat, Mini Peti Göster/Gizle, Aç, Çıkış seçenekleri eksiksiz bağlandı (`tray.rs`).
+  - **F15 İlk Kullanım İpucu:** Yalnız ilk açılışta gösterilen bilgilendirme sistemi bağlandı (`ilk_kullanim.rs`).
+  - **F16 Bildirim Sistemi:** `afunobet-state` dinleyicisi üzerinden bildirim kuyruğu ve gösterimi bağlandı (`bildirim.rs`).
+  - **F17 Otomatik Toparlanma:** Hata yönetimi, gecikmeli tekrar denemeler ve bağlantı toparlanma mantığı doğrulandı.
+  - **F18 İnsan Onay Kapısı:** Kritik işlemler için soru kartı onay akışı (`onay_iste`) doğrulandı.
+  - **Animasyon ve Etkileşim:** Karakter jestleri, tek seferlik animasyonlar (`playAnimOnce`), 3 kez tıklama (şaşkınlık/baş dönmesi) ve görev çubuğu mini pet modları stabil.
+
+### 2. Test Sonuçları (Doğrulandı)
+- **TypeScript Kontrolü (`tsc --noEmit`):** 0 hata, temiz.
+- **Frontend Testleri (Vitest / `npm test`):** 28 test dosyası, 353 test başarılı (0 hata).
+- **Backend Testleri (`cargo test --offline`):** 14 test paketi, 231 test başarılı (0 hata).
+
+### 3. Exe ve Paket Bilgileri
+- **Dosya:** `dist/afunobet-ui-coucou.exe` (19:54 derlemesi)
+- **Dosya Boyutu:** 34,505,728 bayt (~32.9 MB, hedef < 40 MB sınırına uygun)
+- **SHA256:** `2C14A8F5BD3A2B2482ACD50DA6BC12BF560BB3C999502C900B1201A549E200D3`
+- **Yedek:** `dist/onceki/afunobet-ui-coucou.exe`
+- **Kısayol:** Masaüstü kısayolu (`AfuNobet UI.lnk`) güncel teslimi işaret ediyor.
+
+### 4. Sıradaki Adımlar
+1. **Ses Taşınabilirliği (Portability):** Python/venv mutlak yol bağımlılıklarının tespiti yapıldı (`SONUC_EXE_BOYUT_TASIMA.md`); yerel model eksikliğinde Windows TTS yedeğine güvenli düşüş mekanizması üzerinde çalışılıyor.
+2. **Kullanıcı Toplu Testi (Kabul):** Kullanıcının gerçek masaüstünde 15–20 dakikalık uçtan uca kabul testini gerçekleştirmesi (`docs/TOPLU_TEST.md` üzerinden).
+3. **Sürüm ve Dağıtım:** Kullanıcı kabulünün ardından git commit + push ve GitHub Release / sürüm yayınlama adımları.

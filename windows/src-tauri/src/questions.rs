@@ -526,6 +526,11 @@ mod tests {
             .filter_map(|_| rx.recv_timeout(Duration::from_secs(3)).ok())
             .find(|l| l == &["z".to_string()]);
         assert!(son.is_some(), "yeni soru bildirilmedi");
+        std::fs::remove_file(soru_yolu(&kok, "z")).unwrap();
+        let silindi = (0..20)
+            .filter_map(|_| rx.recv_timeout(Duration::from_secs(3)).ok())
+            .find(|liste| liste.is_empty());
+        assert!(silindi.is_some(), "silinen soru kuyruktan kaldırılmadı");
         let _ = std::fs::remove_dir_all(kok);
     }
 }

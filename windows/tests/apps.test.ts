@@ -21,6 +21,15 @@ describe("Afu Merkez", () => {
   it("backend kurulum bilgisi yol tahmininden önce gelir", () => {
     expect(appRows([{id:"a",ad:"A",kurulu:false,yol:"a.exe"},{id:"b",ad:"B",telefonda:true,kurulu:true}],{}).map(r=>r.etiket)).toEqual(["Kurulu değil","Telefonda"]);
   });
+  it("indirUrl varsa İndir görünür, kuruluysa Aç görünür", () => {
+    const rows = appRows([
+      {id:"afudm", ad:"AfuDM", kurulu:false, indirUrl:"https://github.com/pirncedark/"},
+      {id:"afutube", ad:"AfuTube", kurulu:true, indirUrl:"https://github.com/pirncedark/a"},
+      {id:"remote", ad:"AfuRemote", telefonda:true, indirUrl:"https://github.com/pirncedark/apk"}
+    ], {});
+    expect(rows.map(r=>r.etiket)).toEqual(["İndir", "Aç", "APK indir"]);
+    expect(rows.map(r=>r.indirilebilir)).toEqual([true, false, true]);
+  });
 });
 import { afterEach, vi } from "vitest";
 import { AfuViews } from "../src/views/views";

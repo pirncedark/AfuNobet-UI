@@ -3,6 +3,7 @@ import { Bridge, onEvent } from "./core/bridge";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { IS_TAURI } from "./core/bridge";
 import { State } from "./core/state";
+import { ajanOlaylariniDinle } from "./core/protokol";
 import { Island } from "./island/island";
 async function main() {
   const root = document.getElementById("root");
@@ -13,9 +14,11 @@ async function main() {
   if (boot) island.setNativeScale(boot.screen.scale);
   void Bridge.scaleFactor().then(scale => { if (scale) island.setNativeScale(scale); });
   island.applySettings();
+  await ajanOlaylariniDinle();
   await onEvent<{ method: string; params: unknown }>("codex", event => { if (event.method === "account/rateLimits/updated") State.setCodexLimits(event.params); island.chat.onEvent(event); });
   if (IS_TAURI) {
     await getCurrentWebviewWindow().onDragDropEvent(event => {
+      island.setDragging(event.payload.type === "enter" || event.payload.type === "over");
       if (event.payload.type === "drop") island.attachFiles(event.payload.paths);
     });
   }
@@ -28,7 +31,8 @@ async function main() {
     if (action === "open") island.fsm.trayClick();
     if (action === "pause" || action === "resume") { State.setPaused(action === "pause"); if (action === "pause") { void island.chat.suspend(); void Bridge.voiceSilence(); } }
   });
-  await onEvent<null>("screen-changed", () => void Bridge.reposition());
+  await onEvent<null>("screen-changed", () => { island.onScreenChanged(); void Bridge.reposition(); });
+  await onEvent<null>("pet-idle", () => island.onPetIdle());
   await onEvent<null>("outside-click", () => island.dismiss());
   await onEvent<boolean>("pet", on => island.onPet(on));
   await onEvent<boolean>("pet-visible", visible => island.pet.setVisible(visible));

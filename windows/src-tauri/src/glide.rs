@@ -12,21 +12,44 @@ pub fn yol(bas: (i32, i32), son: (i32, i32), t: f64) -> (i32, i32) {
 }
 pub fn adimlar(sure_ms: u32, fps: u32) -> u32 { ((sure_ms as u64 * fps as u64 / 1000).max(1).min(10000)) as u32 }
 
+pub fn drag_distance(from: (f64, f64), to: (f64, f64), scale: f64) -> bool {
+    let scale = if scale.is_finite() && scale > 0.0 { scale } else { 1.0 };
+    (to.0 - from.0).hypot(to.1 - from.1) >= 5.0 * scale
+}
+pub fn return_point(from: (i32, i32), to: (i32, i32), t: f64) -> (i32, i32) {
+    let t = if t.is_finite() { t.clamp(0.0, 1.0) } else { 0.0 };
+    let eased = 1.0 - (1.0 - t).powi(3);
+    ((from.0 as f64 + (to.0 as f64 - from.0 as f64) * eased).round() as i32,
+     (from.1 as f64 + (to.1 as f64 - from.1 as f64) * eased).round() as i32)
+}
+
 pub struct PetRuntime {
     mutation: Mutex<()>,
     pub busy: AtomicBool,
     pub tray: AtomicBool,
     pub active: AtomicBool,
+    /// P10: görev/ajan mesajı balonu açık mı? Pencere yalnız bu durumda büyür.
+    pub balon: AtomicBool,
     pub generation: AtomicU64,
+    pub dragging: AtomicBool,
     signal: Mutex<()>,
     wake: Condvar,
 }
 impl PetRuntime {
-    pub fn new() -> Self { Self { mutation: Mutex::new(()), busy: AtomicBool::new(false), tray: AtomicBool::new(false), active: AtomicBool::new(false), generation: AtomicU64::new(0), signal: Mutex::new(()), wake: Condvar::new() } }
+    pub fn new() -> Self { Self { mutation: Mutex::new(()), busy: AtomicBool::new(false), tray: AtomicBool::new(false), active: AtomicBool::new(false), balon: AtomicBool::new(false), generation: AtomicU64::new(0), dragging: AtomicBool::new(false), signal: Mutex::new(()), wake: Condvar::new() } }
+    pub fn begin_drag(&self) -> Option<u64> {
+        let _guard = self.mutation.lock().unwrap();
+        if !self.active.load(Ordering::Acquire) || self.busy.load(Ordering::Acquire) || self.dragging.load(Ordering::Acquire) { return None; }
+        self.dragging.store(true, Ordering::Release);
+        Some(self.generation.fetch_add(1, Ordering::AcqRel) + 1)
+    }
     pub fn begin(&self) -> u64 {
         let _guard = self.mutation.lock().unwrap();
         let generation = self.generation.fetch_add(1, Ordering::AcqRel) + 1;
+        self.dragging.store(false, Ordering::Release);
         self.set_active(false); self.busy.store(true, Ordering::Release); self.tray.store(false, Ordering::Release);
+        // P10: yeni geçişte balon kapalı başlar; pencere 256 px'e döner.
+        self.balon.store(false, Ordering::Release);
         generation
     }
     pub fn with_current(&self, generation: u64, action: impl FnOnce()) -> bool {
@@ -43,7 +66,106 @@ impl PetRuntime {
         self.active.store(active, Ordering::Release);
         self.wake.notify_all();
     }
-    pub fn cancel(&self) { let _guard = self.mutation.lock().unwrap(); self.generation.fetch_add(1, Ordering::AcqRel); self.busy.store(false, Ordering::Release); self.set_active(false); }
+    pub fn cancel(&self) { let _guard = self.mutation.lock().unwrap(); self.generation.fetch_add(1, Ordering::AcqRel); self.dragging.store(false, Ordering::Release); self.busy.store(false, Ordering::Release); self.balon.store(false, Ordering::Release); self.set_active(false); }
+    /// Pencerenin ölçüsü değişti: gözlemci döngüsü bir sonraki turda hemen bakar.
+    pub fn wake_up(&self) { let _guard = self.signal.lock().unwrap(); self.wake.notify_all(); }
+}
+
+/// P10 — mini pet penceresi görev/ajan mesajı balonu açıkken YUKARI büyür.
+/// Sayıların ön yüzdeki karşılığı `windows/src/core/layout.ts`
+/// (PET_PENCERE, PET_BALON_PAY, PET_BALON_YUKSEKLIK, PET_BALON_BOSLUK) —
+/// iki taraf aynı sayıları kullanır, biri değişirse diğeri de değişir.
+pub const PET_PENCERE: f64 = 256.0;
+pub const PET_BALON_PAY: f64 = 24.0;
+pub const PET_BALON_YUKSEKLIK: f64 = 120.0;
+pub const PET_BALON_BOSLUK: f64 = 14.0;
+/// Balon kuyruğunun alt kenarı, pencerenin alt kenarından bu kadar yukarıda.
+pub const PET_BALON_TABAN: f64 = PET_PENCERE + PET_BALON_BOSLUK;
+
+/// Balon görünürken pet penceresinin yüksekliği (yalnız YUKARI büyür).
+pub fn pet_pencere_yuksekligi(balon: bool) -> f64 {
+    if balon { PET_BALON_TABAN + PET_BALON_YUKSEKLIK + PET_BALON_PAY } else { PET_PENCERE }
+}
+
+/// Balonlu pencerenin ölçüsü ve üst kenarı: (fiziksel yükseklik, üst kenar).
+///
+/// Alt kenar (`taban`, görev çubuğunun üstü) SABİT kalır, karakter yerinden
+/// oynamaz. Ekranın üstü yetmezse pencere dışarı taşmaz: yükseklik tepeden
+/// kırpılır (`kesme`). Ön yüz aynı kırpılmış yüksekliği görüp balon kutusunu
+/// kısaltır (core/layout.ts `petBalonKutusu`), böylece kuyruk ucu görünür.
+pub fn balon_olcu(balon: bool, pet: i32, taban: i32, ekran_ust: i32, olcek: f64) -> (i32, i32) {
+    let istenen = crate::dpi::physical_for(pet_pencere_yuksekligi(balon), olcek) as i32;
+    let en_fazla = (taban - ekran_ust).max(pet).max(1);
+    let yukseklik = istenen.min(en_fazla);
+    (yukseklik, taban - yukseklik)
+}
+
+/// Track the native cursor rather than coordinates relative to a moving webview.
+/// The captured resting origin is also the return destination across monitors.
+pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
+    use windows::Win32::Foundation::POINT;
+    use windows::Win32::UI::WindowsAndMessaging::GetCursorPos;
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
+    let cursor = || -> Result<(f64, f64), String> {
+        let mut point = POINT::default();
+        unsafe { GetCursorPos(&mut point) }.map_err(|_| "Afu taşınamadı. Yeniden dene.".to_string())?;
+        Ok((point.x as f64, point.y as f64))
+    };
+    let Some(win) = crate::island::window(&app) else { return Ok(false) };
+    let origin = win.outer_position().map_err(|_| "Afu taşınamadı. Yeniden dene.".to_string())?;
+    let original_size = win.inner_size().map_err(|_| "Afu taşınamadı. Yeniden dene.".to_string())?;
+    let scale = win.scale_factor().unwrap_or(1.0);
+    let first = cursor()?;
+    let Some(generation) = runtime.begin_drag() else { return Ok(false) };
+    let home = (origin.x, origin.y);
+    let result = (|| {
+        let mut held = false;
+        loop {
+            if runtime.generation.load(Ordering::Acquire) != generation { return Ok(true); }
+            if unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000 } == 0 { break; }
+            let point = cursor()?;
+            if !held && drag_distance(first, point, scale) {
+                held = true;
+                let _ = app.emit("pet-drag", "held");
+            }
+            if held {
+                let target = PhysicalPosition::new(home.0 + (point.0 - first.0).round() as i32, home.1 + (point.1 - first.1).round() as i32);
+                let mut error = None;
+                if !runtime.with_current(generation, || { error = win.set_position(target).err(); }) { return Ok(true); }
+                if error.is_some() { return Err("Afu taşınamadı. Yeniden dene.".to_string()); }
+            }
+            std::thread::sleep(Duration::from_millis(16));
+        }
+        if !held { return Ok(false); }
+        let _ = app.emit("pet-drag", "returning");
+        let pos = win.outer_position().map_err(|_| "Afu taşınamadı. Yeniden dene.".to_string())?;
+        let started = Instant::now();
+        let steps = adimlar(500, 60);
+        for i in 0..=steps {
+            let point = return_point((pos.x, pos.y), home, i as f64 / steps as f64);
+            let mut error = None;
+            if !runtime.with_current(generation, || { error = win.set_position(PhysicalPosition::new(point.0, point.1)).err(); }) { return Ok(true); }
+            if error.is_some() { return Err("Afu taşınamadı. Yeniden dene.".to_string()); }
+            if i < steps { std::thread::sleep(Duration::from_millis(500 * (i + 1) as u64 / steps as u64).saturating_sub(started.elapsed())); }
+        }
+        runtime.with_current(generation, || {
+            let _ = win.set_size(original_size);
+            let _ = win.set_position(origin);
+            // P10: sürükleme sırasında balon açıldıysa ölçüyü tazele.
+            if runtime.balon.load(Ordering::Acquire) { uygula(&win, None, true); }
+            let _ = app.emit("pet-drag", "landed");
+        });
+        Ok(true)
+    })();
+    runtime.with_current(generation, || {
+        if result.is_err() {
+            let _ = win.set_size(original_size);
+            let _ = win.set_position(origin);
+            let _ = app.emit("pet-drag", "landed");
+        }
+        runtime.dragging.store(false, Ordering::Release);
+    });
+    result
 }
 fn screen(win: &tauri::WebviewWindow) -> (i32, i32, i32, i32) {
     win.current_monitor().ok().flatten().map(|m| {
@@ -54,6 +176,29 @@ fn destination(win: &tauri::WebviewWindow, size: i32) -> (i32, i32) {
     let bounds = screen(win);
     let bar = crate::taskbar::cubuk().unwrap_or(crate::taskbar::Cubuk { rect: (bounds.0, bounds.3 - 48, bounds.2, bounds.3), kenar: crate::taskbar::Kenar::Alt, oto_gizli: true });
     crate::taskbar::pet_konumu(&bar, crate::taskbar::baslat_rect(), size, size, bounds)
+}
+/// Pet penceresinin hedef ölçüsü ve konumu: (x, y, fiziksel yükseklik).
+/// Balon açıksa genişlik değişmez, yalnız YUKARI büyür ve alt kenar
+/// (görev çubuğunun üstü) sabit kalır; ekran yetmezse üstten kırpılır.
+fn hedef(win: &tauri::WebviewWindow, size: i32, balon: bool) -> (i32, i32, i32) {
+    let scale = win.scale_factor().unwrap_or(1.0);
+    let (x, y) = destination(win, size);
+    let (yukseklik, ust) = balon_olcu(balon, size, y + size, screen(win).1, scale);
+    (x, ust, yukseklik)
+}
+
+/// Balon (ya da balonsuz pet) ölçüsünü pencereye uygular. Alt kenar görev
+/// çubuğunun üstünde sabit kalır; balon açıksa tepedeki şeffaf pay isabet
+/// kutusuna girmez, böylece boş kısım tıklamayı geçirir.
+fn uygula(win: &tauri::WebviewWindow, gate: Option<&crate::island::PollGate>, balon: bool) {
+    let size = crate::dpi::physical_for(PET_PENCERE, win.scale_factor().unwrap_or(1.0)) as i32;
+    let (x, y, yukseklik) = hedef(win, size, balon);
+    let _ = win.set_size(PhysicalSize::new(size as u32, yukseklik as u32));
+    let _ = win.set_position(PhysicalPosition::new(x, y));
+    if let Some(gate) = gate {
+        let pay = if balon { PET_BALON_PAY } else { 0.0 };
+        gate.set_rect(crate::island::IslandRect { x: 0.0, y: pay, w: PET_PENCERE, h: pet_pencere_yuksekligi(balon) - pay });
+    }
 }
 fn move_segment(win: &tauri::WebviewWindow, runtime: &PetRuntime, generation: u64, from: (i32, i32), to: (i32, i32), ms: u32) -> bool {
     let started = Instant::now();
@@ -70,7 +215,7 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
     std::thread::spawn(move || {
         let Some(win) = crate::island::window(&app) else { return };
         let scale = win.scale_factor().unwrap_or(1.0);
-        let size = crate::dpi::physical_for(128.0, scale) as i32;
+        let size = crate::dpi::physical_for(PET_PENCERE, scale) as i32;
         let Ok(origin) = win.outer_position() else { return };
         let Ok(old_size) = win.inner_size() else { return };
         std::thread::sleep(Duration::from_millis(if on { 180 } else { 320 }));
@@ -82,7 +227,7 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
             let _ = win.set_position(PhysicalPosition::new(start.0, start.1));
             if hidden { let _ = win.hide(); } else { let _ = win.show(); }
             gate.collapsed.store(false, Ordering::Relaxed);
-            gate.set_rect(crate::island::IslandRect { x: 0.0, y: 0.0, w: 128.0, h: 128.0 });
+            gate.set_rect(crate::island::IslandRect { x: 0.0, y: 0.0, w: PET_PENCERE, h: PET_PENCERE });
             gate.set_active(!hidden);
             let _ = app.emit("pet-visible", !hidden);
         }) { return; }
@@ -93,7 +238,12 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
         if on {
             std::thread::sleep(Duration::from_millis(200));
             if !move_segment(&win, &runtime, generation, approach, end, 120) { return; }
-            runtime.with_current(generation, || { runtime.set_active(true); runtime.busy.store(false, Ordering::Release); let _ = app.emit("pet", true); });
+            runtime.with_current(generation, || {
+                runtime.set_active(true); runtime.busy.store(false, Ordering::Release);
+                // P10: geçiş sırasında açılan balonun ölçüsü geçiş bitince uygulanır.
+                if runtime.balon.load(Ordering::Acquire) { uygula(&win, Some(&gate), true); }
+                let _ = app.emit("pet", true);
+            });
         } else {
             std::thread::sleep(Duration::from_millis(180));
             runtime.with_current(generation, || { crate::dpi::place(&app, "primary", false); runtime.busy.store(false, Ordering::Release); let _ = app.emit("pet", false); });
@@ -126,14 +276,18 @@ pub fn watch_fullscreen(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crat
                     gate.set_active(!hidden);
                 }
             }
-            if !hidden && active {
-                let size = crate::dpi::physical_for(128.0, win.scale_factor().unwrap_or(1.0)) as i32;
-                let target = destination(&win, size);
-                if Some(target) != last_target {
+            if !hidden && active && !runtime.dragging.load(Ordering::Acquire) {
+                let size = crate::dpi::physical_for(PET_PENCERE, win.scale_factor().unwrap_or(1.0)) as i32;
+                // P10: balon açıksa hedef yukarı büyümüş konumdur; izleyici onu
+                // küçültmez, çünkü hedef balon durumundan hesaplanır.
+                let (tx, ty, yukseklik) = hedef(&win, size, runtime.balon.load(Ordering::Acquire));
+                let target = Some((tx, ty, yukseklik));
+                if target != last_target {
                     if runtime.with_current(generation, || {
-                        let _ = win.set_size(PhysicalSize::new(size as u32, size as u32));
-                        let _ = win.set_position(PhysicalPosition::new(target.0, target.1));
-                    }) { last_target = Some(target); }
+                        if runtime.dragging.load(Ordering::Acquire) { return; }
+                        let _ = win.set_size(PhysicalSize::new(size as u32, yukseklik as u32));
+                        let _ = win.set_position(PhysicalPosition::new(tx, ty));
+                    }) { last_target = target; }
                 }
             }
             let guard = runtime.signal.lock().unwrap();
@@ -142,9 +296,100 @@ pub fn watch_fullscreen(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crat
     });
 }
 
+/// P10: balon açıldı/kapandı. Ölçü değişimi anında uygulanır (izleyiciyi
+/// beklemeden); alt kenar görev çubuğunun üstünde sabit kalır, karakter
+/// yerinden oynamaz. Balon açıkken pencerenin tepesindeki şeffaf pay isabet
+/// kutusuna girmesin diye `y` pay kadar kaydırılır.
+pub fn balon(app: &AppHandle, runtime: &PetRuntime, gate: &crate::island::PollGate, on: bool) {
+    // Pet modunda ya da pete geçiş sürerken anlamlıdır (kart açıkken değil).
+    if !runtime.active.load(Ordering::Acquire) && !runtime.busy.load(Ordering::Acquire) { return; }
+    if runtime.balon.swap(on, Ordering::AcqRel) == on { return; }
+    runtime.wake_up();
+    // Geçiş veya sürükleme sürerken ölçü onların sonunda uygulanır; ikisi de
+    // `balon` durumunu okuyup kendi hedefini yeniden hesaplar.
+    if runtime.busy.load(Ordering::Acquire) || runtime.dragging.load(Ordering::Acquire) { return; }
+    let Some(win) = crate::island::window(app) else { return };
+    uygula(&win, Some(gate), on);
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn drag_threshold_is_logical_at_all_dpis() {
+        for scale in [1.0, 1.25, 1.5] {
+            assert!(!drag_distance((0.0, 0.0), (4.9 * scale, 0.0), scale));
+            assert!(drag_distance((0.0, 0.0), (5.0 * scale, 0.0), scale));
+            assert!(drag_distance((0.0, 0.0), (3.0 * scale, 4.0 * scale), scale));
+        }
+    }
+    /// P10: balon açıkken pencere yalnız YUKARI büyür; alt kenar (görev çubuğunun
+    /// üstü) her DPI'da sabit kalır, karakter yerinden oynamaz.
+    #[test]
+    fn pet_window_grows_only_upwards_at_every_dpi() {
+        assert_eq!(pet_pencere_yuksekligi(false), 256.0);
+        assert_eq!(pet_pencere_yuksekligi(true), 414.0);
+        for (scale, size) in [(1.0, 256), (1.25, 320), (1.5, 384)] {
+            let taban = 1032i32; // 1080 piksellik ekranda 48 px'lik görev çubuğu
+            let (balon, ust) = balon_olcu(true, size, taban, 0, scale);
+            assert!(balon > size, "balon peti buyutmeli (scale {})", scale);
+            assert_eq!(ust + balon, taban, "alt kenar sabit kalmali (scale {})", scale);
+            assert!(ust < taban - size, "buyume yukarı dogru olmali (scale {})", scale);
+            // Balon kapanınca eski 256 px boyutuna dönülür.
+            let (kapali, ust_kapali) = balon_olcu(false, size, taban, 0, scale);
+            assert_eq!((kapali, ust_kapali), (size, taban - size));
+        }
+    }
+    /// P10 kesme: ekranın üstü yetmezse pencere UZAMAZ, tepeden kırpılır; alt
+    /// kenar yine de görev çubuğunun üstündedir ve pencere ekranın dışına taşmaz.
+    #[test]
+    fn balloon_window_is_clipped_at_the_screen_top_never_below_the_taskbar() {
+        for scale in [1.0, 1.25, 1.5] {
+            let size = crate::dpi::physical_for(PET_PENCERE, scale) as i32;
+            for (ekran_ust, taban_ofset) in [(0, 0), (0, 50), (0, 420), (0, 1032), (0, 2000)] {
+                // `destination` hiçbir zaman petten kısa bir taban üretmez.
+                let taban = size + taban_ofset;
+                let istenen = crate::dpi::physical_for(pet_pencere_yuksekligi(true), scale) as i32;
+                let (yukseklik, ust) = balon_olcu(true, size, taban, ekran_ust, scale);
+                assert_eq!(ust + yukseklik, taban, "alt kenar (gorev cubugu ustunde) sabit");
+                assert!(ust >= ekran_ust, "pencere ekranin ustunden tasmaz");
+                assert!(yukseklik >= size, "pencere petten kucuk olamaz");
+                assert!(yukseklik <= istenen);
+                if taban - ekran_ust < istenen {
+                    assert_eq!(yukseklik, (taban - ekran_ust).max(size), "kisa ekranda tam kırpılır");
+                } else {
+                    assert_eq!(yukseklik, istenen);
+                }
+            }
+        }
+    }
+    #[test]
+    fn pet_transition_resets_the_balloon() {
+        let runtime = PetRuntime::new();
+        runtime.balon.store(true, Ordering::Release);
+        runtime.begin();
+        assert!(!runtime.balon.load(Ordering::Acquire));
+        runtime.balon.store(true, Ordering::Release);
+        runtime.cancel();
+        assert!(!runtime.balon.load(Ordering::Acquire));
+    }
+    #[test]
+    fn return_path_is_ease_out_and_has_exact_endpoints() {
+        assert_eq!(return_point((100, 100), (0, 0), 0.0), (100, 100));
+        assert_eq!(return_point((100, 100), (0, 0), 1.0), (0, 0));
+        assert_eq!(return_point((100, 100), (0, 0), 0.5), (13, 13));
+    }
+    #[test]
+    fn drag_keeps_pet_active_but_cancellation_invalidates_its_motion() {
+        let runtime = PetRuntime::new(); runtime.set_active(true);
+        let generation = runtime.begin_drag().unwrap();
+        assert!(runtime.active.load(Ordering::Acquire));
+        assert!(runtime.dragging.load(Ordering::Acquire));
+        assert!(runtime.begin_drag().is_none());
+        runtime.cancel();
+        assert!(!runtime.with_current(generation, || panic!("stale drag")));
+        assert!(!runtime.dragging.load(Ordering::Acquire));
+    }
     #[test]
     fn cancelled_generation_cannot_move_or_reactivate() {
         let runtime = PetRuntime::new(); let old = runtime.begin();

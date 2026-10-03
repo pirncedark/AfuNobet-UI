@@ -17,6 +17,16 @@ mod voice;
 mod orkestra;
 mod questions;
 mod disari;
+mod ilk_kullanim;
+mod sistem;
+mod servis;
+mod bildirim;
+mod ses;
+mod hook_kur;
+mod kimlik;
+mod protokol;
+mod mesajlar;
+mod ipc;
 
 use island::{PollGate, ScreenInfo};
 use serde::Serialize;
@@ -102,6 +112,10 @@ async fn codex_login_cancel(app: AppHandle) -> Result<Value, String> {
     codex_action(app, |bridge| bridge.login_cancel().map_err(|error| codex::durum_metni(&error).to_owned())).await
 }
 #[tauri::command]
+fn codex_install() -> Result<(), String> {
+    crate::apps::login_url_ac("https://www.npmjs.com/package/@openai/codex").map_err(|_| "İndirme sayfası açılamadı; yeniden dene.".to_owned())
+}
+#[tauri::command]
 fn project_open(project: String) -> Result<(), String> { apps::proje_klasoru_ac(&project_root(), &project) }
 #[tauri::command]
 fn log_ac() -> Result<(), String> {
@@ -126,6 +140,7 @@ fn app_open(app: AppHandle, id: String) -> Result<(), String> {
 
 #[tauri::command]
 fn boot(app: AppHandle, shared: State<Shared>) -> BootInfo {
+    ilk_kullanim::prepare(&app);
     let settings = shared.settings.lock().unwrap().clone();
     let screen = island::screen_info(&app, &settings.screen);
     BootInfo {
@@ -138,6 +153,15 @@ fn boot(app: AppHandle, shared: State<Shared>) -> BootInfo {
 #[tauri::command]
 fn read_state(shared: State<Shared>) -> Value {
     shared.snapshot.lock().unwrap().value().clone()
+}
+
+/// F10 "Tekrar dene": durum dosyasını şimdi yeniden okur (izleyiciyi beklemez).
+#[tauri::command]
+fn refresh_state(shared: State<Shared>) -> Value {
+    let path = state::resolve_path();
+    let mut snapshot = shared.snapshot.lock().unwrap();
+    snapshot.refresh(&path);
+    snapshot.value().clone()
 }
 
 /// Mod değişmeden önce yalnız Afu Merkez tarafından saklanan geometri geri alınır.
@@ -175,8 +199,25 @@ fn pet_apps_popup(app: AppHandle, shared: State<Shared>, on: bool) -> Result<(),
 }
 #[tauri::command]
 fn pet_mode(app: AppHandle, shared: State<Shared>, on: bool) {
+    if app.state::<sistem::TepsiDurumu>().gizli.load(Ordering::Acquire) { return; }
+    app.state::<Arc<servis::Runtime>>().panel_open(false);
     restore_apps_popup(&app, &shared, false);
     glide::transition(app, shared.pet_runtime.clone(), shared.gate.clone(), on);
+}
+/// P10: mini pet modundayken görev/ajan mesajı balonu karakterin başının
+/// üstünde görünür; balon açıkken pencere yukarı büyür, kapanınca eski
+/// 256 px boyutuna döner. Kart açıkken çağrılsa da ölçü değişmez (balon kartın
+/// içindedir): `glide::balon` yalnız etkin pet modunda çalışır.
+#[tauri::command]
+fn pet_balon(app: AppHandle, shared: State<Shared>, on: bool) {
+    if !shared.pet_runtime.active.load(Ordering::Acquire) { return; }
+    glide::balon(&app, &shared.pet_runtime, &shared.gate, on);
+}
+#[tauri::command]
+async fn pet_drag(app: AppHandle, shared: State<'_, Shared>) -> Result<bool, String> {
+    let runtime = shared.pet_runtime.clone();
+    tauri::async_runtime::spawn_blocking(move || glide::drag(app, runtime)).await
+        .map_err(|_| "Afu taşınamadı. Yeniden dene.".to_string())?
 }
 #[tauri::command]
 fn tray_mode(app: AppHandle, shared: State<Shared>, on: bool) {
@@ -248,6 +289,10 @@ fn focus_window(app: AppHandle, focused: bool) {
 }
 
 #[tauri::command]
+fn app_download(app: AppHandle, id: String) -> Result<(), String> {
+    apps::Kayit::dosyadan(&apps_path(&app)?).indir_url_ac(&id)
+}
+#[tauri::command]
 fn reposition(app: AppHandle, shared: State<Shared>) {
     if shared.pet_runtime.is_pet_or_tray() { return; }
     let pref = shared.settings.lock().unwrap().screen.clone();
@@ -270,6 +315,8 @@ pub fn run() {
             let _ = app.emit_to(island::WINDOW_LABEL, "tray", "open".to_string());
         }))
         .manage(voice::VoiceState::default())
+        .manage(sistem::TepsiDurumu::default())
+        .manage(Arc::new(servis::Runtime::default()))
         .manage(apps_runtime::Runtime::default())
         .manage(kart_gozcu.clone())
         .manage(Shared {
@@ -284,29 +331,46 @@ pub fn run() {
         })
         .invoke_handler(tauri::generate_handler![
             boot,
+            sistem::bildirim_ayarlari,
+            sistem::ses_sessiz,
+            servis::servis_panel_open,
+            servis::servis_github_refresh,
+            hook_kur::hook_onizle,
+            hook_kur::hook_uygula,
+            kimlik::anahtar_kaydet,
+            kimlik::anahtar_var,
+            kimlik::anahtar_sil,
             set_collapsed,
             set_island_rect,
             set_card_open,
             focus_window,
             reposition,
             read_state,
+            refresh_state,
             pet_mode,
+            pet_drag,
+            pet_balon,
             pet_apps_popup,
             tray_mode,
             set_pet,
             set_tray_status,
             apps_list,
             app_open,
+            app_download,
             project_open,
             codex_status,
             codex_send,
             codex_cancel,
             codex_login,
             codex_login_cancel,
+            codex_install,
             voice::voice_start,
             voice::voice_stop,
             voice::voice_cancel,
             voice::voice_speak,
+            voice::voice_response,
+            voice::voice_choices,
+            voice::voice_choose,
             voice::voice_silence,
             voice::voice_supported,
             voice_open_settings,
@@ -314,10 +378,15 @@ pub fn run() {
             orkestra::orkestra_send,
             questions::questions_list,
             questions::answer_question,
+            mesajlar::mesajlar_list,
+            ipc::ajan_listesi,
             log_ac
         ])
         .setup(move |app| {
             let handle = app.handle().clone();
+            sistem::baslat(&handle)?;
+            ilk_kullanim::prepare(&handle);
+            mesajlar::start(handle.clone());
             if let Ok(path) = handle.path().app_config_dir() {
                 handle.state::<Shared>().settings.lock().unwrap().pet = settings::load(&path.join("pet.json"));
             }
@@ -353,6 +422,7 @@ pub fn run() {
             disari::baslat(handle.clone(), kart_gozcu.clone());
             glide::watch_fullscreen(handle.clone(), pet_runtime.clone(), gate.clone());
             questions::start(handle.clone());
+            ipc::start(handle.clone());
             watch::start(handle, path.clone(), watcher.lock().unwrap().take());
             Ok(())
         })

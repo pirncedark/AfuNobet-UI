@@ -1,5 +1,11 @@
 # AfuNöbet UI değişiklik kaydı
 
+## 2026-10-03 R1 — mesaj gelince öne gel
+
+Ortak FIFO mesaj/soru kuyruğu, oturum boyunca ID tekilleştirme, 8 saniyelik bildirim ve başarılı cevaba kadar sabit soru kartı eklendi. Mevcut ada Tauri API ile odak istemeden gösterilir; kuyruk boşaldığında gizlenir ve üstte tutma kaldırılır. Durum/ayar kartında varsayılan açık “Mesaj gelince öne gel” anahtarı yerel olarak saklanır. Mevcut Rust dizin olayları kullanılır; yeni FS eklentisi, pencere veya bağımlılık eklenmedi.
+
+R1: pytest 297, Vitest 700, Cargo 247 test PASS; tsc hatasız. Cargo 4 mevcut testi ignored bırakır. Önceki kaynak özeti arşivlenip yetkili değişiklikler için yenilendi; test koşulları değiştirilmedi. `island.rs` SHA256 `5F2F4588F4F7231450FE583F4218BDE4C04DB4BFE4CDBD1389B4430945F71B57` korunur. Ayrıntı `SONUC_R1.md`, kanıtlar `_gorev/2026-10-03/log/` içindedir. Gerçek Windows always-on-top, odak çalmama, gizlenme, click-through, hover wake ve pet/tepsi smoke testi UNVERIFIED; görünür pencere açılmadı.
+
 Kaynak: Louis-CFM/coucou (MIT, Louis Raille). LICENSE korunur. Bu fork yalnız AfuNöbet durumunu salt okunur görüntüler; Mochi/Coucou ikon, ses ve medya derlemeye alınmaz.
 
 ## 2026-10-01 Faz A

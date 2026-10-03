@@ -47,6 +47,27 @@ def test_delivery_cut_set_exists_and_validates_all_groups():
     assert cut.validate_delivery() == 0
 
 
+def test_lower_halo_cleanup_removes_only_five_exposed_bright_layers():
+    pixels = np.full((40, 40, 4), (30, 60, 140, 255), dtype=np.uint8)
+    pixels[:, 0] = 0
+    pixels[28:, 1:8] = (240, 240, 240, 255)
+    pixels[30, 1] = (130, 180, 220, 255)
+    pixels[10, 1] = (255, 255, 255, 255)
+    result = np.array(cut.clean_lower_halo(Image.fromarray(pixels)))
+    assert np.all(result[28:, 1:6, 3] == 0)
+    assert result[35, 6].tolist() == [240, 240, 240, 200]
+    assert result[35, 7].tolist() == [240, 240, 240, 255]
+    assert result[10, 1].tolist() == [255, 255, 255, 255]
+    assert result[20, 20].tolist() == [30, 60, 140, 255]
+    assert np.array_equal(result[:, :, :3], pixels[:, :, :3])
+
+
+def test_lower_halo_cleanup_keeps_alpha_when_no_halo_is_removed():
+    image = Image.new("RGBA", (20, 20), (30, 60, 140, 255))
+    image.paste((0, 0, 0, 0), (0, 0, 1, 20))
+    assert np.array_equal(np.array(cut.clean_lower_halo(image)), np.array(image))
+
+
 def test_left_gaze_is_lossless_source_mirror_and_public_asset_matches():
     import json
     manifest = json.loads((ROOT / "afu-character/kesim.json").read_text(encoding="utf-8"))
@@ -59,6 +80,31 @@ def test_left_gaze_is_lossless_source_mirror_and_public_asset_matches():
             source = source.transpose(Image.Transpose.FLIP_LEFT_RIGHT)
         delivered = Image.open(ROOT / ("afu-character/pet/" + name + ".png"))
         x, y = record["offset"]
-        assert np.array_equal(np.array(delivered.crop((x, y, x + source.width, y + source.height))), np.array(source))
+        expected = Image.new("RGBA", tuple(record["canvas"]))
+        expected.alpha_composite(source, (x, y))
+        expected = cut.clean_lower_halo(expected)
+        assert np.array_equal(np.array(delivered), np.array(expected))
         public = Image.open(cut.PUBLIC / (name + ".webp")).convert("RGBA")
         assert np.array_equal(np.array(public), np.array(delivered))
+
+
+def test_delivery_pipeline_reproduces_generated_pet_assets_losslessly(tmp_path, monkeypatch):
+    public = tmp_path / "windows/public/afu/pet"
+    public.mkdir(parents=True)
+    (tmp_path / "windows/src-tauri/icons").mkdir(parents=True)
+    (tmp_path / "afu-character").mkdir()
+    monkeypatch.setattr(cut, "ROOT", tmp_path)
+    monkeypatch.setattr(cut, "PUBLIC", public)
+    assert cut.build_delivery() == 0
+    rebuilt_paths = list((tmp_path / "afu-character/pet").glob("*.png"))
+    assert len(rebuilt_paths) == 35
+    for rebuilt_path in rebuilt_paths:
+        delivered_path = ROOT / "afu-character/pet" / rebuilt_path.name
+        rebuilt = Image.open(rebuilt_path)
+        delivered = Image.open(delivered_path)
+        assert rebuilt.size == delivered.size
+        assert np.array_equal(np.array(rebuilt), np.array(delivered)), delivered_path.name
+        webp = Image.open(public / (delivered_path.stem + ".webp")).convert("RGBA")
+        delivered_webp = Image.open(ROOT / "windows/public/afu/pet" / (delivered_path.stem + ".webp")).convert("RGBA")
+        assert np.array_equal(np.array(webp), np.array(rebuilt)), delivered_path.name
+        assert np.array_equal(np.array(delivered_webp), np.array(delivered)), delivered_path.name

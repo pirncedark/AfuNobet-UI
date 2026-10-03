@@ -1,4 +1,4 @@
-﻿// Island open/close FSM â€” port of IslandStateMachine.swift.
+// Island open/close FSM â€” port of IslandStateMachine.swift.
 // No DOM, no Tauri: it only reports transitions.
 
 export type FsmState = "hidden" | "petit" | "home" | "greeting" | "pet" | "tray";
@@ -108,6 +108,20 @@ export class IslandStateMachine {
   forceHidden() {
     this.cancelTimers();
     this.transition("hidden");
+  }
+  private beforeMessage: { state: FsmState; pinned: boolean } | null = null;
+  messageOpened() {
+    this.beforeMessage ??= { state: this.state, pinned: this.pinned };
+    this.pinned = true;
+    if (this.state === "pet") this.cancelTimers(); else this.forceHome();
+  }
+  messageClosed() {
+    const previous = this.beforeMessage; this.beforeMessage = null;
+    if (!previous) return;
+    this.cancelTimers(); this.pinned = previous.pinned; this.transition(previous.state);
+    if (previous.state === "petit") this.schedulePetitHide();
+    if (previous.state === "home") this.scheduleHomeCollapse();
+    if (previous.state === "greeting") this.scheduleGreetCollapse(this.greetAutoCollapseDelay);
   }
   toPet() { this.cancelTimers(); this.transition("pet"); }
   fromPet() { this.isPinned = false; this.forceHome(); }

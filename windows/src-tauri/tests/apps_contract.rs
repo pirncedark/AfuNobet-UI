@@ -529,3 +529,58 @@ fn ses_ayarlari_yalniz_sabit_hedefleri_kabul_eder() {
         assert!(apps::ses_ayarlari_ac(kind).is_err());
     }
 }
+#[test]
+fn eski_bicim_kayit_indir_url_varsayilandan_doldurulur() {
+    let f = Fixture::new();
+    let body = serde_json::json!([
+        {"id":"afudm","ad":"AfuDM"},
+        {"id":"afutube","ad":"AfuTube"},
+        {"id":"padkopru","ad":"PadKöprü"},
+        {"id":"bilinmeyen","ad":"Bilinmeyen"}
+    ])
+    .to_string();
+    let config = f.file("uygulamalar.json", body.as_bytes());
+    let before = std::fs::read(&config).unwrap();
+    let rows = Kayit::dosyadan(&config).liste(now());
+    let url = |id: &str| rows.iter().find(|r| r.id == id).unwrap().indir_url.clone();
+    assert_eq!(url("afudm").as_deref(), Some("https://github.com/pirncedark/AfuDM/releases/latest"));
+    assert_eq!(url("afutube").as_deref(), Some("https://github.com/pirncedark/AfuDM/releases?q=afutube"));
+    assert_eq!(url("padkopru").as_deref(), Some("https://github.com/pirncedark/afugamepad/releases/latest"));
+    assert_eq!(url("bilinmeyen"), None);
+    assert_eq!(std::fs::read(&config).unwrap(), before, "kullanıcı dosyası değişmemeli");
+}
+#[test]
+fn bilinmeyen_kimligin_varsayilan_indir_url_yok() {
+    assert_eq!(apps::varsayilan_indir_url("bilinmeyen"), None);
+    assert_eq!(apps::varsayilan_indir_url(""), None);
+    for id in ["afudm", "afudesk", "padkopru", "afutube", "afuremote"] {
+        assert!(apps::varsayilan_indir_url(id)
+            .unwrap()
+            .starts_with("https://github.com/pirncedark/"));
+    }
+}
+#[test]
+fn github_disi_indir_url_filtrelenir_varsayilana_dusmez() {
+    let registry = Kayit::yukle(
+        &serde_json::json!([
+            {"id":"afudm","ad":"AfuDM","indir_url":"https://evil.example/AfuDM.exe"},
+            {"id":"bilinmeyen","ad":"X","indir_url":"https://github.com/baskasi/x/releases"}
+        ])
+        .to_string(),
+    );
+    let rows = registry.liste(now());
+    assert!(rows.iter().all(|r| r.indir_url.is_none()));
+    assert_eq!(
+        registry.indir_url_ac("afudm").unwrap_err(),
+        "Geçersiz indirme bağlantısı."
+    );
+    assert_eq!(registry.indir_url_ac("yok").unwrap_err(), "Uygulama bulunamadı.");
+}
+#[test]
+fn varsayilan_kayit_padkopru_indir_url_icerir() {
+    let f = Fixture::new();
+    let config = f.root.join("uygulamalar.json");
+    assert!(apps::varsayilan_kayit_olustur(&config, Some(&f.root), None).unwrap());
+    let rows = Kayit::dosyadan(&config).liste(now());
+    assert!(rows.iter().all(|r| r.indir_url.is_some()));
+}

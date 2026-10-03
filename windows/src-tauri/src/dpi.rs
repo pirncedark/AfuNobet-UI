@@ -23,9 +23,16 @@
 
 use tauri::{AppHandle, Monitor, PhysicalPosition, PhysicalSize};
 
-/// Window-logical target sizes; these mirror the constants in `island.rs`.
-const PANEL_W: f64 = 720.0;
-const PANEL_H: f64 = 320.0;
+/// Window-logical target sizes.
+///
+/// `island.rs` is preserved byte for byte, so its 720x320 constants are still
+/// what the window is *born* at; this module re-asserts the size afterwards and
+/// is therefore the one place that carries the real card size. P8: the card is
+/// drawn 1.5x larger (design 720x320 x 1.5), so the window is 1080x480 logical.
+/// The front end mirrors these numbers in `src/core/layout.ts` (PANEL_W/H).
+const KART_OLCEK: f64 = 1.5;
+const PANEL_W: f64 = 720.0 * KART_OLCEK;
+const PANEL_H: f64 = 320.0 * KART_OLCEK;
 const STRIP_W: f64 = 240.0;
 const STRIP_H: f64 = 6.0;
 
@@ -196,11 +203,12 @@ mod tests {
         // Sol-üstte negatif orijinli 150% monitör: pencere (-1440,-200), 1080x480 fiziksel.
         let p = pencere_mantiksal((-1440.0 + 600.0, -200.0 + 300.0), (-1440, -200), 1.5);
         assert!((p.0 - 400.0).abs() < 1e-9 && (p.1 - 200.0).abs() < 1e-9);
-        // Kart açık: pencerenin tamamı (0,0,720,320) gönderilir → her iç nokta adada.
-        for (x, y) in [(0.0, 0.0), (719.0, 319.0), (400.0, 200.0)] {
-            assert!(adada((x, y), (0.0, 0.0, 720.0, 320.0)));
+        // Kart açık: pencerenin tamamı gönderilir → her iç nokta adada.
+        let kart = (0.0, 0.0, PANEL_W, PANEL_H);
+        for (x, y) in [(0.0, 0.0), (PANEL_W - 1.0, PANEL_H - 1.0), (PANEL_W / 2.0, PANEL_H / 2.0)] {
+            assert!(adada((x, y), kart));
         }
-        assert!(!adada((760.0, 10.0), (0.0, 0.0, 720.0, 320.0)));
+        assert!(!adada((PANEL_W + 40.0, 10.0), kart));
         assert!(!adada((10.0, 10.0), (0.0, 0.0, 0.0, 0.0)));
     }
 
@@ -208,8 +216,8 @@ mod tests {
     fn missing_monitor_bounds_still_centre_the_panel() {
         let (left, _, width) = fallback_bounds();
         assert!(width >= 800);
-        let x = centred_x(left, width, physical_for(720.0, 1.0));
-        assert!(x >= left && x + 720 <= left + width);
+        let x = centred_x(left, width, physical_for(PANEL_W, 1.0));
+        assert!(x >= left && x as f64 + PANEL_W <= left as f64 + width as f64);
     }
 
     #[test]
@@ -235,12 +243,12 @@ mod tests {
     #[test]
     fn a_window_sized_in_the_wrong_scale_is_detected_and_corrected() {
         // The reported defect: the monitor factor said 1.0 while the window and
-        // its webview ran at 1.25, so the 720 px design got 576 CSS px.
+        // its webview ran at 1.25, so the design got 20% fewer CSS px.
         let wrong = physical_for(PANEL_W, 1.0);
         assert!(!sized_correctly(wrong, PANEL_W, 1.25));
         let corrected = physical_for(PANEL_W, 1.25);
         assert!(sized_correctly(corrected, PANEL_W, 1.25));
-        assert_eq!(corrected, 900);
+        assert_eq!(corrected, 1350);
     }
 
     #[test]
@@ -276,6 +284,7 @@ mod tests {
     fn neither_the_panel_nor_the_wake_strip_ever_lands_in_a_corner() {
         // The reported defect: the island sat at (0, 0) in its 240x6 birth size.
         // Every mode has to end up on the display, horizontally centred.
+        // P8: kart 1,5 kat buyutuldu; en kucuk hedef masaustu 1366x768 @%100.
         for (physical_w, scale) in [(1366, 1.0), (1920, 1.0), (2400, 1.25), (2560, 1.5), (3840, 2.0)] {
             for logical in [PANEL_W, STRIP_W] {
                 let window_w = physical_for(logical, scale);
@@ -287,10 +296,28 @@ mod tests {
     }
 
     #[test]
+    fn buyutulmus_kart_hedef_masaustlerine_sigar() {
+        // Kullanici ekrani: 1366x768 @%100 ve 1920x1080 @%150. Kart mantiksal
+        // 1080x480 olmali: 1366 genislikte sigar, @%150'de 1280x720 mantiksal
+        // alana da sigar.
+        assert_eq!(PANEL_W, 1080.0);
+        assert_eq!(PANEL_H, 480.0);
+        for (physical_w, physical_h, scale) in [(1366, 768, 1.0), (1920, 1080, 1.5)] {
+            let w = physical_for(PANEL_W, scale);
+            let h = physical_for(PANEL_H, scale);
+            assert!(w <= physical_w && h <= physical_h, "{w}x{h} @%{scale} ekrana sigmiyor");
+            let x = centred_x(0, physical_w as i32, w);
+            assert!(x >= 0 && x as u32 + w <= physical_w);
+        }
+        // Tasarim 720x320'in 1,5 kati; oran kayip olmamali.
+        assert!((PANEL_W / 1.5 - 720.0).abs() < 0.5 && (PANEL_H / 1.5 - 320.0).abs() < 0.5);
+    }
+
+    #[test]
     fn a_display_that_cannot_be_enumerated_still_yields_a_usable_placement() {
         // display_bounds falls back to a 1920x1080 primary display, so the panel
         // is centred instead of inheriting the position the window was born with.
         let window_w = physical_for(PANEL_W, 1.0);
-        assert_eq!(centred_x(0, 1920, window_w), 600);
+        assert_eq!(centred_x(0, 1920, window_w), (1920 - window_w as i32) / 2);
     }
 }

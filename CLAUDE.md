@@ -7,4 +7,5 @@ Do not add model APIs, hook installation, process control (exception: AfuNöbet 
 Claude appears only as the locked Claude KORUNUYOR badge.
 Use existing offline dependencies, headless tests and no visible windows.
 
-Exception (user-approved 2026-10-02): agent question flow reads <AfuNobet>/sorular/*.json and writes only cevaplar/<id>.json (docs/SORU_SOZLESMESI.md); for codex/gemini/opencode only, no Claude Code hook.
+Exception (user-approved 2026-10-02): agent question flow reads <AfuNobet>/sorular/*.json and writes only cevaplar/<id>.json (docs/SORU_SOZLESMESI.md); for codex/gemini/opencode only.
+Exception (user-approved 2026-10-03): Claude Code hook is allowed ONLY for notification/question bridge (Afu reads messages and answers questions). Claude automatic task execution remains FORBIDDEN (KORUNUYOR badge stays).

@@ -14,7 +14,7 @@ button:disabled{cursor:default}
    --fit is the CSS-pixel ratio measured against the real viewport; scaling
    about the top centre keeps the island hanging from the top of the screen and
    keeps it centred when the window and the webview disagree about DPI. */
-#island{position:absolute;top:0;left:50%;transform:translateX(-50%) scale(var(--fit,1));transform-origin:50% 0;background:#080e1b;border:1px solid #7ea3d52a;overflow:hidden}
+#island{position:absolute;top:0;left:50%;transform:translateX(-50%) scale(var(--fit,1));transform-origin:50% 0;background:#080e1b;border:1px solid #7ea3d52a;overflow:hidden;zoom:var(--kart-olcek,1)}
 #island-clip{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:radial-gradient(ellipse at 10% 68%,#16375a70,transparent 40%);box-shadow:inset 0 -14px 22px #02091680}
 /* Fixed character column on the left, content column on the right. The two can
    never overlap: they are grid columns, not absolutely positioned boxes.
@@ -38,7 +38,7 @@ header{display:flex;align-items:center;gap:9px;height:23px;flex-shrink:0;white-s
 .agent-pill[data-expression=alert]{border-color:#dda95299}
 .agent-pill[data-expression=happy]{border-color:#7dd9ae77}
 .main-task{height:96px;flex-shrink:0;position:relative;margin-top:7px;padding:10px 12px 12px;background:linear-gradient(110deg,#172233,#121a2b);border:1px solid #b7cef01c;border-radius:12px;overflow:hidden}
-.task-eyebrow{font-size:8px;font-weight:600;letter-spacing:.08em;color:#91b7df;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
+.task-eyebrow{font-size:9px;font-weight:600;letter-spacing:.08em;color:#91b7df;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
 h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.015em}
 .task-message{font-size:10px;line-height:15px;max-height:45px;color:#a7b4c9;margin-top:4px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
 .task-meta{display:flex;gap:8px;font-size:9px;line-height:13px;height:13px;color:#7794ba;margin-top:4px;overflow:hidden}
@@ -55,7 +55,7 @@ h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow
 .task-row{height:19px;min-height:19px;display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:transparent;color:#a6b4cb;font-size:9px;border-radius:5px;padding:0 3px}
 .task-row:hover{background:#ffffff0a}
 .row-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row-status{width:74px;flex-shrink:0;text-align:right;color:#7f95b5;font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-status{width:74px;flex-shrink:0;text-align:right;color:#7f95b5;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .status-dot{width:4px;height:4px;border-radius:50%;background:#5b7395;flex-shrink:0}
 .status-dot.working{background:#60c5f2}.status-dot.alert{background:#e3b164}.status-dot.happy{background:#63cd9f}.status-dot.error{background:#e78982}.status-dot.thinking{background:#b9a7e8}
 footer{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0;height:29px}
@@ -69,14 +69,15 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
    own column rather than offset with `top`, so it stays inside the panel at any
    panel height. */
 #afu-character{grid-column:1;grid-row:1;position:relative;left:10px;top:0;align-self:center;width:145px;height:184px;pointer-events:auto;--look-x:0px;--look-y:0px}
-.afu-image{width:100%;height:100%;object-fit:contain;object-position:center bottom;transform-origin:50% 90%;animation:afu-breathe 4.8s ease-in-out infinite}
+.afu-image, .afu-anim {position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;transform-origin:50% 90%;}
+.afu-image {animation:afu-breathe 4.8s ease-in-out infinite}
 /* The "!" and "?" badges live inside the character column: kept far enough left
    that they can never land on the card heading. */
 #island[data-mode=hidden] #afu-character{position:absolute}
 #island[data-mode=compact] #afu-character{position:absolute}
 .afu-effect{position:absolute;right:6px;top:2px;width:24px;height:30px;animation:effect-float 2.8s ease-in-out infinite}
 #afu-character.compact{left:9px;top:3px;width:26px;height:26px}
-#afu-character.compact .afu-image{object-position:center}
+#afu-character.compact .afu-image, #afu-character.compact .afu-anim {object-position:center}
 /* greeting view handled below */
 #afu-character[data-expression=thinking] .afu-image{animation:afu-think 6s ease-in-out infinite}
 #afu-character[data-expression=happy] .afu-image{animation:afu-celebrate .7s cubic-bezier(.2,.8,.3,1) both}
@@ -84,11 +85,11 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 #afu-character[data-expression=error] .afu-image{animation:afu-shake .3s ease-out both}
 #afu-character[data-expression=alert] .afu-image{animation:afu-breathe 6s ease-in-out infinite}
 #island[data-view=greeting] #afu-character{height:132px;width:112px;left:26px}
-.greeting-view{display:flex;flex-direction:column;justify-content:center;height:100%;overflow:hidden}
+.greeting-view{display:flex;flex-direction:column;justify-content:center;flex:1;min-height:0;overflow:hidden}
 .greeting-view h1{font-size:23px;margin-bottom:9px}
 .greeting-view p{font-size:13px;line-height:20px;color:#a1b4d0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .greeting-view .hint{font-size:10px;line-height:16px;margin-top:16px;color:#788dac}
-.quota-view{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.quota-view{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
 .quota-view h1{margin-bottom:9px;flex-shrink:0}
 .quota-row{display:grid;grid-template-columns:92px 92px 1fr;align-items:center;min-height:30px;flex-shrink:0;border-bottom:1px solid #ffffff0a;font-size:11px;color:#a7bbd5;overflow:hidden}
 .quota-row strong{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -112,7 +113,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  #afu-character[data-expression=waiting] .afu-image { animation:afu-breathe 6s ease-in-out infinite; }
  #afu-character[data-expression=success] .afu-image { animation:afu-celebrate .7s ease-out both; }
  #island[data-mode=hidden] .afu-image, #island[data-mode=hidden] .afu-effect { animation:none; }
-#afu-pet { position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:128px; height:128px; padding:0; background:transparent; overflow:hidden; }
+#afu-pet { position:absolute; top:0; left:0; width:100%; height:100%; padding:0; background:transparent; overflow:hidden; }
  .pet-image { position:absolute; width:100%; height:100%; left:0; top:0; object-fit:contain; object-position:center bottom; pointer-events:none; }
  .pet-previous { opacity:0; }
  .pet-balloon { position:absolute; right:8px; top:4px; color:#ffcd6e; font-size:20px; font-weight:bold; pointer-events:none; }
@@ -123,6 +124,57 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  @keyframes pet-breathe { 50% { transform:translateY(-1px) scaleY(1.015); } }
  @keyframes pet-jump { 50% { transform:translateY(-9px); } }
  #afu-pet .pet-image { animation-play-state:var(--pet-play,running); }
+ 
+ /* Premium Gorunum Degiskenleri */
+ :root {
+   --pet-brightness: 1.03;
+   --pet-filtre-calisiyor: drop-shadow(0 0 3px #63d4ff90) drop-shadow(0 0 7px #63d4ff60);
+   --pet-arka-calisiyor: radial-gradient(ellipse at center, #63d4ff1a 0%, transparent 70%);
+   --pet-kenar-calisiyor: #63d4ff99;
+ 
+   --pet-filtre-dusunuyor: drop-shadow(0 0 3px #b9a7e890) drop-shadow(0 0 7px #b9a7e860);
+   --pet-arka-dusunuyor: radial-gradient(ellipse at center, #b9a7e81a 0%, transparent 70%);
+   --pet-kenar-dusunuyor: #b9a7e899;
+ 
+   --pet-filtre-hata: drop-shadow(0 0 3px #e2777190) drop-shadow(0 0 7px #e2777160);
+   --pet-arka-hata: radial-gradient(ellipse at center, #e277711a 0%, transparent 70%);
+   --pet-kenar-hata: #e2777199;
+ 
+   --pet-filtre-basari: drop-shadow(0 0 3px #79d8b090) drop-shadow(0 0 7px #79d8b060);
+   --pet-arka-basari: radial-gradient(ellipse at center, #79d8b01a 0%, transparent 70%);
+   --pet-kenar-basari: #79d8b099;
+ 
+   --pet-filtre-onay: drop-shadow(0 0 3px #e3b16490) drop-shadow(0 0 7px #e3b16460);
+   --pet-arka-onay: radial-gradient(ellipse at center, #e3b1641a 0%, transparent 70%);
+   --pet-kenar-onay: #e3b16499;
+ 
+  --pet-filtre-bosta: drop-shadow(0 0 0 transparent);
+   --pet-arka-bosta: transparent;
+   --pet-kenar-bosta: transparent;
+ }
+ 
+ [data-durum="calisiyor"] { --pet-filtre: var(--pet-filtre-calisiyor); --pet-arka: var(--pet-arka-calisiyor); --pet-kenar: var(--pet-kenar-calisiyor); }
+ [data-durum="dusunuyor"] { --pet-filtre: var(--pet-filtre-dusunuyor); --pet-arka: var(--pet-arka-dusunuyor); --pet-kenar: var(--pet-kenar-dusunuyor); }
+ [data-durum="hata"] { --pet-filtre: var(--pet-filtre-hata); --pet-arka: var(--pet-arka-hata); --pet-kenar: var(--pet-kenar-hata); }
+ [data-durum="basari"] { --pet-filtre: var(--pet-filtre-basari); --pet-arka: var(--pet-arka-basari); --pet-kenar: var(--pet-kenar-basari); }
+ [data-durum="onay-bekliyor"] { --pet-filtre: var(--pet-filtre-onay); --pet-arka: var(--pet-arka-onay); --pet-kenar: var(--pet-kenar-onay); }
+ [data-durum="bosta"] { --pet-filtre: var(--pet-filtre-bosta); --pet-arka: var(--pet-arka-bosta); --pet-kenar: var(--pet-kenar-bosta); }
+ 
+ #afu-character, #afu-pet {
+   box-shadow: inset 0 0 0 1px var(--pet-kenar, transparent);
+   background: var(--pet-arka, transparent);
+   transition: box-shadow 0.3s ease, background 0.3s ease;
+ }
+ 
+#afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image {
+  filter: brightness(var(--pet-brightness, 1)) var(--pet-filtre, drop-shadow(0 0 0 transparent));
+   transition: filter 0.3s ease;
+ }
+ 
+ @media(prefers-reduced-motion: reduce) {
+  #afu-character, #afu-pet, #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image { transition: none !important; }
+ }
+ 
 /* Proje eylemi sabit kartın üst satırında kalır; uzun açıklama altında kırpılmaz. */
 .main-task .task-project{position:absolute;top:3px;right:8px;font-size:9px;padding:5px 2px;max-width:70px;}
 .main-task:has(.task-project:not([hidden])) .task-eyebrow{padding-right:72px;}
@@ -142,8 +194,9 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 .task-row:active,.app-open:active:not(:disabled){transform:scale(.97)}
 button.tiklandi{animation:tik-nabiz .32s ease-out}
 @keyframes tik-nabiz{0%{box-shadow:0 0 0 0 #f5b949b3}100%{box-shadow:0 0 0 9px #f5b94900}}
-.tik-bildirim{position:absolute;left:50%;bottom:46px;transform:translateX(-50%);max-width:92%;margin:0;padding:6px 12px;border-radius:9px;background:#1d3150f2;border:1px solid #7fb6e466;color:#e6f1ff;font-size:10px;line-height:1.35;text-align:center;z-index:5;pointer-events:none;box-shadow:0 6px 18px #0008}
+.tik-bildirim{position:static;align-self:center;margin:auto auto 6px auto;flex-shrink:0;max-width:92%;padding:6px 12px;border-radius:9px;background:#1d3150f2;border:1px solid #7fb6e466;color:#e6f1ff;font-size:10px;line-height:1.35;text-align:center;z-index:5;pointer-events:none;box-shadow:0 6px 18px #0008}
 .tik-bildirim[hidden]{display:none}
+.overview{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
 /* Orkestra görünümü kartın içinde kalır, alt düğme satırını (Görevlere dön) itip gizlemez. */
 .orkestra-view{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:2px 4px 6px 0;font-size:10px;color:#c9d6e8}
 .orkestra-view h1{font-size:15px;margin:2px 0 6px}
@@ -161,3 +214,10 @@ button.tiklandi{animation:tik-nabiz .32s ease-out}
 .orkestra-task-row .log-link{color:#7fb6e4}
 footer{gap:6px}
 footer .text-button{padding:6px 5px}
+
+.more-menu .menu-item{font-size:10px}
+footer .page-button{font-size:10px}
+.health-strip{display:flex;gap:4px;margin-top:auto;justify-content:center}
+.health-pill{font-size:9px;padding:2px 6px;border-radius:4px;background:#ffffff11;color:#a1b4d0}
+.health-pill.ok{background:#1a4d2e;color:#7dd9ae}
+.health-pill.kapali{background:#4d1a1a;color:#d97d7d}
