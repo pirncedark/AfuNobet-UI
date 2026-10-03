@@ -81,7 +81,7 @@ fn codex_bridge(app: &AppHandle) -> Result<Arc<codex::CodexBridge>, String> {
     if let Some(bridge) = guard.as_ref() { return Ok(bridge.clone()); }
     let target = app.clone();
     let bridge = codex::CodexBridge::start_with_callback(Arc::new(move |event| { let _ = target.emit_to(island::WINDOW_LABEL, "codex", event); }))
-        .map_err(|error| codex::durum_metni(&error).to_owned())?;
+        .map_err(|error| codex::sol_durum_metni(&error).to_owned())?;
     let bridge = Arc::new(bridge); *guard = Some(bridge.clone()); Ok(bridge)
 }
 async fn codex_action<T: Send + 'static>(app: AppHandle, action: impl FnOnce(Arc<codex::CodexBridge>) -> Result<T, String> + Send + 'static) -> Result<T, String> {
@@ -90,31 +90,76 @@ async fn codex_action<T: Send + 'static>(app: AppHandle, action: impl FnOnce(Arc
 }
 #[tauri::command]
 async fn codex_status(app: AppHandle) -> Result<codex::CodexStatus, String> {
-    codex_action(app, |bridge| bridge.status().map_err(|error| codex::durum_metni(&error).to_owned())).await
+    codex_action(app, |bridge| bridge.status().map_err(|error| codex::sol_durum_metni(&error).to_owned())).await
 }
 #[tauri::command]
 async fn codex_send(app: AppHandle, text: String, attachments: Vec<String>) -> Result<Value, String> {
-    codex_action(app, move |bridge| bridge.send(&text, &attachments, &project_root()).map_err(|error| codex::durum_metni(&error).to_owned())).await
+    codex_action(app, move |bridge| bridge.send(&text, &attachments, &project_root()).map_err(|error| codex::sol_durum_metni(&error).to_owned())).await
 }
 #[tauri::command]
 async fn codex_cancel(app: AppHandle) -> Result<Value, String> {
-    codex_action(app, |bridge| bridge.cancel().map_err(|error| codex::durum_metni(&error).to_owned())).await
+    codex_action(app, |bridge| bridge.cancel().map_err(|error| codex::sol_durum_metni(&error).to_owned())).await
+}
+#[tauri::command]
+async fn codex_logout(app: AppHandle) -> Result<Value, String> {
+    codex_action(app, |bridge| bridge.logout().map_err(|error| codex::sol_durum_metni(&error).to_owned())).await
+}
+#[tauri::command]
+async fn codex_new_chat(app: AppHandle) -> Result<(), String> {
+    codex_action(app, |bridge| bridge.new_chat().map_err(|error| codex::sol_durum_metni(&error).to_owned())).await
 }
 #[tauri::command]
 async fn codex_login(app: AppHandle) -> Result<(), String> {
     codex_action(app, |bridge| {
-        let url = bridge.login_start().map_err(|error| codex::durum_metni(&error).to_owned())?;
+        let url = bridge.login_start().map_err(|error| codex::sol_durum_metni(&error).to_owned())?;
         if let Err(error) = apps::login_url_ac(&url) { let _ = bridge.login_cancel(); return Err(error); }
         Ok(())
     }).await
 }
 #[tauri::command]
 async fn codex_login_cancel(app: AppHandle) -> Result<Value, String> {
-    codex_action(app, |bridge| bridge.login_cancel().map_err(|error| codex::durum_metni(&error).to_owned())).await
+    codex_action(app, |bridge| bridge.login_cancel().map_err(|error| codex::sol_durum_metni(&error).to_owned())).await
 }
 #[tauri::command]
 fn codex_install() -> Result<(), String> {
     crate::apps::login_url_ac("https://www.npmjs.com/package/@openai/codex").map_err(|_| "İndirme sayfası açılamadı; yeniden dene.".to_owned())
+}
+// Sol uses the existing local Chatterbox worker, fixed to afu_5b; no alternate text or voice.
+#[derive(Default)]
+struct SolVoiceState {
+    generation: Arc<std::sync::atomic::AtomicU64>,
+    lock: Arc<Mutex<()>>,
+    jobs: Arc<Mutex<Vec<std::path::PathBuf>>>,
+}
+impl SolVoiceState {
+    fn silence(&self) {
+        self.generation.fetch_add(1, std::sync::atomic::Ordering::AcqRel);
+        if let Ok(jobs) = self.jobs.lock() { for path in jobs.iter() { voice::afu::cancel(path); } }
+    }
+}
+#[tauri::command]
+fn sol_voice_silence(sol: tauri::State<'_, SolVoiceState>, state: tauri::State<'_, voice::VoiceState>) {
+    sol.silence();voice::voice_silence(state);
+}
+#[tauri::command]
+async fn sol_voice_response(sol: tauri::State<'_, SolVoiceState>, text: String) -> Result<Value, String> {
+    use std::sync::atomic::Ordering;
+    let generation=sol.generation.clone();
+    let ticket=generation.fetch_add(1,Ordering::AcqRel)+1;
+    let directory=voice::afu::job_directory();
+    let failure="Afu sesi açılamadı; yanıtı yazıyla gösteriyorum.";
+    std::fs::create_dir_all(&directory).map_err(|_|failure.to_owned())?;
+    let jobs=sol.jobs.clone();jobs.lock().map_err(|_|failure.to_owned())?.push(directory.clone());
+    let lock=sol.lock.clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let _guard=lock.lock().map_err(|_|failure.to_owned())?;
+        let result=voice::afu::speak(voice::afu::runtime().as_deref(),&directory,&voice::afu::Choice::default(),&text,&generation,ticket);
+        if let Ok(mut jobs)=jobs.lock(){jobs.retain(|path|path!=&directory);}
+        match result {
+            voice::afu::Answer::Played|voice::afu::Answer::Cancelled=>Ok(serde_json::json!({"warning":null})),
+            voice::afu::Answer::Fallback(_)=>Err(failure.to_owned()),
+        }
+    }).await.map_err(|_|failure.to_owned())?
 }
 #[tauri::command]
 fn studio_open() -> Result<(), String> { apps::animasyon_studyo_ac(&project_root()) }
@@ -323,6 +368,7 @@ pub fn run() {
             let _ = app.emit_to(island::WINDOW_LABEL, "tray", "open".to_string());
         }))
         .manage(voice::VoiceState::default())
+        .manage(SolVoiceState::default())
         .manage(sistem::TepsiDurumu::default())
         .manage(Arc::new(servis::Runtime::default()))
         .manage(apps_runtime::Runtime::default())
@@ -374,6 +420,10 @@ pub fn run() {
             codex_login,
             codex_login_cancel,
             codex_install,
+            codex_new_chat,
+            codex_logout,
+            sol_voice_response,
+            sol_voice_silence,
             voice::voice_start,
             voice::voice_listen_turn,
             voice::voice_stop,
@@ -442,6 +492,7 @@ pub fn run() {
         .run(|app, event| {
             if matches!(event, tauri::RunEvent::Exit) {
                 app.state::<apps_runtime::Runtime>().stop();
+                app.state::<SolVoiceState>().silence();
                 app.state::<voice::VoiceState>().shutdown();
                 let bridge = app.state::<Shared>().codex.lock().ok().and_then(|mut guard| guard.take());
                 if let Some(bridge) = bridge { bridge.shutdown(); }

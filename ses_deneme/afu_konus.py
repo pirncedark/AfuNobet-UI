@@ -136,7 +136,16 @@ def number_words(value):
     return ' '.join(p for p in parts if p)
 
 
-def speech_text(text):
+def speech_text(text, *, legacy=False):
+    """Remove only Markdown markers; preserve words, code and whitespace."""
+    if legacy:
+        return _legacy_speech_text(text)
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    text = re.sub(r'(?m)^([ \t]*)(?:#{1,6}|[-*+]|\d+\.)[ \t]+', r'\1', text)
+    return text.replace('**', '').replace('`', '')
+
+
+def _legacy_speech_text(text):
     # A length-limited screen answer can end before the closing fence.
     text = re.sub(r'(```|~~~).*?(?:\1|\Z)', ' Kodu ekrana yazdım. ', text, flags=re.S)
     text = re.sub(r'(?m)^Traceback .*?(?=\n\s*\n|\Z)', ' Ayrıntıları ekranda görebilirsin. ', text, flags=re.S)
@@ -525,7 +534,7 @@ def main():
                     break
                 message = None
                 continue
-            spoken = speech_text(reply)
+            spoken = speech_text(reply, legacy=True)
             target = OUT / (datetime.datetime.now().strftime('%Y%m%d_%H%M%S_%f') + '.wav')
             if voice is None:
                 voice = Voice(settings['ses'])

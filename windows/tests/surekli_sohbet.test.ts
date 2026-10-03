@@ -127,10 +127,11 @@ test("giriş tamamlanınca dinler ve Codex yanıtı tamamlandıktan sonra konuş
  dom(); vi.useFakeTimers(); let status="oturum_yok";
  const a={codexStatus:async()=>status,codexSend:vi.fn(async()=>{}),codexCancel:vi.fn(async()=>{}),codexLogin:vi.fn(async()=>{}),codexLoginCancel:vi.fn(async()=>{}),codexInstall:vi.fn(async()=>{})};
  const s={voiceStart:async()=>{},voiceStop:async()=>"",voiceCancel:vi.fn(async()=>{}),voiceSpeak:async()=>{},voiceSilence:async()=>{},voiceSupported:async()=>({whisper:true,winrt_stt:false,tts:true}),voiceListenTurn:vi.fn().mockResolvedValueOnce("Merhaba").mockResolvedValue(""),voiceResponse:vi.fn(async()=>({warning:null}))};
- const v=new ChatView(a,()=>"bağlam",s);await v.refresh();
+ const context=vi.fn(()=>"bağlam");const v=new ChatView(a,context,s);await v.refresh();
  (v.mainVoiceBtn as unknown as Element).click();await Promise.resolve();
  expect(a.codexLogin).toHaveBeenCalledOnce();expect(s.voiceListenTurn).not.toHaveBeenCalled();
- status="hazir";await v.refresh();await vi.waitFor(()=>expect(a.codexSend).toHaveBeenCalledWith("bağlam\n\nMerhaba\n\n(Lütfen çok kısa yanıt ver: 1-3 cümle, Türkçe, konuşma dili. Yalnızca yanıtı yaz.)",[]));
+ status="hazir";await v.refresh();await vi.waitFor(()=>expect(a.codexSend).toHaveBeenCalledExactlyOnceWith("Merhaba",[]));
+ expect(context).not.toHaveBeenCalled();
  expect(s.voiceResponse).not.toHaveBeenCalled();
  v.onEvent({method:"turn/started",params:{threadId:"t",turn:{id:"1"}}});
  v.onEvent({method:"item/agentMessage/delta",params:{threadId:"t",turnId:"1",delta:"Selam"}});
