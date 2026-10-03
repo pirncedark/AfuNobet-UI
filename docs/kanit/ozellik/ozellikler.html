@@ -1,0 +1,214 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>AfuNöbet UI Özellikleri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Figtree:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Düzen: tek sütun sade pano — üstte tek satır özet + ince çubuk, filtre çubuğu, faz gruplu satırlar
+   Renk: ana vurgu yeşil; durum renkleri ok=yeşil, diğerleri sade gri, kırmızı yalnız "Henüz yok" */
+:root{
+  --bg:#f2f6f3; --panel:#ffffff; --fg:#16211b; --muted:#5b6a62; --line:#dde7e0;
+  --accent:#1c7a4a; --accentbg:#e5f2ea; --ink:#0f2418; --onaccent:#ffffff;
+  --ok:#1c7a4a; --okbg:#e5f2ea; --st:#5b6a62; --stbg:#edf1ee;
+  --no:#b03a48; --nobg:#f9e5e7;
+  --f-display:"Fraunces",Georgia,serif; --f-body:"Figtree",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0a1411; --panel:#0f1c17; --fg:#e6f0ea; --muted:#94a89d; --line:#1d2f27;
+  --accent:#4fbf85; --accentbg:#12291f; --ink:#eaf5ee; --onaccent:#08150f;
+  --ok:#4fbf85; --okbg:#12291f; --st:#9db0a6; --stbg:#1a2721;
+  --no:#ff8794; --nobg:#33181d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0a1411; --panel:#0f1c17; --fg:#e6f0ea; --muted:#94a89d; --line:#1d2f27;
+  --accent:#4fbf85; --accentbg:#12291f; --ink:#eaf5ee; --onaccent:#08150f;
+  --ok:#4fbf85; --okbg:#12291f; --st:#9db0a6; --stbg:#1a2721;
+  --no:#ff8794; --nobg:#33181d; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body);padding-inline:16px;padding-block:24px 48px;overflow-x:hidden}
+.wrap{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:20px;min-width:0}
+header{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font:700 clamp(26px,4.2vw,36px)/1.15 var(--f-display);color:var(--ink);margin:0;text-wrap:balance}
+.lede{color:var(--muted);max-width:70ch;margin:0}
+.meta{font:12px/1.4 var(--f-mono);color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 14px}
+/* Üst özet: tek satır, ince çubuk, küçük sayılar (kliklenmez — filtre çubuğu var) */
+.summary{display:flex;flex-direction:column;gap:8px;min-width:0}
+.tally{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;min-width:0}
+.tally b{font:600 20px/1.1 var(--f-display);color:var(--ink);font-variant-numeric:tabular-nums}
+.tbar{flex:1 1 140px;min-width:90px;height:6px;border-radius:999px;background:var(--accentbg);overflow:hidden}
+.tbar i{display:block;height:100%;background:var(--ok)}
+.pctv{font:500 13px var(--f-mono);color:var(--muted)}
+.ticks{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:13px;color:var(--muted)}
+.tick b{font-variant-numeric:tabular-nums;color:var(--fg)}
+.tick[data-s="ok"] b{color:var(--ok)} .tick[data-s="no"] b{color:var(--no)}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);padding-block:8px;z-index:2}
+.bar input{flex:1 1 220px;min-width:0;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--fg);font:inherit}
+.chip:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.chip{border:1px solid var(--line);background:var(--panel);color:var(--fg);border-radius:999px;padding:6px 12px;font:500 13px var(--f-body);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--onaccent);border-color:var(--accent)}
+section.group{display:flex;flex-direction:column;gap:6px;min-width:0}
+.group h2{font:600 18px/1.3 var(--f-display);margin:10px 0 0;color:var(--ink);display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.group h2 small{font:400 13px var(--f-body);color:var(--muted)}
+.rows{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:152px minmax(0,1fr);gap:4px 16px;padding:12px 16px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row h3{font:600 15px/1.35 var(--f-body);margin:0;overflow-wrap:anywhere}
+.row p{margin:2px 0 0;color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.row code,.ev{font:12px/1.5 var(--f-mono)}
+.ev{color:var(--muted);margin-top:4px;overflow-wrap:anywhere}
+.pill{align-self:start;justify-self:start;max-width:100%;font:600 11.5px/1.3 var(--f-body);letter-spacing:.02em;padding:5px 9px;border-radius:999px;overflow-wrap:anywhere}
+.pill.ok{color:var(--ok);background:var(--okbg)}
+.pill.build,.pill.work,.pill.next,.pill.unk{color:var(--st);background:var(--stbg)}
+.pill.no{color:var(--no);background:var(--nobg)}
+.tt{font:500 11px var(--f-body);padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.tt.done{color:var(--ok);background:var(--okbg)} .tt.todo{color:var(--st);background:var(--stbg)}
+.empty{padding:16px;color:var(--muted)}
+.note{border-left:3px solid var(--accent);padding:2px 0 2px 14px;color:var(--fg);font-size:14px}
+@media (max-width:560px){.row{grid-template-columns:minmax(0,1fr)}.tally b{font-size:18px}}
+@media (prefers-reduced-motion:no-preference){.row{transition:background .15s}.row:hover{background:var(--accentbg)}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">AfuNöbet UI · Windows ada</div>
+    <h1>AfuNöbet UI özellik durumu</h1>
+    <p class="lede">AfuNöbet'in bugünkü özellikleri ve her birinin kanıtı.</p>
+    <div class="meta"><span>3 Ekim 2026</span><span>exe 12:20 · SHA b6e768dd…</span><span>PR #1 · codex/afunobet-ui-phase-a-20261001</span><span>690 TS + 246 Rust + 297 Py testi geçti</span></div>
+  </header>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="bar">
+    <label for="q" class="eyebrow" style="position:absolute;left:-9999px">Ara</label>
+    <input id="q" type="search" placeholder="Özellik ara… (ör. pet, kota, soru)">
+    <div id="chips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+  </div>
+
+  <div class="note">Kapı 1 (sizin gerçek Windows testiniz) henüz tamamlanmadı. "Exe'de var" demek gerçek tıklamayla denendi demektir; kapıyı geçti demek değildir.</div>
+
+  <section id="gece-kuyruk" class="note"><b>Gece kuyruğu (OpenCode) — canlı rapor</b><ul style="margin:6px 0 0;padding-left:18px"><li>10:03:28 [pet] GOREV_P4_ENSE_SALLAN.md: zaten TAMAM, atlandı</li><li>10:03:28 [kart] GOREV_Q1_UZUN_METIN.md: zaten TAMAM, atlandı</li><li>10:03:28 [kart] GOREV_Q2_MODAL_KLAVYE.md: zaten TAMAM, atlandı</li><li>10:03:28 [pet] GOREV_P5_STUDYO_ENSE.md: zaten TAMAM, atlandı</li><li>10:03:28 GOREV_Q3_DPI150.md: deneme 1 başladı</li><li>10:14:06 GOREV_Q3_DPI150.md: deneme 1 başarısız (SONUC_Q3.md ilk satırı SONUC: TAMAM değil ya da dosya yok) — düzeltme turu</li><li>10:14:06 GOREV_Q3_DPI150.md: deneme 2 başladı</li><li>10:21:35 GOREV_Q3_DPI150.md: TAMAM ve doğrulama yeşil ✅</li><li>10:21:35 [kart] GOREV_Q5_SAHTE_MOD.md: zaten TAMAM, atlandı</li><li>10:21:35 [ortak] GOREV_Q4_SAYFA_DURUM.md: zaten TAMAM, atlandı</li><li>10:21:35 GOREV_Q6_SAYFA_YESIL.md: deneme 1 başladı</li><li>10:31:04 GOREV_Q6_SAYFA_YESIL.md: TAMAM ve doğrulama yeşil ✅</li><li>10:31:04 GOREV_OC_TEST_GECE.md: deneme 1 başladı</li><li>10:41:03 GOREV_OC_TEST_GECE.md: deneme 1 başarısız (SONUC_OC_TEST_GECE.md ilk satırı SONUC: TAMAM değil ya da dosya yok) — düzeltme turu</li><li>10:41:03 GOREV_OC_TEST_GECE.md: deneme 2 başladı</li><li>10:51:03 GOREV_OC_TEST_GECE.md: deneme 2 başarısız (SONUC_OC_TEST_GECE.md ilk satırı SONUC: TAMAM değil ya da dosya yok) — düzeltme turu</li><li>10:51:03 GOREV_OC_TEST_GECE.md: deneme 3 başladı</li><li>11:01:11 GOREV_OC_TEST_GECE.md: deneme 3 başarısız (SONUC_OC_TEST_GECE.md ilk satırı SONUC: TAMAM değil ya da dosya yok) — düzeltme turu</li><li>11:01:11 GOREV_OC_TEST_GECE.md: 3 denemede yeşile dönmedi ❌ — kuyruk DURDU (sonraki işler bozuk temele kurulmasın)</li><li>11:26:34 Gece kuyruğu başladı</li><li>11:26:34 Bekleme: SONUC_P6.md geldi</li><li>11:26:34 Bekleme: SONUC_P8.md geldi</li><li>11:27:06 [kart] GOREV_P9_SORUKART_SIG.md: zaten TAMAM, atlandı</li><li>11:27:06 [pet] GOREV_P7_KIRPMA_YAVAS.md: zaten TAMAM, atlandı</li><li>11:27:06 [kart] GOREV_P11_BALON_KALICI.md: zaten TAMAM, atlandı</li><li>11:27:06 [pet] GOREV_P10_PET_BALON.md: zaten TAMAM, atlandı</li><li>11:27:06 [pet] GOREV_P4_ENSE_SALLAN.md: zaten TAMAM, atlandı</li><li>11:27:06 [kart] GOREV_Q1_UZUN_METIN.md: zaten TAMAM, atlandı</li><li>11:27:06 [pet] GOREV_P5_STUDYO_ENSE.md: zaten TAMAM, atlandı</li><li>11:27:06 [kart] GOREV_Q2_MODAL_KLAVYE.md: zaten TAMAM, atlandı</li><li>11:27:06 [kart] GOREV_Q3_DPI150.md: zaten TAMAM, atlandı</li><li>11:27:06 [kart] GOREV_Q5_SAHTE_MOD.md: zaten TAMAM, atlandı</li><li>11:27:06 [ortak] GOREV_Q4_SAYFA_DURUM.md: zaten TAMAM, atlandı</li><li>11:27:06 [ortak] GOREV_Q6_SAYFA_YESIL.md: zaten TAMAM, atlandı</li><li>11:27:06 [ortak] GOREV_OC_TEST_GECE.md: zaten TAMAM, atlandı</li><li>11:27:06 GOREV_OC_TUM_TEST.md: deneme 1 başladı</li><li>11:37:22 GOREV_OC_TUM_TEST.md: deneme 1 başarısız (SONUC_OC_TUM_TEST.md ilk satırı SONUC: TAMAM değil ya da dosya yok) — düzeltme turu</li><li>11:37:22 GOREV_OC_TUM_TEST.md: deneme 2 başladı</li><li>11:42:06 Kuyruk KULLANICI İSTEĞİYLE durduruldu (OC_TUM_TEST deneme 2 yarıda)</li><li>12:14:21 Gece kuyruğu başladı</li><li>12:14:21 Bekleme: SONUC_P6.md geldi</li><li>12:14:21 Bekleme: SONUC_P8.md geldi</li><li>12:15:08 [kart] GOREV_P9_SORUKART_SIG.md: zaten TAMAM, atlandı</li><li>12:15:08 [pet] GOREV_P7_KIRPMA_YAVAS.md: zaten TAMAM, atlandı</li><li>12:15:08 [pet] GOREV_P10_PET_BALON.md: zaten TAMAM, atlandı</li><li>12:15:08 [kart] GOREV_P11_BALON_KALICI.md: zaten TAMAM, atlandı</li><li>12:15:09 [pet] GOREV_P4_ENSE_SALLAN.md: zaten TAMAM, atlandı</li><li>12:15:09 [kart] GOREV_Q1_UZUN_METIN.md: zaten TAMAM, atlandı</li><li>12:15:09 [kart] GOREV_Q2_MODAL_KLAVYE.md: zaten TAMAM, atlandı</li><li>12:15:09 [pet] GOREV_P5_STUDYO_ENSE.md: zaten TAMAM, atlandı</li><li>12:15:09 [kart] GOREV_Q3_DPI150.md: zaten TAMAM, atlandı</li><li>12:15:09 [kart] GOREV_Q5_SAHTE_MOD.md: zaten TAMAM, atlandı</li><li>12:15:09 [ortak] GOREV_Q4_SAYFA_DURUM.md: zaten TAMAM, atlandı</li><li>12:15:09 [ortak] GOREV_Q6_SAYFA_YESIL.md: zaten TAMAM, atlandı</li><li>12:15:09 [ortak] GOREV_OC_TEST_GECE.md: zaten TAMAM, atlandı</li><li>12:15:09 [ortak] GOREV_OC_TUM_TEST.md: zaten TAMAM, atlandı</li><li>12:17:07 Son tam doğrulama yeşil (TS + Python + Rust) ✅</li><li>12:17:07 Exe paketleme başladı</li><li>12:20:49 Exe hazır ✅ ve masaüstü kısayolu güncellendi</li><li>12:20:49 Gece kuyruğu bitti</li></ul></section>
+  <div id="list"></div>
+</div>
+
+<script>
+const TEST={"Görev akışı aşamaları":"test edilecek","Model / effort / thinking bilgisi":"test edilecek","Context göstergesi":"test edilecek","Maliyet bilgisi":"test edilecek","Enseden tutma (kedi gibi)":"test edilecek","Mini pet tam sığsın":"test edilecek","Görev kartı 1,5x":"test edilecek","Soru seçenekleri":"test edilecek","Kalıcı balon":"test edilecek","Pet balonu":"test edilecek","Göz kırpma yavaş":"test edilecek","Sağlık şeridi":"test edilecek","Konuşan Afu":"test edilecek","E8 Olaylara bağlı ses":"test edilecek","Pet animasyon iyileştirmesi":"test edilecek","Animasyon stüdyosu":"sen denedin","Mini pet eski hali + sürükle-bırak-dön":"test edilecek","Arama ve filtre":"test edilecek","Mini pet yeni animasyonlar":"test edilecek","Menü sekmeleri eski haline":"test edilecek","Tıklama alanı / click-through":"sen denedin","Düğme geri bildirimi":"sen denedin","Pet tıklaması":"gerçek tık testi","Dışarı tıklayınca pete dönüş":"gerçek tık testi","Canlı görev durumu":"sen denedin","Empty state":"sen denedin","Afu Merkez (Uygulamalar)":"sen denedin","Aktif ajan sekmeleri":"gerçek tık testi","Orkestra: manuel ajan seçimi ve iş verme":"sen denedin","Tepsi desteği":"test edilecek","%150 ölçekte erişilebilirlik":"test edilecek","Modal davranışı":"test edilecek","Klavye erişilebilirliği":"test edilecek","Uzun metin kontrolü":"test edilecek","TR/EN dayanıklılığı":"test edilecek","E10 Sahte test modu":"test edilecek"};
+const S={ok:"Exe'de var",build:"Kodda var, bağlı değil",work:"Yapılıyor",next:"Sırada",no:"Henüz yok",unk:"Doğrulanmadı"};
+const F=[
+["Arayüz kalitesi","ok","Sağlık şeridi","Kartın altında AfuNöbet / Codex / Sesler / Claude ✓✗; tıklayınca tek cümle ne yapmalı.","SONUC_AKTIVASYON.md · exe 02:02"],
+["Ajanlar ve kota","ok","Orkestra \"Başlıyor…\" kartı","İş verince anında geçici kart + karakter tepkisi; 30 sn'de görünmezse uyarı.","SONUC_AKTIVASYON.md · exe 02:02"],
+["Etkileşim","work","Codex ile giriş + bas-konuş","Codex'e giriş yap düğmesi (ChatGPT hesabı), basılı tut-konuş (yerel Whisper), Afu sesiyle cevap.","Gemini yapıyor · GOREV_BAS_KONUS.md"],
+
+["Pet ve pencere","ok","27 durum animasyonu","Boşta, düşünme, çalışma, dinleme, konuşma, başarı, hata, onay bekleme, uyku, uyanma, iniş, veda, dosya yakalama… Renkler referansa göre ayarlı.","windows/src/island/island.ts:153 · windows/tests/island_connections.test.ts"],
+["Pet ve pencere","build","Premium karakter görünümü","Hafif renk filtresi, iki renkli parıltı, ışıklı arka plan, duruma göre kenar rengi.","style.css --pet-* değişkenleri"],
+["Etkileşim","ok","Kurulu değilse İndir","Kurulu olmayan uygulamada \"İndir\", AfuRemote'ta \"APK indir\"; yalnız github.com/pirncedark adresleri.","windows/src-tauri/src/apps.rs · windows/src-tauri/tests/servis_contract.rs"],
+["Arayüz kalitesi","build","Otomatik test (CI)","Her PR'da TypeScript, Rust ve Python testleri GitHub'da koşar.",".github/workflows/ci.yml"],
+// [grup, durum, ad, açıklama, kanıt]
+["Canlı durum ve görevler","ok","Canlı görev durumu","Çalışıyor / Bekliyor / Duraklatıldı / Tamamlandı / Hata canlı güncellenir; 30 dk güncellenmeyen iş canlı sayılmaz, \"bayat\" işaretlenir.","state.ts isCurrent + STALE_MS · tests/state.test.ts"],
+["Canlı durum ve görevler","ok","Görev listesi ve kartı","Ajan, kısa görev adı, durum, geçen süre. Ham komut ve teknik çıktı maskelenir.","state.json sözleşmesi · maskeleme testleri"],
+["Canlı durum ve görevler","ok","Canlı oturum akışı","Çalışan işin son adımı kartta tek satır akar; bayat işte akmaz, komut/yol maskelenir.","tests/live_flow.test.ts (9 test)"],
+["Canlı durum ve görevler","ok","Görev akışı aşamaları","TRIAGE → SPLIT → RUN → VERIFY → MERGE aşamalarını gösterme.","..\\\\AfuNobet\\\\SONUC_UI_VERI_DUZELT.md · veri_uctan.test.ts"],
+["Canlı durum ve görevler","ok","Salt okunur izleme","Ada state.json'u okur; görevleri değiştirmez. Tek istisna: Orkestra'dan AfuNöbet CLI ile iş verme.","CLAUDE.md istisna satırı"],
+["Ajanlar ve kota","ok","Aktif ajan sekmeleri","CODEX / GLM / GEMINI / OPENCODE; tıklanınca o ajanın işini ya da \"şu an boşta\" mesajını gösterir.","17:19 exe gerçek tık testi"],
+["Ajanlar ve kota","ok","Kota/limit paneli","\"Kota durumu\" ile ajan kotaları; okunamayan değer \"?\" olarak.","views.ts quota görünümü"],
+["Ajanlar ve kota","ok","Orkestra: manuel ajan seçimi ve iş verme","Ajan durumları, \"İş ver\" (ajan seç + tek satır görev), son 5 iş + log, proje klasörü.","orkestra.rs · SONUC_ORKESTRA_BOLUMU.md"],
+["Ajanlar ve kota","ok","Model / effort / thinking bilgisi","Aktif model ve seviye küçük durum alanında.","..\\\\AfuNobet\\\\SONUC_UI_VERI_DUZELT.md · veri_uctan.test.ts"],
+["Ajanlar ve kota","ok","Context göstergesi","Kalan bağlam, kullanılan, cache.","..\\\\AfuNobet\\\\SONUC_UI_VERI_DUZELT.md · veri_uctan.test.ts"],
+["Ajanlar ve kota","ok","Maliyet bilgisi","Servis destekliyorsa cost.","..\\\\AfuNobet\\\\SONUC_UI_VERI_DUZELT.md · veri_uctan.test.ts"],
+["Ajanlar ve kota","no","Ajan devri gösterimi","\"Codex kotası doldu → Gemini devraldı / bekliyor\". Claude otomatik yedek değil (2 Eki kararı).","plan F2"],
+["Ajanlar ve kota","ok","Claude koruma rozeti","\"🔒 Claude KORUNUYOR\" — Claude kilitli, otomatik kullanılmıyor.","CLAUDE.md"],
+["Pet ve pencere","ok","Afu pet / karakter","Boşta nefes, önemli olayda tepki; bacak arası beyaz hale temizlendi (karakter + 44 mini pet karesi).","public/afu · halo temizliği"],
+["Pet ve pencere","ok","Pet tıklaması","Pete tık → görev kartı; kendiliğinden sürekli açılmaz.","17:19 exe gerçek tık testi"],
+["Pet ve pencere","ok","Dışarı tıklayınca pete dönüş","Kart açıkken masaüstüne tık veya Küçült → mini pet (simge değil).","disari.rs · 4 Rust testi"],
+["Pet ve pencere","ok","Tıklama alanı / click-through","Kart açıkken tıklamalar masaüstüne geçmez; %132 metin ölçeği hatası düzeltildi.","hit.ts · tests/hit.test.ts · dpi.rs"],
+["Pet ve pencere","ok","Düğme geri bildirimi","Üzerine gelme, basılınca küçülme, odak halkası; seçili düğme altın çerçeve.","17:19 exe"],
+["Pet ve pencere","ok","Hover ile uyanma","Pasif durumdaki ada hover ile canlanır.","fsm testleri"],
+["Pet ve pencere","ok","Pencere modları","gizli → küçük → kart; küçültünce görev çubuğu üstünde bekleme.","Faz A"],
+["Pet ve pencere","ok","Üstte kalma","Küçük durum/pet modu diğer pencerelerin üstünde.","WS_EX_TOPMOST ölçüldü"],
+["Pet ve pencere","ok","Tepsi desteği","Sağ tık menüsü: AfuNöbet + Afu uygulamaları. Aç / gizle / durum / çıkış tam menüsü plan F6.","tray.rs"],
+["Pet ve pencere","ok","Tam ekran oyun modu","Tam ekran uygulamada ada/pet gizlenir.","glide.rs"],
+["Pet ve pencere","ok","%150 ölçekte erişilebilirlik","1280×720 @ %150 gibi dar/yüksek DPI'da kritik kontroller.","SONUC_Q3.md"],
+["Etkileşim","ok","Sohbet (yazılı)","Codex oturumu yoksa \"Oturum aç\"; Afu karakter talimatı. Gerçek Codex bağlantısı denenmedi.","chat.ts · codex.rs"],
+["Etkileşim","next","Bas-konuş ve ses","Whisper ile yazıya, Chatterbox + filtreyle seslendirme. Codex üyelikle sesli görüşme açmıyor (API anahtarı ister).","Ayrı terminal · SES_DEVIR.md"],
+["Etkileşim","ok","\"Afu'ya sor\" tek ana düğme","Altın ana düğme; tek giriş alanı. Bas-konuş yeri hazır (ses ayrı terminalde). Yeni exe ile gelecek.","windows/src/etkilesim/sor.ts · 73 test"],
+["Etkileşim","ok","Yerel durum soruları","7 niyet, 33 soru kalıbı; model çağrısız. Diğer sorular Codex sohbetine.","windows/src/etkilesim/yerel.ts · windows/tests/sor_yerel.test.ts"],
+["Etkileşim","ok","Ajan soru/onay kartı","İzin ver / Reddet / seçenek / kısa cevap; 110 sn'de cevap yoksa red. Codex'in köprü betiğiyle başlatılması gerekiyor.","windows/src-tauri/src/onay.rs · onay_iste"],
+["Etkileşim","ok","Dosyayı Ada'ya sürükleme","Bırakılan dosya aktif ajana/sohbete bağlam olarak gider.","windows/src/main.ts:123 · windows/tests/island_connections.test.ts:10"],
+["Etkileşim","ok","İnsan onay kapısı","Silme, force push, yayın gibi işler onaysız ilerlemez. Soru kartı temel olacak.","windows/src-tauri/src/onay.rs · onay_iste"],
+["Etkileşim","ok","Afu Merkez (Uygulamalar)","AfuDM, AfuDesk, PadKöprü açılır; AfuTube \"Kurulu değil\", AfuRemote \"Telefonda\".","Faz C · apps.rs"],
+["Arayüz kalitesi","ok","Tek cümle hata","\"Ne oldu + ne yapmalısın\"; teknik döküm yok.","labels.ts"],
+["Arayüz kalitesi","ok","Empty state","Görev yokken \"Afu hazır · Yeni görev gelince burada görünecek\".","17:19 exe ekran görüntüsü"],
+["Arayüz kalitesi","ok","Tekrar dene","Uygulama listesinde var; bağlantı/offline hatalarında genel \"Tekrar dene\" plan F10.","ILERLEME_MASTER.md · F17"],
+["Arayüz kalitesi","ok","Bildirimler","Tamamlandı, kota, soru bekliyor, hata. coucou'nun 28 sesi çıkarıldı.","windows/src-tauri/src/bildirim.rs · tests/bildirim_contract.rs"],
+["Arayüz kalitesi","ok","Arama ve filtre","Görev listesinde arama kutusu + durum filtresi (Çalışıyor/Bekliyor/Bitti/Hata).","SONUC_F1_F5.md · vitest"],
+["Arayüz kalitesi","ok","Modal davranışı","X, Esc, arka plan tıklaması, odak.","SONUC_Q2.md"],
+["Arayüz kalitesi","ok","Klavye erişilebilirliği","Mouse olmadan temel kontroller.","SONUC_Q2.md"],
+["Arayüz kalitesi","ok","TR/EN dayanıklılığı","Dil değişiminde ve uzun çeviride bozulmama.","SONUC_Q1.md"],
+["Arayüz kalitesi","ok","Uzun metin kontrolü","Uzun görev adı kırpılır + tooltip.","SONUC_Q1.md"],
+["Arayüz kalitesi","ok","İlk kullanım ipucu","Yalnız ilk kullanımda kısa yönlendirme.","windows/src-tauri/src/lib.rs:364 · tests/ilk_kullanim_contract.rs"],
+["Arayüz kalitesi","ok","Basitlik kuralı","Teknik terim yok, gelişmiş ayarlar gizli, ekran başına tek ana işlem.","Afu basitlik kuralı"],
+["Arayüz kalitesi","ok","Otomatik toparlanma","Eksik izin/servis/bağlantı mümkünse kendiliğinden çözülür.","ILERLEME_MASTER.md · F17"],
+["Faz E · çoklu-ajan katmanı","ok","E1 Genel ajan protokolü","agent=codex|gemini|opencode ortak olay formatı; yeni ajan kod değişmeden görünür.","windows/src-tauri/src/protokol.rs · coz"],
+["Faz E · çoklu-ajan katmanı","ok","E1b Ortak olay standardı","thinking, working, question, finished, error, rate_limit.","windows/src-tauri/src/protokol.rs · esle"],
+["Faz E · çoklu-ajan katmanı","ok","E1c Yerel generic agent API","Named pipe/socket üzerinden JSON gönderen ajanı tanıma.","windows/src-tauri/src/lib.rs · start, ajan_listesi"],
+["Faz E · çoklu-ajan katmanı","no","E2 Ajan pill sistemi","Her ajana görsel kimlik; sık kullanılan ama çalışmayanlar \"idle\".","plan Faz E"],
+["Faz E · çoklu-ajan katmanı","ok","E3 Alt ajan takibi","SubagentStart / SubagentStop ayrı satır.","windows/src/main.ts · ajanOlaylariniDinle()"],
+["Faz E · çoklu-ajan katmanı","ok","E4 Fail-open köprü","AFU kapalı/yavaşsa ajanlar beklemez.","scripts/afu_ajan_koprusu.py"],
+["Faz E · çoklu-ajan katmanı","ok","E4b Güvenli hook kurulumu","Yedek + diff + yalnız AFU kayıtlarını kaldırma.","windows/src-tauri/src/hook_kur.rs · tests/hook_kur_contract.rs"],
+["Faz E · çoklu-ajan katmanı","ok","E5 Güvenli IPC","Named pipe yalnız aynı kullanıcı; boyut, zaman aşımı, bağlantı sınırı.","windows/src-tauri/src/ipc.rs · FlushFileBuffers"],
+["Faz E · çoklu-ajan katmanı","ok","E7 Servis pill'leri","GitHub (diğer servisler proje kuralı gereği yok); yalnız panel açıkken sorgu.","windows/src-tauri/src/servis.rs · windows/src-tauri/tests/servis_contract.rs"],
+["Faz E · çoklu-ajan katmanı","ok","E8 Olaylara bağlı ses","5–8 kısa ses: başladı, bitti, hata, onay bekleniyor.","windows/src-tauri/src/ses.rs · bildirim.rs"],
+["Faz E · çoklu-ajan katmanı","ok","E9 Gizlilik odaklı log","Anahtar/parola/ev dizini maskelenir; 2 MB + 3 dosya rotation.","windows/src-tauri/src/log.rs · 187 Rust testi"],
+["Faz E · çoklu-ajan katmanı","ok","E10 Sahte test modu","scripts/sahte_olay.py: codex_soru, gemini_kota, hata, bayat senaryoları. Uygulamayı test klasörüne yönlendirme henüz kodda yok.","SONUC_Q5.md"],
+["Faz E · çoklu-ajan katmanı","ok","E11 Credential Manager","Anahtarlar .env yerine Windows Credential Manager'da.","windows/src-tauri/src/kimlik.rs · tests/kimlik_contract.rs"],
+["Faz E · çoklu-ajan katmanı","ok","E12 Web link güvenliği","Yalnız http/https tıklanabilir.","windows/src-tauri/src/apps.rs · tests/servis_contract.rs"],
+["Etkileşim","ok","Ses taşınabilirliği","Ses modeli ve Python bağımlılıklarının taşınabilirliği.","SONUC_TASIMA.md"],
+
+
+["Pet ve pencere","ok","Mini pet eski hali + sürükle-bırak-dön","Eski tatlı pet (eski kareler, çubuğa yaslanma). Fareyle gezdir, bırakınca 0,5 sn’de yerine döner; tek tık kartı açar.","SONUC_PET_GERI.md · 18 görsel karşılaştırma"],
+["Pet ve pencere","ok","Pet animasyon iyileştirmesi","Kullanıcının stüdyo tasarımı uygulamada: bekleme/düşünme/başarı/uyku yeni animasyonlar, sekans başına boyut/konum, boyut eşitleme.","birlesik_0110.json · SONUC_STUDYO_UYGULA.md"],
+["Pet ve pencere","ok","Animasyon stüdyosu","Masaüstü: Afu Animasyon Stüdyosu. Kare/süre düzenleme, Boyutları eşitle, 8 efekt + 4 hazır ayar, Dışa aktar.","studyo/animasyon_studyo.html"],
+["Pet ve pencere","ok","Enseden tutma (kedi gibi)","Tutunca ensesinden sarkar, sağa sola sallanır, bırakınca yerine döner.","SONUC_P4.md · pet-sallanma.test.ts"],
+["Etkileşim","ok","Konuşan Afu","Ajan mesajları başında balon; Claude soruları Afu'dan cevaplanır.","SONUC_KONUSAN_AFU.md · aktivasyon_kontrol.test.ts"],
+["Arayüz kalitesi","ok","Menü sekmeleri eski haline","Kota, Uygulamalar, Orkestra, Sohbet yeniden tek tıkla görünür; dar alanda kırpılmadan sarılır.","views.ts · SONUC_PET_ANIM.md (30 sayfa/ölçek kontrolü)"],
+["Pet ve pencere","ok","Mini pet tam sığsın","Uçuş/diğer animasyonlar taşmaz, merkeze %88 ölçekle çizilir.","SONUC_P6.md"],
+["Arayüz kalitesi","ok","Görev kartı 1,5x","Tasarım değişmeden zoom değişkeniyle büyütüldü, net.","SONUC_P8.md"],
+["Etkileşim","ok","Soru seçenekleri","Soru kartında seçenekler ve metin alanı görünür, taşmaz.","SONUC_P9.md"],
+["Pet ve pencere","ok","Kalıcı balon","Konuşma balonu kullanıcı kapatana kadar kalır + temiz metin.","SONUC_P11.md"],
+["Pet ve pencere","ok","Pet balonu","Mini pet (Başlat yanında) iken görev mesajı başının üstünde.","SONUC_P10.md"],
+["Pet ve pencere","ok","Göz kırpma yavaş","Mini pet göz kırpma yavaşlasın (animasyon hız / döngü arası bekleme).","SONUC_P7.md"],
+["Pet ve pencere","build","Mesaj gelince öne gel","Terminal/ajan mesajı veya soru geldiğinde pet/ada penceresi öne gelir.","SONUC_R1.md"],
+["Etkileşim","build","Pete uygun mesaj biçimi","Metinden markdown, süs çizgileri, ANSI ve gereksiz emojiler ayıklanır; soru formatı algılanır.","SONUC_R3A.md"]
+];
+const order=["ok","build","work","next","no","unk"];
+let active=null, query="";
+const esc=s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function summary(){
+  const el=document.getElementById("summary");
+  const ok=F.filter(f=>f[1]==="ok").length, total=F.length, pct=total?Math.round(ok/total*100):0;
+  el.innerHTML=`<div class="tally"><b>${ok} / ${total} hazır</b><div class="tbar" role="img" aria-label="%${pct} hazır"><i style="width:${pct}%"></i></div><span class="pctv">%${pct}</span></div>`
+    +`<div class="ticks">${order.map(s=>`<span class="tick" data-s="${s}"><b>${F.filter(f=>f[1]===s).length}</b> ${S[s]}</span>`).join("")}</div>`;
+}
+function chips(){
+  const el=document.getElementById("chips"); el.innerHTML="";
+  [["Hepsi",null],...order.map(s=>[S[s],s])].forEach(([t,s])=>{const c=document.createElement("button");c.type="button";c.className="chip";c.textContent=t;c.setAttribute("aria-pressed",String(active===s));c.onclick=()=>{active=s;render()};el.append(c)});
+}
+function list(){
+  const el=document.getElementById("list"); el.innerHTML="";
+  const groups=[...new Set(F.map(f=>f[0]))];
+  let any=false;
+  groups.forEach(g=>{
+    const rows=F.filter(f=>f[0]===g&&(!active||f[1]===active)&&(!query||(f[2]+" "+f[3]+" "+f[4]).toLowerCase().includes(query)));
+    if(!rows.length) return; any=true;
+    const done=F.filter(f=>f[0]===g&&f[1]==="ok").length, total=F.filter(f=>f[0]===g).length;
+    const sec=document.createElement("section"); sec.className="group";
+    sec.innerHTML=`<h2>${esc(g)} <small>${done}/${total} exe'de</small></h2><div class="rows">${rows.map(f=>`<div class="row"><span class="pill ${f[1]}">${S[f[1]]}</span><div><h3>${esc(f[2])}${TEST[f[2]]?` <span class="tt ${TEST[f[2]]==="test edilecek"?"todo":"done"}">${TEST[f[2]]}</span>`:""}</h3><p>${esc(f[3])}</p>${f[4]?`<div class="ev">${esc(f[4])}</div>`:""}</div></div>`).join("")}</div>`;
+    el.append(sec);
+  });
+  if(!any) el.innerHTML=`<div class="rows"><div class="empty">Bu filtreyle eşleşen özellik yok. Aramayı temizleyin ya da "Hepsi"ye basın.</div></div>`;
+}
+function render(){summary();chips();list()}
+document.getElementById("q").addEventListener("input",e=>{query=e.target.value.trim().toLowerCase();list()});
+render();
+</script>
+pt>
+
+</body></html>

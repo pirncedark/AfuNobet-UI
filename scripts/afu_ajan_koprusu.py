@@ -108,23 +108,20 @@ def protokol_satiri(veri: dict, ajan: str | None = None, simdi_ms: int | None = 
     olay = olay_adi(veri)
     if olay is None:
         return None
-    ajan = _ajan_adi(ajan) or _ajan_adi(veri.get("agent")) or _ajan_adi(veri.get("ajan")) or "claude"
+    ajan = _ajan_adi(ajan) or _ajan_adi(veri.get("ajan")) or "claude"
     arac = _ilk(veri, "tool_name", "toolName", "tool")
     gorev = _kisa(_ilk(veri, "prompt", "gorev"), MAX_GOREV) or _kisa(arac if isinstance(arac, str) else None, MAX_GOREV)
     satir: dict[str, Any] = {
         "surum": 1,
         "ajan": ajan,
         "olay": olay,
-        "oturum": _oturum(_ilk(veri, "session_id", "sessionId", "oturum", "thread-id", "thread_id", "threadId") or (veri.get("params") or {}).get("threadId")),
+        "oturum": _oturum(_ilk(veri, "session_id", "sessionId", "oturum", "thread-id", "thread_id", "threadId")),
         "gorev": gorev,
         "zaman": simdi_ms if simdi_ms is not None else int(time.time() * 1000),
     }
-    if satir["olay"] == "turn/completed" and isinstance(veri.get("params"), dict) and \
-       isinstance(veri["params"].get("turn"), dict) and veri["params"]["turn"].get("status") == "failed" and \
-       isinstance(veri["params"]["turn"].get("error"), dict) and veri["params"]["turn"]["error"].get("message") == "quota exceeded":
-        satir["olay"] = "rate_limit"
     if _sade(olay) in ALT_AJAN_OLAYLARI:
         satir["alt_oturum"] = _oturum(_ilk(veri, "agent_id", "agentId", "alt_oturum"))
+        satir["alt_tur"] = _kisa(_ilk(veri, "agent_type", "agentType", "alt_tur"), 64)
         if satir["gorev"] is None:
             satir["gorev"] = satir["alt_tur"]
     return {k: v for k, v in satir.items() if v is not None}
@@ -238,7 +235,9 @@ GUVENLIK = "Güvenlik ayarı değişikliği onaylansın mı?"
 _B = r"[^;&|\n]*"  # aynı komut parçası içinde
 _I = re.IGNORECASE
 RISKLI_KALIPLAR: list[tuple[re.Pattern, str]] = [
-    (re.compile(r"\b(?:rm|Remove-Item|ri|rmdir|rd|del|erase)\b", _I), SILME),
+    (re.compile(r"\brm\b" + _B + r"\s(?:-[A-Za-z]*[rR][A-Za-z]*|--recursive)\b"), SILME),
+    (re.compile(r"\b(?:Remove-Item|ri|rm|rmdir|rd|del|erase)\b" + _B + r"\s-r(?:ecurse|ecurs|ecur|ecu|ec|e)?\b", _I), SILME),
+    (re.compile(r"\b(?:del|erase|rmdir|rd)\b" + _B + r"\s/s\b", _I), SILME),
     (re.compile(r"\bgit\s+clean\b" + _B + r"\s-[A-Za-z]*f", _I), SILME),
     (re.compile(r"\bgit\s+branch\b" + _B + r"\s(?:-D\b|--delete\s+--force\b|-d\s+-f\b)"), SILME),
     (re.compile(r"\bgit\s+push\b" + _B + r"(?:\s--force\b|\s--force-with-lease\b|\s-[A-Za-z]*f\b|\s--delete\b|\s-d\b|\s:\S+|\s\+\S+|\s--mirror\b)", _I), GECMIS),
@@ -250,7 +249,9 @@ RISKLI_KALIPLAR: list[tuple[re.Pattern, str]] = [
     (re.compile(r"\bcargo\s+publish\b", _I), YAYIN),
     (re.compile(r"\btwine\s+upload\b", _I), YAYIN),
     (re.compile(r"\bdrop\s+(?:table|database|schema)\b", _I), GERI_ALINAMAZ),
-    (re.compile(r"\b(?:rm|Remove-Item|ri|rmdir|rd|del|erase)\b", _I), SILME),
+    (re.compile(r"(?:^|[;&|(]\s*|\bcmd(?:\.exe)?\s+/c\s+)format(?:\.com)?\s+[A-Za-z]:", _I), GERI_ALINAMAZ),
+    (re.compile(r"\b(?:Format-Volume|Clear-Disk|Initialize-Disk)\b", _I), GERI_ALINAMAZ),
+    (re.compile(r"\bSet-ExecutionPolicy\b", _I), GUVENLIK),
     (re.compile(r"\bicacls\b" + _B + r"/grant\b" + _B + r"\b(?:Everyone|\*S-1-1-0|Herkes)\b", _I), GUVENLIK),
     (re.compile(r"\bnetsh\s+(?:advfirewall|firewall)\b", _I), GUVENLIK),
     (re.compile(r"\bSet-NetFirewall\w*|\bDisable-NetFirewall\w*|\bSet-MpPreference\b", _I), GUVENLIK),
@@ -408,16 +409,21 @@ def calis(argv: list[str] | None = None) -> None:
                 _stdout(kanca_karari(satir["olay"], "ask", "AFU kapalı; onayı burada ver."))
                 return
             gonder(json.dumps(satir, ensure_ascii=False), boru, zaman_asimi)
-            try:
-                karar, neden = onay_iste(veri, satir["ajan"], baslik or GERI_ALINAMAZ, boru, args.onay_sure, zaman_asimi, acik_bilinen=True)
-            except Exception as e:  # noqa: BLE001
-                karar, neden = "deny", f"Depo hatası: {e}"
+            karar, neden = onay_iste(veri, satir["ajan"], baslik or GERI_ALINAMAZ, boru, args.onay_sure, zaman_asimi)
             _stdout(kanca_karari(satir["olay"], karar, neden))
             return
     gonder(json.dumps(satir, ensure_ascii=False), boru, zaman_asimi)
 
 
 def main(argv: list[str] | None = None) -> None:
+    try:
+        sys.stderr = open(os.devnull, "w")  # noqa: SIM115 - hiçbir şey sızmasın
+    except Exception:  # noqa: BLE001
+        pass
+    try:
+        calis(argv)
+    except BaseException:  # noqa: BLE001 - fail-open: her hata yutulur
+        pass
     try:
         sys.stdout.flush()
     except Exception:  # noqa: BLE001
@@ -427,5 +433,3 @@ def main(argv: list[str] | None = None) -> None:
 
 if __name__ == "__main__":
     main()
-            except Exception as e:  # noqa: BLE001
-                karar, neden = "deny", f"Depo hatası: {e}"

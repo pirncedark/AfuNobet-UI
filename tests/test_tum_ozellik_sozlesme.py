@@ -96,18 +96,26 @@ def test_sources_outside_authorized_r1_scope_including_island_are_byte_identical
     # changes; all other sources, especially island.rs, retain the old gate.
     changed_r1 = {
         "windows/src/sistem.ts", "windows/src/core/state.ts",
+        "windows/src/island/fsm.ts", "windows/src/island/island.ts",
+        "windows/src/message/message.ts", "windows/src/question/question.ts",
+        "windows/src-tauri/src/bildirim.rs",
+    }
+    added_r1 = {
+        "windows/src/core/settings.ts", "windows/src/message/notifications.ts",
+        "windows/src/message/queue.ts",
+    }
+    hashes = json.loads((EVIDENCE / "source_hashes.json").read_text(encoding="utf-8"))
     actual = {p.relative_to(ROOT).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
               for folder in ("windows/src", "windows/src-tauri/src")
               for p in (ROOT / folder).rglob("*") if p.is_file()}
-    r3 = json.loads((ROOT / "docs/kanit/r3_source_hashes.json").read_text(encoding="utf-8"))
-    assert set(actual) == set(hashes) | added_r1 | r3.keys()
+    assert set(actual) == set(hashes) | added_r1
     # R3 authorizes pet message formatting and restoration. Pin the exact R3
     # sources separately; do not rewrite historical R1 evidence or island.rs.
+    r3 = json.loads((ROOT / "docs/kanit/r3_source_hashes.json").read_text(encoding="utf-8"))
     assert set(r3) == {
         "windows/src/message/notifications.ts", "windows/src/message/message.ts",
         "windows/src/message/message.css", "windows/src/question/question.ts",
         "windows/src/island/island.ts", "windows/src/island/fsm.ts",
-        "windows/src/message/bicim.ts",
     }
     assert {p: actual[p] for p in r3} == r3
     assert {p: digest for p, digest in actual.items() if p not in changed_r1 | added_r1 | r3.keys()} == {
