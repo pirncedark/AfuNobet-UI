@@ -1,5 +1,9 @@
 # AfuNöbet UI değişiklik kaydı
 
+## 2026-10-03 W7 — arada ifade
+
+Mini pet boştayken 20–60 sn arası rastgele aralıkla kısa bir ifade yapar (göz kırpma, sağa/sola bakış, mutlu, şaşkın, esneme) ve bekleme pozuna döner; aynı ifade arka arkaya gelmez. İş çalışırken, soru/balon açıkken, sürükleme/tutma, uygulama menüsü, kart açıkken, tam ekranda ve hareket azaltma tercihinde yapmaz. Yalnız mevcut kareler kullanılır; yeni görsel yok. Saf mantık `windows/src/afu/ifade.ts`, pet.ts'e küçük bağlantı (STÜDYO blokları değişmedi). Durum panelinde varsayılan açık "Arada ifade yap" anahtarı yerel saklanır. Test: `tests/pet-ifade.test.ts`.
+
 ## 2026-10-03 R1 — mesaj gelince öne gel
 
 Ortak FIFO mesaj/soru kuyruğu, oturum boyunca ID tekilleştirme, 8 saniyelik bildirim ve başarılı cevaba kadar sabit soru kartı eklendi. Mevcut ada Tauri API ile odak istemeden gösterilir; kuyruk boşaldığında gizlenir ve üstte tutma kaldırılır. Durum/ayar kartında varsayılan açık “Mesaj gelince öne gel” anahtarı yerel olarak saklanır. Mevcut Rust dizin olayları kullanılır; yeni FS eklentisi, pencere veya bağımlılık eklenmedi.
