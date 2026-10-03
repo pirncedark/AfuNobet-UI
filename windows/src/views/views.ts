@@ -274,7 +274,7 @@ export class AfuViews {
       const running = task.status === "Calisiyor" || task.status === "Hazirlaniyor";
       const eyebrow = [task.agent ? AGENT_TR[task.agent] : "Ajan", modelText(task), task.repo, elapsedText(task)].filter(Boolean).join(" · ");
       const title = clipText(task.title, 90);
-      const handoff = handoffText(task);
+      const handoff = handoffText(task, Date.now(), State.snapshot.quotas);
       const message = running && task.currentAction ? task.currentAction : taskMessage(task);
       const model = modelText(task);
       this.card.append(h("div", { class: "task-eyebrow", title: eyebrow },
@@ -321,7 +321,7 @@ export class AfuViews {
     parts.push(agentHeader);
     const model = modelText(task);
     if (model) line("detail-model", `${ui("model")}: ${model}`);
-    line("detail-handoff", handoffText(task));
+    line("detail-handoff", handoffText(task, Date.now(), State.snapshot.quotas));
     line("detail-message", taskMessage(task));
     const steps = stageSteps(task);
     if (steps) parts.push(this.stageBar(steps, false));

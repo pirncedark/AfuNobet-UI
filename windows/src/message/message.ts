@@ -1,7 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import type { AfuEvent } from "../core/events";
-import type { Task } from "../core/state";
+import type { Snapshot, Task } from "../core/state";
+import { handoffText } from "../views/model";
 import { kopruDurumu, type KopruMesaj } from "../core/kopru";
 import { clipText } from "../core/metin";
 import type { NotificationMessage } from "./notifications";
@@ -241,13 +242,38 @@ export function balonOlustur(
   return e;
 }
 
-export function olayMesaji(olay: AfuEvent, tasks: Task[], now: number): Mesaj | null {
+export function olayMesaji(olay: AfuEvent, tasks: Task[], now: number, quotas?: Snapshot["quotas"]): Mesaj | null {
   if (!AJANLAR.includes(olay.agent as MesajAjan) || olay.agent === "claude") return null;
+  if (olay.kind === "RATE_LIMIT") {
+    // W3: kota yüzünden duraklayan iş balonda tek satır: "Codex kotası doldu · bekliyor (14:55'te açılır)".
+    const devir = handoffText(tasks.find(t => t.id === olay.taskId), now, quotas);
+    if (devir) return { surum: 1, id: `${olay.kind}-${olay.taskId}`, ajan: olay.agent as MesajAjan, tur: "uyari", metin: devir, zaman: now };
+  }
   const metin = ({ JOB_FINISHED: "Görev tamamlandı.", JOB_FAILED: "Görev tamamlanamadı; yeniden dene.", WAITING: "Senden cevap bekliyorum; kartı aç.", RATE_LIMIT: "Ajan duraklatıldı; hazır olduğunda devam edecek." } as Partial<Record<AfuEvent["kind"], string>>)[olay.kind];
   if (!metin) return null;
   const task = tasks.find(t => t.id === olay.taskId);
   return { surum: 1, id: `${olay.kind}-${olay.taskId}`, ajan: olay.agent as MesajAjan,
     tur: olay.kind === "JOB_FINISHED" ? "bitti" : olay.kind === "WAITING" ? "bilgi" : "uyari", metin: task ? `${task.title}: ${metin}` : metin, zaman: now };
+}
+
+/**
+ * W3 ajan devri balonu: bir görevin devir satırı yeni çıktığında ya da değiştiğinde
+ * pet/kart balonuna tek satır düşer ("Codex kotası doldu → Gemini devraldı").
+ * Yeni duraklayan görev RATE_LIMIT olayıyla zaten bildirilir; burada tekrar edilmez.
+ * Claude ve 30 dk'dan eski kayıt handoffText'te elenir.
+ */
+export function devirMesajlari(prev: Task[], next: Task[], now: number, quotas?: Snapshot["quotas"]): Mesaj[] {
+  const onceki = new Map(prev.map(task => [task.id, task]));
+  const cikti: Mesaj[] = [];
+  for (const task of next) {
+    if (!AJANLAR.includes(task.agent as MesajAjan) || task.agent === "claude") continue;
+    const old = onceki.get(task.id);
+    if (task.status === "Duraklatildi" && old?.status !== "Duraklatildi") continue;
+    const metin = handoffText(task, now, quotas);
+    if (!metin || (old && handoffText(old, now, quotas) === metin)) continue;
+    cikti.push({ surum: 1, id: `DEVIR-${task.id}-${metin}`, ajan: task.agent as MesajAjan, tur: "uyari", metin, zaman: now });
+  }
+  return cikti;
 }
 
 /** Tek katman hem pet hem kart üzerinde kullanılır; tıklama tam metni karta taşır.

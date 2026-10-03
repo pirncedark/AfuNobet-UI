@@ -54,10 +54,12 @@ describe("E2 Ajan Pill ve Devir Testleri", () => {
   });
 
   it("9. handoffText: quotaPaused yuzunden duraklama ozel bekliyor satiri uretir", () => {
-    const task: RichTask = { agent: "codex", status: "Duraklatildi", quotaPaused: true, quota: { remaining_percent: 0, reset_at: "2026-10-03T15:30:00Z" } } as unknown as RichTask;
-    const text = handoffText(task);
+    const now = new Date(2026, 9, 3, 12, 0).getTime();
+    const task: RichTask = { agent: "codex", status: "Duraklatildi", quotaPaused: true, quota: { remaining_percent: 0, reset_at: new Date(2026, 9, 3, 15, 30).toISOString() } } as unknown as RichTask;
+    const text = handoffText(task, now);
     expect(text).toContain("Codex kotası doldu · bekliyor");
-    expect(text).toContain("yenilenme");
+    // W3: açılış saati "(15:30'da açılır)" biçiminde yazılır.
+    expect(text).toContain("15:30'da açılır");
   });
 
   it("10. handoffText: Kotasi biten duraklamis gorev bekliyor uretir", () => {
