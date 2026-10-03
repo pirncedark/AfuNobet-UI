@@ -19,7 +19,8 @@ describe("E2 Ajan Pill ve Devir Testleri", () => {
   });
 
   it("3. agentPillState: Calismayan ama islem gormus ajan idle doner", () => {
-    const snap: Snapshot = { tasks: [{ agent: "codex", status: "Bekliyor", updatedAt: Date.now() } as Task], quotas: {}, sourceUnavailable: false };
+    // W4: "Bekliyor" artık ayrı "bekliyor" noktasıdır (w4_pill.test.ts); işi bitmiş ajan boşta kalır.
+    const snap: Snapshot = { tasks: [{ agent: "codex", status: "Tamamlandi", updatedAt: Date.now() } as Task], quotas: {}, sourceUnavailable: false };
     expect(agentPillState(snap, "codex", Date.now())).toBe("idle");
   });
 
