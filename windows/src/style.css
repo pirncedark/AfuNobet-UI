@@ -151,6 +151,10 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
   --pet-filtre-bosta: drop-shadow(0 0 0 transparent);
    --pet-arka-bosta: transparent;
    --pet-kenar-bosta: transparent;
+
+   --pet-filtre-uyku: drop-shadow(0 0 4px #7ea3d540);
+   --pet-arka-uyku: transparent;
+   --pet-kenar-uyku: #7ea3d566;
  }
  
  [data-durum="calisiyor"] { --pet-filtre: var(--pet-filtre-calisiyor); --pet-arka: var(--pet-arka-calisiyor); --pet-kenar: var(--pet-kenar-calisiyor); }
@@ -159,12 +163,16 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  [data-durum="basari"] { --pet-filtre: var(--pet-filtre-basari); --pet-arka: var(--pet-arka-basari); --pet-kenar: var(--pet-kenar-basari); }
  [data-durum="onay-bekliyor"] { --pet-filtre: var(--pet-filtre-onay); --pet-arka: var(--pet-arka-onay); --pet-kenar: var(--pet-kenar-onay); }
  [data-durum="bosta"] { --pet-filtre: var(--pet-filtre-bosta); --pet-arka: var(--pet-arka-bosta); --pet-kenar: var(--pet-kenar-bosta); }
+ [data-durum="uyku"] { --pet-filtre: var(--pet-filtre-uyku); --pet-arka: var(--pet-arka-uyku); --pet-kenar: var(--pet-kenar-uyku); --pet-brightness: .94; }
  
+ /* Işıklı arka plan karakterin ve petin arkasında; kenar rengi kartın çerçevesinde
+    (pet şeffaf pencerede durduğu için ona köşeli çerçeve çizilmez). */
  #afu-character, #afu-pet {
-   box-shadow: inset 0 0 0 1px var(--pet-kenar, transparent);
    background: var(--pet-arka, transparent);
-   transition: box-shadow 0.3s ease, background 0.3s ease;
+   transition: background 0.3s ease;
  }
+ #island { transition: border-color 0.3s ease; }
+ #island[data-durum]:not([data-durum="bosta"]) { border-color: var(--pet-kenar); }
  
 #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image {
   filter: brightness(var(--pet-brightness, 1)) var(--pet-filtre, drop-shadow(0 0 0 transparent));
@@ -172,7 +180,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  }
  
  @media(prefers-reduced-motion: reduce) {
-  #afu-character, #afu-pet, #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image { transition: none !important; }
+  #island, #afu-character, #afu-pet, #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image { transition: none !important; }
  }
  
 /* Proje eylemi sabit kartın üst satırında kalır; uzun açıklama altında kırpılmaz. */

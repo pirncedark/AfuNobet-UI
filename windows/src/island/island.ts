@@ -469,7 +469,9 @@ export class Island {
     const rawExpr = characterExpression({ dragging: this.dragging, questionOpen: this.questionOpen, voice: this.voiceExpression, state: State.effectiveState });
     const finalExpr = this.animOverride && this.animOverride.until > Date.now() ? this.animOverride.expr : rawExpr;
     this.character.sync(finalExpr, this.mode === "compact", this.view === "greeting", this.mode === "compact" || this.mode === "expanded");
-     this.pet.el.dataset.durum = getDurum(finalExpr);
+    const durum = getDurum(finalExpr);
+    this.islandEl.dataset.durum = durum;
+    this.pet.setDurum(durum);
     this.views.sync(this.view, this.mode === "expanded");
     if (this.konusan) this.konusan.guncelle(this.mode, this.fsm.state === "pet");
     const messageHost = this.mode === "pet" ? this.petBalonEl : this.views.overview;
