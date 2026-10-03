@@ -6,6 +6,7 @@ mod state;
 mod tray;
 mod watch;
 mod taskbar;
+mod yaslanma;
 mod glide;
 mod tray_icon;
 mod settings;
