@@ -49,6 +49,7 @@ export const Bridge = {
   /** Kopru canliligi icin ajan mesajlari (bos liste = sinyal yok). */
   mesajlar: () => call<{ ajan: string; zaman: number }[]>("mesajlar_list"),
   setCollapsed: (collapsed: boolean) => call<void>("set_collapsed", { collapsed }),
+  kartYukseklik: (h: number) => call<void>("kart_yukseklik", { h }),
   setIslandRect: (x: number, y: number, width: number, height: number) => call<void>("set_island_rect", { x, y, width, height }),
   focusWindow: (focused: boolean) => call<void>("focus_window", { focused }),
   setCardOpen: (open: boolean) => call<void>("set_card_open", { open }),

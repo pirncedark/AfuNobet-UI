@@ -349,6 +349,7 @@ pub fn run() {
             kimlik::anahtar_var,
             kimlik::anahtar_sil,
             set_collapsed,
+            dpi::kart_yukseklik,
             set_island_rect,
             set_card_open,
             focus_window,

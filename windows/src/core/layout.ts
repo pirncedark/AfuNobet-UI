@@ -13,6 +13,8 @@ export const DESIGN_W = 720, DESIGN_H = 320;
 /** Pencere ölçüsü: tasarımın KART_OLCEK katı. Rust tarafındaki karşılığı
  *  `src-tauri/src/dpi.rs` (KART_OLCEK, PANEL_W, PANEL_H) — ikisi de aynı olmalı. */
 export const PANEL_W = 1080, PANEL_H = 480;
+export const PANEL_MIN_H = 480;
+export const PANEL_MAX_H_RATIO = 0.85;
 export const NOTCH_W = 184, NOTCH_H = 32, COMPACT_W = 288, EXPANDED_W = 640;
 export const ROUNDED_CORNER = 14, EXPANDED_CORNER = 22;
 /** Dar pencerede görünürlük CSS yerleşimiyle korunur; ölçek alt sınırı yoktur. */

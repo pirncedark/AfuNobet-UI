@@ -8,7 +8,7 @@ import { Bridge, onEvent } from "../core/bridge";
 import { TUVAL_BOYUTU, WebpOynatici, tuvalCizici } from "./oynatma";
 import { IfadeZamanlayici } from "./ifade";
 import { PET_IFADE_OLAYI, loadPetIfade } from "../core/settings";
-export type PetPose = "donus" | "bekleme" | "gecis" | "uyanma" | "dusunme" | "uyari" | "hata" | "mutlu" | "basari" | "uyku" | "yuzme" | "etkilesim" | "surukleme" | "geri_donus" | "yaslanma";
+export type PetPose = "donus" | "bekleme" | "gecis" | "uyanma" | "dusunme" | "uyari" | "hata" | "mutlu" | "basari" | "uyku" | "yuzme" | "etkilesim" | "surukleme" | "geri_donus" | "yaslanma" | "ense_hover";
 export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "donus": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_gorunme", ms: 200 }, { kare: "akis_suzulme", ms: 250 }, { kare: "akis_kuculme", ms: 180 }, { kare: "durum/masa_cikis", ms: 1000 }],
   "bekleme": [{ kare: "durum/bekleme", ms: 500 }, { kare: "durum/bekleme", ms: 500 }, { kare: "durum/bekleme", ms: 500 }],
@@ -25,6 +25,7 @@ export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "surukleme": [{ kare: "durum/ense_tutma", ms: Infinity }],
   "geri_donus": [{ kare: "durum/ense_tutma", ms: Infinity }],
   "yaslanma": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_bekleme", ms: 600 }],
+  "ense_hover": [{ kare: "durum/ense_tutma", ms: Infinity }],
 };
 // STÜDYO AYAR BAŞLANGIÇ
 export const PET_AYAR: Record<PetPose, { olcek: number; x: number; y: number }> = {
@@ -89,6 +90,11 @@ export const PET_AYAR: Record<PetPose, { olcek: number; x: number; y: number }> 
     "y": 10
   },
   "surukleme": {
+    "olcek": 100,
+    "x": 0,
+    "y": 0
+  },
+  "ense_hover": {
     "olcek": 100,
     "x": 0,
     "y": 0
@@ -918,7 +924,8 @@ export const PET_OYNATMA: Record<PetPose, { hiz: number; donguArasi: number }> =
   "etkilesim": { "hiz": 1, "donguArasi": 0 },
   "surukleme": { "hiz": 1, "donguArasi": 0 },
   "geri_donus": { "hiz": 1, "donguArasi": 0 },
-  "yaslanma": { "hiz": 1, "donguArasi": 0 }
+  "yaslanma": { "hiz": 1, "donguArasi": 0 },
+  "ense_hover": { "hiz": 1, "donguArasi": 0 }
 };
 // STÜDYO OYNATMA SON
 export const PET_TUTMA = { guc: 50 };
@@ -1045,8 +1052,8 @@ export class PetModel {
   }
   hover(on: boolean) {
     this.lastActivity = this.now;
-    if (["uyari", "hata", "surukleme", "geri_donus", "yaslanma"].includes(this.pose)) return;
-    if (on) { this.hoverPose = this.pose === "uyku" ? "uyanma" : "bekleme"; this.setPose(this.pose === "uyku" ? "uyanma" : "yuzme"); }
+    if (["uyku", "uyari", "hata", "surukleme", "geri_donus", "yaslanma"].includes(this.pose)) return;
+    if (on) { this.hoverPose = "bekleme"; this.setPose("ense_hover"); }
     else { this.setPose(this.hoverPose ?? "bekleme"); this.hoverPose = null; }
   }
   tick(now: number) {

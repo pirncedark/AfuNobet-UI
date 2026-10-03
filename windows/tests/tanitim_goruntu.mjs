@@ -17,7 +17,7 @@ const server = await createServer({ root, configLoader: 'runner',
   optimizeDeps: { noDiscovery: true, include: [], exclude: ['@tauri-apps/api'] },
   server: { port: 0, strictPort: false, host: '127.0.0.1', watch: { ignored: /(?:target|dist|test-results)/ } } });
 let browser;
-const cases = ['balon-okudum', 'kart-mesaj', 'kart-bilgi', 'quota-360', 'quota-panel-360', 'working-640-150'];
+const cases = ['balon-okudum', 'kart-mesaj', 'kart-bilgi', 'quota-360', 'quota-panel-360', 'working-640-150', 'm6-orkestra', 'm6-pet-hover'];
 try {
   await server.listen();
   browser = await chromium.launch({ headless: true });
@@ -67,8 +67,8 @@ try {
           host.hidden = false;
           host.append(kartOlustur(document, q, async () => {}, 1, undefined, () => {}));
         }
-        if (['balon-okudum', 'kart-mesaj'].includes(name)) {
-          if (name === 'balon-okudum') island.fsm.toPet();
+        if (['balon-okudum', 'kart-mesaj', 'm6-pet-hover'].includes(name)) {
+          if (name === 'balon-okudum' || name === 'm6-pet-hover') island.fsm.toPet();
           const { showNotification } = await import('/src/message/notifications.ts');
           const text = name === 'balon-okudum'
             ? 'Claude: Tanıtım hazır\n- Gerçek ekranlar alındı\n- Görseller kontrol edildi'
@@ -79,7 +79,7 @@ try {
         if (['sesli-sohbet', 'sesli-dinliyor'].includes(name)) { island.setView('chat'); await island.chat.refresh(); }
         if (name === 'devir') island.applySnapshot({ version: 1, tasks: [task('focus', 'gemini', 'Calisiyor', 'Tanıtım sayfasını tamamla', { handoff: { from: 'codex', to: 'gemini', reason: 'quota' } })] });
         if (name === 'kota') island.setView('quota');
-        if (name === 'orkestra') island.setView('orkestra');
+        if (name === 'orkestra' || name === 'm6-orkestra') island.setView('orkestra');
       }, name);
       await page.waitForTimeout(800);
       if (name === 'kart-mesaj') await page.locator('.afu-konusma-balonu').click();
@@ -87,7 +87,8 @@ try {
       if (name === 'ara') await page.locator('.search-button').click();
       if (name === 'sesli-sohbet') await page.getByRole('button', { name: 'Sesli sohbeti başlat' }).scrollIntoViewIfNeeded();
       if (name === 'sesli-dinliyor') { await page.getByRole('button', { name: 'Sesli sohbeti başlat' }).click(); await page.getByText('Dinliyor…', { exact: true }).waitFor(); await page.getByText('Dinliyor…', { exact: true }).scrollIntoViewIfNeeded(); }
-      if (name === 'orkestra') { await page.locator('.orkestra-input').waitFor(); await page.locator('.orkestra-input').fill('Tanıtım ekranlarını kontrol et'); await page.locator('.orkestra-input').scrollIntoViewIfNeeded(); }
+      if (name === 'orkestra' || name === 'm6-orkestra') { await page.locator('.orkestra-input').waitFor(); await page.locator('.orkestra-input').fill('Tanıtım ekranlarını kontrol et'); await page.locator('.orkestra-input').scrollIntoViewIfNeeded(); }
+      if (name === 'm6-pet-hover') { await page.locator('#afu-pet canvas').hover(); await page.waitForTimeout(200); }
       await page.waitForTimeout(name === 'balon-okudum' ? 2400 : 150);
       const checks = {
         'balon-okudum': ['.afu-balon-etiket', '.afu-balon-metin li', 'text=Okudum'],
@@ -100,9 +101,10 @@ try {
         'quota-panel-360': ['.quota-view', '.quota-row small'],
         'working-640-150': ['.agent-pills', '.main-task'],
         'sesli-sohbet': ['text=Sesli sohbeti başlat'], 'sesli-dinliyor': ['text=Dinliyor…'],
-        ipucu: ['.afu-mesaj-ipucu'], devir: ['.task-handoff'], kota: ['.quota-view'], orkestra: ['.orkestra-select', '.orkestra-input'],
+        ipucu: ['.afu-mesaj-ipucu'], devir: ['.task-handoff'], kota: ['.quota-view'],
+        orkestra: ['.orkestra-select', '.orkestra-input'], 'm6-orkestra': ['.orkestra-select', '.orkestra-input'],
       };
-      for (const selector of checks[name]) {
+      for (const selector of (checks[name] ?? [])) {
         const el = page.locator(selector).first();
         if (!await el.isVisible()) { errors.push(`Görünür öğe eksik: ${selector}`); continue; }
         const inside = await el.evaluate(el => {
@@ -151,7 +153,7 @@ try {
         const x = Math.max(0, Math.floor(Math.min(...rs.map(r => r.x))));
         const y = Math.max(0, Math.floor(Math.min(...rs.map(r => r.y))));
         return { x, y, width: Math.ceil(Math.max(...rs.map(r => r.right))) - x, height: Math.ceil(Math.max(...rs.map(r => r.bottom))) - y };
-      }, name === 'balon-okudum');
+      }, name === 'balon-okudum' || name === 'm6-pet-hover');
       const file = `${name}.png`;
       await page.screenshot({ path: path.join(out, file), clip, omitBackground: true });
       const bytes = await readFile(path.join(out, file));

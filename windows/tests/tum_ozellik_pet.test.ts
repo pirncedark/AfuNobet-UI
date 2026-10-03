@@ -284,7 +284,7 @@ describe("5) Pet balonu", () => {
 describe("6) Mini pet eski hali + sürükle-bırak-dön", () => {
   it("on beş pozun tamamı tanımlı ve her birinde en az bir kare var", () => {
     const pozler = Object.keys(SEKANSLAR) as PetPose[];
-    expect(pozler.length).toBe(15);
+    expect(pozler.length).toBe(16);
     for (const poz of pozler) {
       expect(SEKANSLAR[poz].length, poz).toBeGreaterThan(0);
       for (const kare of SEKANSLAR[poz]) {

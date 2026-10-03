@@ -30,7 +30,7 @@ describe("mini pet", () => {
   });
   it("hover floats and leaves to idle, idle visits all breathing and blink frames", () => {
     const p = new PetModel(0);
-    p.hover(true); expect(p.frame).toBe("uyan_yuzme"); // studio edit d71c313
+    p.hover(true); expect(p.frame).toBe("durum/ense_tutma"); // M6: yuzme yerine ense
     p.hover(false); expect(p.pose).toBe("bekleme");
     const frames = new Set<string>();
     for (let t = 0; t <= 30000; t += 30) { p.tick(t); frames.add(p.frame); }

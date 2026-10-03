@@ -25,7 +25,9 @@ button:disabled{cursor:default}
 header{display:flex;align-items:center;gap:9px;height:23px;flex-shrink:0;white-space:nowrap;overflow:hidden}
 .brand{font-size:13px;font-weight:700;letter-spacing:.03em;color:#e6edf8;flex-shrink:0}
 .summary{font-size:10px;color:#8797b0;margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.claude-lock{font-size:9px;color:#a8b2c6;background:#ffffff05;border:1px solid #ffffff10;border-radius:7px;padding:4px 6px;flex-shrink:0;white-space:nowrap}
+.claude-lock{display:inline-flex;align-items:center;height:28px;font-size:11px;letter-spacing:.02em;color:#a8b2c6;background:#050810;border:1px solid #d6a84f55;border-radius:8px;padding:0 8px;flex-shrink:0;white-space:nowrap;margin-left:-3px;transition:border-color .2s}
+.claude-lock:hover{border-color:#d6a84f99}
+.search-button{width:28px;height:28px;border-radius:8px;}
 .agent-pills{display:flex;gap:6px;margin-top:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .agent-pills::-webkit-scrollbar{display:none}
 /* An agent with nothing to do stays plainly grey and readable; the one being
