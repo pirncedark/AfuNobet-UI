@@ -14,6 +14,7 @@ async function action<T>(command: string, args?: Record<string, unknown>): Promi
   catch (error) { throw new Error(typeof error === "string" && error.length < 180 && !/[\\/]|token|secret|password|traceback/i.test(error) ? error : "İşlem tamamlanamadı. Yeniden dene."); }
 }
 export const Bridge = {
+  studioOpen: () => action<void>("studio_open"),
   codexStatus: async () => {
     const status = await action<{ status: string; loggedIn: boolean; planType: string | null; rateLimits: unknown }>("codex_status");
     State.setCodexLimits(status.rateLimits); return status;

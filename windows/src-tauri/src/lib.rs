@@ -117,6 +117,8 @@ fn codex_install() -> Result<(), String> {
     crate::apps::login_url_ac("https://www.npmjs.com/package/@openai/codex").map_err(|_| "İndirme sayfası açılamadı; yeniden dene.".to_owned())
 }
 #[tauri::command]
+fn studio_open() -> Result<(), String> { apps::animasyon_studyo_ac(&project_root()) }
+#[tauri::command]
 fn project_open(project: String) -> Result<(), String> { apps::proje_klasoru_ac(&project_root(), &project) }
 #[tauri::command]
 fn log_ac() -> Result<(), String> {
@@ -365,6 +367,7 @@ pub fn run() {
             app_open,
             app_download,
             project_open,
+            studio_open,
             codex_status,
             codex_send,
             codex_cancel,

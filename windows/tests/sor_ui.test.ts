@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { parseState } from "../src/core/state";
-import { SorView, SOR_METIN } from "../src/sor/sor";
+import { SorView, SOR_METIN, SOR_EXAMPLES } from "../src/sor/sor";
 
 class FakeElement {
   children: FakeElement[] = []; textContent = ""; value = ""; className = ""; hidden = false; disabled = false; title = "";
@@ -25,9 +25,27 @@ function kur(status: string | (() => Promise<string>) = "hazir") {
   return { v: new SorView(a), a };
 }
 const tik = async () => { for (let i = 0; i < 6; i++) await Promise.resolve(); };
-afterEach(() => vi.unstubAllGlobals());
+afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); });
 
 describe("Afu'ya sor arayüzü", () => {
+  it("örnekler döner; yazılan veya odaktaki soru korunur", () => {
+    vi.useFakeTimers();
+    const { v } = kur();
+    const set = vi.spyOn(v.input, "setAttribute");
+    vi.advanceTimersByTime(5000);
+    expect(set).toHaveBeenLastCalledWith("placeholder", SOR_EXAMPLES[1]);
+    v.input.value = "Kendi sorum";
+    vi.advanceTimersByTime(5000);
+    expect(set).toHaveBeenCalledTimes(1);
+    expect(v.input.value).toBe("Kendi sorum");
+    v.input.value = "";
+    Object.assign(document, { activeElement: v.input });
+    vi.advanceTimersByTime(5000);
+    expect(set).toHaveBeenCalledTimes(1);
+    Object.assign(document, { activeElement: null });
+    vi.advanceTimersByTime(5000);
+    expect(set).toHaveBeenLastCalledWith("placeholder", SOR_EXAMPLES[2]);
+  });
   it("yerel soru Codex'e gitmez, cevap hemen görünür", async () => {
     const { v, a } = kur(); v.input.value = "Kaç iş var?"; await v.sor();
     expect(a.codexStatus).not.toHaveBeenCalled(); expect(a.codexaSor).not.toHaveBeenCalled();

@@ -14,6 +14,8 @@ pub fn claim(app_data: &Path) -> std::io::Result<bool> {
 /// The fixed scripts contain no user input and are sent before boot's IPC reply.
 pub fn prepare(app: &tauri::AppHandle) {
     use tauri::Manager;
+    static PREPARED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+    if PREPARED.swap(true, std::sync::atomic::Ordering::SeqCst) { return; }
     let first = app.path().app_data_dir().ok().and_then(|path| claim(&path).ok()).unwrap_or(false);
     if let Some(window) = app.get_webview_window("island") {
         let script = if first {
