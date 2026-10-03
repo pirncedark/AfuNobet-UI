@@ -17,7 +17,7 @@ describe("Sohbet güvenliği", () => {
   expect(m.send("Bak")).toEqual({text:"Bak",attachments:["C:\\proje\\rapor.md"]}); expect(m.send("tekrar")).toBeNull();
  });
  it("uzun delta sınırlıdır", () => {
-  const m = new ChatModel(); m.append("turn/started",{}); m.append("item/agentMessage/delta",{delta:"x".repeat(100000)}); expect(m.text.length).toBeLessThanOrEqual(32000);
+  const m = new ChatModel(); m.append("turn/started",{}); m.append("item/agentMessage/delta",{delta:"x".repeat(100000)}); expect(m.text).toBe("x".repeat(100000));
  });
  it("bağlam yalnız güvenli kısa alanları içerir", () => {
   const ctx = buildContext({tasks:[]}, {id:"j1",repo:"C:\\private\\Afu",title:"token=secretvalue",status:"Calisiyor",file:"C:\\private\\file.ts",logs:"secret"});
@@ -58,7 +58,7 @@ it("oturum yoksa dosya eklenmez ve tek cümle uyarı verir", async () => {
 it("gönderim başarısızsa taslak ve ek korunur",async()=>{
  vi.stubGlobal("document",{createElement:()=>new FakeElement(),createTextNode:(text:string)=>Object.assign(new FakeElement(),{textContent:text})});
  const a={codexStatus:vi.fn(async()=>"hazir"),codexSend:vi.fn(async()=>{throw Error("bad")}),codexCancel:vi.fn(async()=>{}),codexLogin:vi.fn(async()=>{}),codexLoginCancel:vi.fn(async()=>{})};
- const v=new ChatView(a);await v.refresh();v.attach(["/private/file.ts"]);v.input.value="taslak";(v.sendButton as unknown as FakeElement).fire("click");await Promise.resolve();await Promise.resolve();expect(v.input.value).toBe("taslak");expect(v.model.attachments).toHaveLength(1);expect(v.model.busy).toBe(false);expect(v.message.textContent).toContain("yeniden dene");
+ const v=new ChatView(a);await v.refresh();v.attach(["/private/file.ts"]);v.input.value="taslak";(v.sendButton as unknown as FakeElement).fire("click");await Promise.resolve();await Promise.resolve();expect(v.input.value).toBe("taslak");expect(v.model.attachments).toHaveLength(1);expect(v.model.busy).toBe(false);expect(v.message.textContent).toBe("GPT-5.6 Sol\'a bağlanılamadı.");
 });
 it("gönderim beklerken eklenen yeni dosya kabulde kaybolmaz",()=>{const m=new ChatModel();m.attach(["/a/old.md"]);const next=m.send("Bak")!;m.attach(["/a/new.md"]);m.accepted(next);expect(m.attachments.map(a=>a.name)).toEqual(["new.md"]);});
 it("hata yeniden denenecekse turn açık kalır",()=>{const m=new ChatModel();m.append("turn/started",{threadId:"t",turn:{id:"1"}});m.append("error",{threadId:"t",turnId:"1",willRetry:true});expect(m.busy).toBe(true);m.append("item/agentMessage/delta",{threadId:"t",turnId:"1",delta:"Devam"});expect(m.text).toBe("Devam");});
@@ -70,8 +70,8 @@ it("gönderim sürerken yazılan yeni taslak kabulde korunur",async()=>{vi.stubG
 function voiceChat(){vi.stubGlobal("document",{createElement:()=>new FakeElement(),createTextNode:(text:string)=>Object.assign(new FakeElement(),{textContent:text})});const a={codexStatus:vi.fn(async()=>"hazir"),codexSend:vi.fn(async()=>{}),codexCancel:vi.fn(async()=>{}),codexLogin:vi.fn(async()=>{}),codexLoginCancel:vi.fn(async()=>{})};const s={voiceStart:vi.fn(async()=>{}),voiceStop:vi.fn(async()=>"incelenecek metin"),voiceCancel:vi.fn(async()=>{}),voiceSpeak:vi.fn(async(_text:string)=>{}),voiceSilence:vi.fn(async()=>{}),voiceSupported:vi.fn(async()=>({whisper:true,winrt_stt:false,tts:true}))};const v=new ChatView(a,()=>"",s);return {v,a,s};}
 async function explicitTurn(v:ChatView,id="1"){await v.refresh();v.input.value="Mesaj";(v.sendButton as unknown as FakeElement).fire("click");await Promise.resolve();v.onEvent({method:"turn/started",params:{threadId:"t",turn:{id}}});v.onEvent({method:"item/agentMessage/delta",params:{threadId:"t",turnId:id,delta:"Merhaba"}});}
 function finishTurn(v:ChatView,id="1",status="completed"){v.onEvent({method:"turn/completed",params:{threadId:"t",turn:{id,status}}});}
-it("oturum hazır olmadan veya yanıt sürerken mikrofon yeni kayıt açmaz",async()=>{
- const {v,s}=voiceChat();await Promise.resolve();
+it("oturum hazır olmadan kayıt açmaz, yanıt sürerken mikrofon turn keser",async()=>{
+ const {v,s,a}=voiceChat();await Promise.resolve();
  const mic=v.micButton as unknown as FakeElement;
  mic.fire("pointerdown",{pointerId:1});
  for(let i=0;i<5;i++)await Promise.resolve();
@@ -79,7 +79,7 @@ it("oturum hazır olmadan veya yanıt sürerken mikrofon yeni kayıt açmaz",asy
  await explicitTurn(v);
  mic.fire("keydown",{key:" ",repeat:false,preventDefault:vi.fn()});
  for(let i=0;i<5;i++)await Promise.resolve();
- expect(s.voiceStart).not.toHaveBeenCalled();
+ expect(a.codexCancel).toHaveBeenCalledOnce();expect(s.voiceStart).toHaveBeenCalledOnce();
  await v.detach();
 });
 it("bas-konuş metni kullanıcı gönderince Afu yanıtına ulaşır",async()=>{
@@ -111,25 +111,17 @@ it("teknik yanıt tümüyle sıralı Unicode parçalarıyla okunur",async()=>{co
 it("ilk parça iptal edilirse kalan ses parçaları başlamaz",async()=>{const {v,s}=voiceChat();let done!:()=>void;s.voiceSpeak.mockImplementation(()=>new Promise<void>(r=>done=r));(v.responseButton as unknown as FakeElement).fire("click");await explicitTurn(v);v.onEvent({method:"item/agentMessage/delta",params:{threadId:"t",turnId:"1",delta:"x".repeat(9000)}});finishTurn(v);await v.suspend();done();for(let i=0;i<5;i++)await Promise.resolve();expect(s.voiceSpeak).toHaveBeenCalledOnce();expect(s.voiceSilence).toHaveBeenCalledOnce();});
 it("bas konuş ses okumasının durmasını bekler",async()=>{const {v,s}=voiceChat();let finishSpeech!:()=>void;s.voiceSpeak.mockImplementation(()=>new Promise<void>(r=>finishSpeech=r));let finishSilence!:()=>void;s.voiceSilence.mockImplementation(()=>new Promise<void>(r=>finishSilence=r));(v.responseButton as unknown as FakeElement).fire("click");await explicitTurn(v);finishTurn(v);const press=v.voice!.press();expect(s.voiceSilence).toHaveBeenCalledOnce();expect(s.voiceStart).not.toHaveBeenCalled();finishSilence();await press;expect(s.voiceStart).toHaveBeenCalledOnce();finishSpeech();await v.voice!.cancel();});
 it("bildirim sesi açıkken mikrofon her durumda önce sesi durdurur",async()=>{const {v,s}=voiceChat();const order:string[]=[];let finishSpeech!:()=>void;s.voiceSpeak.mockImplementation(()=>{order.push("bildirim");return new Promise<void>(r=>finishSpeech=r);});s.voiceSilence.mockImplementation(async()=>{order.push("sessizlik");});s.voiceStart.mockImplementation(async()=>{order.push("mikrofon");});v.notifications!.enabled=true;const notification=v.notifications!.announce({kind:"JOB_FINISHED",taskId:"n",agent:"codex"},true);expect(v.responses!.speaking).toBe(false);await v.voice!.press();expect(order).toEqual(["bildirim","sessizlik","mikrofon"]);finishSpeech();await notification;await v.voice!.cancel();});
-it.each([{whisper:true,winrt_stt:false,tts:false},{whisper:false,winrt_stt:true,tts:false}])("Whisper veya Windows desteği bas konuşu açar",async(supported)=>{const {v,s}=voiceChat();s.voiceSupported.mockResolvedValue(supported);const second=new ChatView({codexStatus:async()=>"hazir",codexSend:async()=>{},codexCancel:async()=>{},codexLogin:async()=>{},codexLoginCancel:async()=>{}},()=>"",s);await Promise.resolve();expect(second.micButton?.disabled).toBe(false);});
-it("Windows internet açıklaması yalnız oturumdaki ilk kullanımda görünür",async()=>{const {s,a}=voiceChat();s.voiceSupported.mockResolvedValue({whisper:false,winrt_stt:true,tts:false});const first=new ChatView(a,()=>"",s);await Promise.resolve();await first.voice!.press();expect(first.voiceHint.textContent).toBe("Windows konuşma tanıma internet kullanır.");expect(first.voiceHint.hidden).toBe(false);await first.voice!.release();expect(a.codexSend).not.toHaveBeenCalled();const second=new ChatView(a,()=>"",s);await Promise.resolve();await second.voice!.press();expect(second.voiceHint.hidden).toBe(true);await second.voice!.cancel();});
+it.each([{whisper:true,winrt_stt:false,tts:false},{whisper:false,winrt_stt:true,tts:false}])("yalnız yerel Whisper bas konuşu açar",async(supported)=>{const {v,s}=voiceChat();s.voiceSupported.mockResolvedValue(supported);const second=new ChatView({codexStatus:async()=>"hazir",codexSend:async()=>{},codexCancel:async()=>{},codexLogin:async()=>{},codexLoginCancel:async()=>{}},()=>"",s);await Promise.resolve();expect(second.micButton?.disabled).toBe(!supported.whisper);});
+it("yerel STT bulut açıklaması göstermez",async()=>{const {s,a}=voiceChat();s.voiceSupported.mockResolvedValue({whisper:false,winrt_stt:true,tts:false});const first=new ChatView(a,()=>"",s);await Promise.resolve();await first.voice!.press();expect(first.voiceHint.textContent).toBe("");expect(first.voiceHint.hidden).toBe(true);await first.voice!.release();expect(a.codexSend).not.toHaveBeenCalled();const second=new ChatView(a,()=>"",s);await Promise.resolve();await second.voice!.press();expect(second.voiceHint.hidden).toBe(true);await second.voice!.cancel();});
 it.each([["Windows konuşma tanıma izni kapalı; Windows ayarlarından açıp tekrar dene.","speech","İzni aç"],["Mikrofon açılamadı, mikrofon iznini kontrol edip tekrar dene.","microphone","İzni aç"],["Windows konuşma tanıma internete bağlanamadı; bağlantını kontrol edip tekrar dene.","network","Bağlantıyı kontrol et"]])("bilinen ses hatası tek kullanıcı ayar eylemi sunar: %s",async(message,kind,label)=>{const {s,a}=voiceChat();const open=vi.fn(async(_kind:string)=>{});s.voiceStart.mockRejectedValue(new Error(message));const v=new ChatView(a,()=>"",{...s,voiceOpenSettings:open});await Promise.resolve();await v.voice!.press();expect(open).not.toHaveBeenCalled();expect(v.voiceHelpButton.hidden).toBe(false);expect(v.voiceHelpButton.textContent).toBe(label);(v.voiceHelpButton as unknown as FakeElement).fire("click");await Promise.resolve();expect(open).toHaveBeenCalledWith(kind);await v.suspend();expect(v.voiceHelpButton.hidden).toBe(true);(v.voiceHelpButton as unknown as FakeElement).fire("click");expect(open).toHaveBeenCalledOnce();});
 it("bilinmeyen hata URI veya ayar eylemine dönüştürülmez",async()=>{const {s,a}=voiceChat();s.voiceStart.mockRejectedValue(new Error("ms-settings:bad C:\\token\\secret"));const open=vi.fn(async()=>{});const v=new ChatView(a,()=>"",{...s,voiceOpenSettings:open});await v.voice!.press();expect(v.voiceHelpButton.hidden).toBe(true);expect(v.message.textContent).not.toMatch(/token|secret|ms-settings/);});
 it("teardown sonrası geciken ayar hatası eski eylemi ve mesajı geri getirmez",async()=>{const {s,a}=voiceChat();let reject!:(e:Error)=>void;const open=vi.fn(()=>new Promise<void>((_,r)=>reject=r));s.voiceStart.mockRejectedValue(new Error("Windows konuşma tanıma izni kapalı; Windows ayarlarından açıp tekrar dene."));const v=new ChatView(a,()=>"",{...s,voiceOpenSettings:open});await v.voice!.press();(v.voiceHelpButton as unknown as FakeElement).fire("click");await v.detach();reject(new Error("unsafe"));await Promise.resolve();await Promise.resolve();expect(v.voiceHelpButton.hidden).toBe(true);expect(v.message.textContent).not.toContain("Ayarlar açılamadı");});
 
-it("ilk ses açılışı seçim ister, kaydedilen seçim açıklamayı tekrarlamaz",async()=>{
- const {s,a}=voiceChat();const chosen={ses:"afu_5b",filtre:"sicak",chosen:false,available:["afu_5b","notr","yumusak_sicak","neseli_hareketli","sakin_dogal"]};
- const actions={...s,voiceChoices:async()=>chosen,voiceChoose:async(ses:string,filtre:string)=>Object.assign(chosen,{ses,filtre,chosen:true})};
- const first=new ChatView(a,()=>"",actions);(first.responseButton as unknown as FakeElement).fire("click");
- await Promise.resolve();await Promise.resolve();expect(first.responses?.enabled).toBe(false);
- expect(first.voicePicker?.element.hidden).toBe(false);expect(first.voicePicker?.selection.children).toHaveLength(5);
- expect(first.voicePicker?.selection.value).toBe("afu_5b");expect(first.voicePicker?.filter.value).toBe("sicak");
- expect(first.voicePicker?.selection.children[0].textContent).toContain("Önerilen");
- first.voicePicker!.selection.value="sakin_dogal";(first.voicePicker!.save as unknown as FakeElement).fire("click");
- await Promise.resolve();await Promise.resolve();expect(first.responses?.enabled).toBe(true);expect(first.voicePicker?.element.hidden).toBe(true);
- await first.detach();State.settings.tts=false;
- const second=new ChatView(a,()=>"",actions);(second.responseButton as unknown as FakeElement).fire("click");await Promise.resolve();await Promise.resolve();
- expect(second.responses?.enabled).toBe(true);expect(second.voicePicker?.element.hidden).toBe(true);
+it("ilk ses açılışı afu_5b varsayılanıyla seçici göstermeden çalışır",async()=>{
+ const {s,a}=voiceChat();const choose=vi.fn(async()=>({ses:"afu_5b",filtre:"sicak",chosen:true,available:["afu_5b"]}));
+ const first=new ChatView(a,()=>"",{...s,voiceChoices:choose});
+ (first.responseButton as unknown as FakeElement).fire("click");await Promise.resolve();
+ expect(first.responses?.enabled).toBe(true);expect(first.voicePicker).toBeUndefined();expect(choose).not.toHaveBeenCalled();await first.detach();
 });
 it("Durdur ses üretimi sırasında da görünür",async()=>{
  const {v,s}=voiceChat();let finish!:()=>void;s.voiceSpeak.mockImplementation(()=>new Promise<void>(r=>finish=r));

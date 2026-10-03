@@ -284,28 +284,28 @@ describe("codex giriş satırı", () => {
   }
   it("hazırsa bağlı yazar ve giriş düğmesini gizler", async () => {
     const v = new ChatView(actions("hazir") as never); await v.refresh();
-    expect(el(v.message).textContent).toBe("Codex: bağlı (ChatGPT hesabı)");
+    expect(el(v.message).textContent).toBe("GPT-5.6 Sol: hazır");
     expect(el(v.loginButton).hidden).toBe(true);
     v.input.value = "Merhaba"; el(v.input).dispatch("input");
     expect(el(v.sendButton).disabled).toBe(false);
   });
   it("oturum yoksa giriş yapılmadı yazar ve düğmeyi gösterir", async () => {
     const v = new ChatView(actions("oturum_yok") as never); await v.refresh();
-    expect(el(v.message).textContent).toBe("Codex: giriş yapılmadı");
+    expect(el(v.message).textContent).toBe("Codex hesabına giriş yap.");
     expect(el(v.loginButton).hidden).toBe(false);
     v.input.value = "Merhaba";
     expect(el(v.sendButton).disabled).toBe(true);
   });
   it("nesne biçimindeki hazır durum da bağlı sayılır", async () => {
     const v = new ChatView(actions({ status: "hazir" }) as never); await v.refresh();
-    expect(el(v.message).textContent).toBe("Codex: bağlı (ChatGPT hesabı)");
+    expect(el(v.message).textContent).toBe("GPT-5.6 Sol: hazır");
   });
-  it("giriş düğmesi 'Codex'e giriş yap' der", () => {
+  it("giriş düğmesi 'Codex ile giriş yap' der", () => {
     const v = new ChatView(actions("oturum_yok") as never);
-    expect(el(v.loginButton).textContent).toBe("Codex'e giriş yap");
+    expect(el(v.loginButton).textContent).toBe("Codex ile giriş yap");
   });
   it("Codex kurulu değilse tek dokunuşla kurma yolu açar", async () => {
-    const a = actions("hazir"); a.codexStatus.mockRejectedValue(new Error("Codex bulunamadı."));
+    const a = actions("hazir"); a.codexStatus.mockRejectedValue(new Error("Codex kurulu değil."));
     const v = new ChatView(a as never); await v.refresh();
     expect(el(v.message).textContent).toBe("Codex kurulu değil. Kurmak için dokun.");
     const kur = el(v.message).find("text-button");
