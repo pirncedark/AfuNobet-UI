@@ -100,4 +100,10 @@ CONTRACTS = {1: ('windows/src/views/views.ts', ['health-strip', 'pill("AfuNöbet
       ['MessageNotifications', 'setAlwaysOnTop', 'showNotification'],
       'notifications.test.ts'),
  76: ('windows/src/message/message.ts', ['KonusanAfu', 'balonOlustur', 'temizMetin'], 'r3b1.test.ts'),
- 77: ('windows/src/afu/pet.ts', ['SEKANSLAR', 'PET_OYNATMA'], 'tum_ozellik_pet.test.ts')}
+ 77: ('windows/src/afu/pet.ts', ['SEKANSLAR', 'PET_OYNATMA'], 'tum_ozellik_pet.test.ts'),
+ 78: ('windows/src/views/model.ts', ['handoffText'], 'w3_devir.test.ts'),
+ 79: ('windows/src/afu/ifade.ts', ['IFADELER', 'sonrakiAralik'], 'pet-ifade.test.ts'),
+ 80: ('windows/src/style.css', ['tik-bildirim'], 'w2_toast_yerlesim.test.ts'),
+ 81: ('windows/src/chat/chat.ts', ['codexLogin', 'codexLoginCancel'], 'chat.test.ts'),
+ 82: ('windows/src/core/ajan_kimlik.ts', ['ajanKimlik', 'renkTonu'], 'w4_pill.test.ts'),
+ 83: ('windows/src-tauri/src/yaslanma.rs', ['pub fn pet_yeri'], '../../../windows/src-tauri/src/yaslanma.rs')}

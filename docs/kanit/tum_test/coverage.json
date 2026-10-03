@@ -460,5 +460,41 @@
     "kind": "Kurtarma kaynak sözleşmesi",
     "evidence": "windows/src/afu/pet.ts",
     "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: tum_ozellik_pet.test.ts"
+  },
+  "Ajan devri gösterimi": {
+    "status": "GEÇTİ",
+    "kind": "Ekip dalgası kaynak sözleşmesi",
+    "evidence": "windows/src/views/model.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: w3_devir.test.ts"
+  },
+  "Arada ifade": {
+    "status": "GEÇTİ",
+    "kind": "Ekip dalgası kaynak sözleşmesi",
+    "evidence": "windows/src/afu/ifade.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: pet-ifade.test.ts"
+  },
+  "Bildirim düğmelere binmez": {
+    "status": "GEÇTİ",
+    "kind": "Ekip dalgası kaynak sözleşmesi",
+    "evidence": "windows/src/style.css",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: w2_toast_yerlesim.test.ts"
+  },
+  "Codex ile giriş + bas-konuş": {
+    "status": "GEÇTİ",
+    "kind": "Ekip dalgası kaynak sözleşmesi",
+    "evidence": "windows/src/chat/chat.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: chat.test.ts"
+  },
+  "E2 Ajan pill sistemi": {
+    "status": "GEÇTİ",
+    "kind": "Ekip dalgası kaynak sözleşmesi",
+    "evidence": "windows/src/core/ajan_kimlik.ts",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: w4_pill.test.ts"
+  },
+  "Pet ekranın altına yaslanma": {
+    "status": "GEÇTİ",
+    "kind": "Ekip dalgası kaynak sözleşmesi",
+    "evidence": "windows/src-tauri/src/yaslanma.rs",
+    "note": "Yalnız kaynak belirteçleri ve kanıt dosyasının varlığı doğrulandı; Windows çalışma zamanı bu turda çalıştırılmadı. Davranış referansı: yaslanma.rs (cargo test)"
   }
 }

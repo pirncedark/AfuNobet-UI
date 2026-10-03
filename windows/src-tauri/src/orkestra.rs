@@ -55,8 +55,25 @@ pub fn build_command(root: &Path, agent: &str, project: &str, task: &str) -> Com
     cmd
 }
 
+/// Orkestra yalnız bu ajanlara iş verir. Claude KORUNUYOR: otomatik görev yürütmez.
+pub const IZINLI_AJANLAR: [&str; 5] = ["otomatik", "codex", "gemini", "opencode", "glm"];
+
+pub fn gonderim_gecerli(agent: &str, project: &str) -> Result<(), String> {
+    if agent.eq_ignore_ascii_case("claude") {
+        return Err("Claude korunuyor; ona otomatik iş verilmez.".into());
+    }
+    if !IZINLI_AJANLAR.contains(&agent) {
+        return Err("Bu ajan tanınmıyor.".into());
+    }
+    if project.is_empty() || project.contains(['/', '\\']) || project.contains("..") {
+        return Err("Proje klasörü geçersiz.".into());
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn orkestra_send(agent: String, project: String, task: String) -> Result<(), String> {
+    gonderim_gecerli(&agent, &project)?;
     let root = project_root();
     let mut cmd = build_command(&root, &agent, &project, &task);
     
@@ -84,5 +101,22 @@ mod tests {
         let cmd = build_command(root, "codex", "proj2", "test_task");
         let args: Vec<_> = cmd.get_args().map(|s| s.to_str().unwrap()).collect();
         assert_eq!(args, vec!["C:\\afu\\AfuNobet\\afunobet.py", "calistir", "--ajan", "codex", "--cwd", "C:\\afu\\proj2", "--is", "test_task"]);
+    }
+
+    #[test]
+    fn claude_ve_bilinmeyen_ajan_reddedilir() {
+        assert!(gonderim_gecerli("claude", "proj").is_err());
+        assert!(gonderim_gecerli("Claude", "proj").is_err());
+        assert!(gonderim_gecerli("bilinmeyen", "proj").is_err());
+        for ajan in IZINLI_AJANLAR {
+            assert!(gonderim_gecerli(ajan, "proj").is_ok(), "{ajan}");
+        }
+    }
+
+    #[test]
+    fn proje_klasoru_disari_cikamaz() {
+        for proje in ["", "..", "../x", "a/b", "a\\b"] {
+            assert!(gonderim_gecerli("codex", proje).is_err(), "{proje}");
+        }
     }
 }

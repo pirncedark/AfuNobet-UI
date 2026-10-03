@@ -49,7 +49,7 @@ jobs:
         run: npx tsc --noEmit
 
       - name: Birim testler (vitest)
-        run: npx vitest run tests --configLoader runner
+        run: npm test
 
   rust:
     name: Rust (cargo test)

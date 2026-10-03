@@ -103,6 +103,7 @@ const F=[
 ["Pet ve pencere", "ok", "Premium karakter görünümü", "Durum renkleri pet + kart çerçevesi", "is/w5-premium · windows/tests/premium_bagla.test.ts"],
 ["Etkileşim", "ok", "Kurulu değilse İndir", "Kurulu olmayan uygulamada \"İndir\", AfuRemote'ta \"APK indir\"; yalnız github.com/pirncedark adresleri.", "windows/src-tauri/src/apps.rs · windows/src-tauri/tests/servis_contract.rs"],
 ["Arayüz kalitesi", "ok", "Otomatik test (CI)", "Her PR'da TypeScript, Rust ve Python testleri GitHub'da koşar.", "is/w6-ci · .github/workflows/ci.yml"],
+["Canlı durum ve görevler","ok","Canlı görev durumu","Çalışıyor / Bekliyor / Duraklatıldı / Tamamlandı / Hata canlı güncellenir; 30 dk güncellenmeyen iş canlı sayılmaz, \"bayat\" işaretlenir.","state.ts isCurrent + STALE_MS · tests/state.test.ts"],
 ["Canlı durum ve görevler", "ok", "Görev listesi ve kartı", "Ajan, kısa görev adı, durum, geçen süre. Ham komut ve teknik çıktı maskelenir.", "state.json sözleşmesi · maskeleme testleri"],
 ["Canlı durum ve görevler", "ok", "Canlı oturum akışı", "Çalışan işin son adımı kartta tek satır akar; bayat işte akmaz, komut/yol maskelenir.", "tests/live_flow.test.ts (9 test)"],
 ["Canlı durum ve görevler", "ok", "Görev akışı aşamaları", "TRIAGE → SPLIT → RUN → VERIFY → MERGE aşamalarını gösterme.", "..\\\\AfuNobet\\\\SONUC_UI_VERI_DUZELT.md · veri_uctan.test.ts"],
@@ -173,7 +174,8 @@ const F=[
 ["Pet ve pencere", "ok", "Kalıcı balon", "Konuşma balonu kullanıcı kapatana kadar kalır + temiz metin.", "SONUC_P11.md"],
 ["Pet ve pencere", "ok", "Pet balonu", "Mini pet (Başlat yanında) iken görev mesajı başının üstünde.", "SONUC_P10.md"],
 ["Pet ve pencere", "ok", "Göz kırpma yavaş", "Mini pet göz kırpma yavaşlasın (animasyon hız / döngü arası bekleme).", "SONUC_P7.md"],
-["Pet ve pencere", "ok", "Mesaj gelince öne gel", "Terminal/ajan mesajı veya soru geldiğinde pet/ada penceresi öne gelir.", "SONUC_R1.md · SONUC_R3*.md"]
+["Pet ve pencere", "ok", "Mesaj gelince öne gel", "Terminal/ajan mesajı veya soru geldiğinde pet/ada penceresi öne gelir.", "SONUC_R1.md · SONUC_R3*.md"],
+["Etkileşim", "ok", "Pete uygun mesaj biçimi", "Metinden markdown, süs çizgileri, ANSI ve gereksiz emojiler ayıklanır; soru formatı algılanır.", "SONUC_R3A.md · SONUC_R3B1.md · windows/tests/bicim.test.ts"],
 ];
 const order=["ok","build","work","next","no","unk"];
 let active=null, query="";
