@@ -22,7 +22,7 @@ const fakeDoc = { createElement: (tag: string) => new El() } as unknown as Docum
 globalThis.document = fakeDoc;
 
 describe("R3B1 Pet Balon ve Bildirim", () => {
-  it("pet modunda bildirim -> balon metninde ━ ya da ` yok, kart kapalı; balona tık -> kart açık, Ayrıntı görünür", () => {
+  it("pet modunda bildirim -> temiz balon; balona tık -> kart metni ve Okudum görünür", () => {
     const pet = document.createElement("div");
     const petUst = document.createElement("div");
     const karakter = document.createElement("div");
@@ -61,8 +61,9 @@ describe("R3B1 Pet Balon ve Bildirim", () => {
     expect(m.detay.hidden).toBe(false);
     expect(acCagrildi).toBe(true);
 
-    // Detay içinde "Ayrıntı" kelimesi ve orijinal içerikten metinler olmalı
-    expect(m.detay.textContent).toContain("Ayrıntı");
+    // Ek başlık yok; orijinal içerik ve kapatma düğmesi korunur.
+    expect(m.detay.textContent).not.toContain("Ayrıntı");
+    expect(m.detay.textContent).toContain("Okudum");
     expect(m.detay.textContent).toContain("Ek metin...");
   });
 });

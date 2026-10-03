@@ -89,8 +89,15 @@ pub fn pet_gizli_mi(on: bool, tam_ekran: bool, onay: bool) -> bool {
     on && tam_ekran && !onay
 }
 pub const PET_BALON_PAY: f64 = 24.0;
-pub const PET_BALON_YUKSEKLIK: f64 = 120.0;
-pub const PET_BALON_BOSLUK: f64 = 14.0;
+pub const PET_BALON_YUKSEKLIK: f64 = 220.0;
+pub const PET_BALON_BOSLUK: f64 = 8.0;
+pub fn pet_pencere_genisligi(balon: bool) -> f64 { if balon { 320.0 } else { PET_PENCERE } }
+
+/// Centre the wider window on the original pet, clamped to the monitor edges.
+pub fn balon_x(x: i32, pet: i32, width: i32, left: i32, right: i32) -> i32 {
+    (x - (width - pet) / 2).clamp(left, (right - width).max(left))
+}
+
 /// Balon kuyruğunun alt kenarı, pencerenin alt kenarından bu kadar yukarıda.
 pub const PET_BALON_TABAN: f64 = PET_PENCERE + PET_BALON_BOSLUK;
 
@@ -213,11 +220,13 @@ fn destination(win: &tauri::WebviewWindow, size: i32) -> (i32, i32) {
 /// Pet penceresinin hedef ölçüsü ve konumu: (x, y, fiziksel yükseklik).
 /// Balon açıksa genişlik değişmez, yalnız YUKARI büyür ve alt kenar
 /// (görev çubuğunun üstü) sabit kalır; ekran yetmezse üstten kırpılır.
-fn hedef(win: &tauri::WebviewWindow, size: i32, balon: bool) -> (i32, i32, i32) {
+fn hedef(win: &tauri::WebviewWindow, size: i32, balon: bool) -> (i32, i32, i32, i32) {
     let scale = win.scale_factor().unwrap_or(1.0);
     let (x, y) = destination(win, size);
     let (yukseklik, ust) = balon_olcu(balon, size, y + size, screen(win).1, scale);
-    (x, ust, yukseklik)
+    let width = crate::dpi::physical_for(pet_pencere_genisligi(balon), scale) as i32;
+    let bounds = screen(win);
+    (balon_x(x, size, width, bounds.0, bounds.2), ust, width, yukseklik)
 }
 
 /// Balon (ya da balonsuz pet) ölçüsünü pencereye uygular. Alt kenar görev
@@ -225,12 +234,12 @@ fn hedef(win: &tauri::WebviewWindow, size: i32, balon: bool) -> (i32, i32, i32) 
 /// kutusuna girmez, böylece boş kısım tıklamayı geçirir.
 fn uygula(win: &tauri::WebviewWindow, gate: Option<&crate::island::PollGate>, balon: bool) {
     let size = crate::dpi::physical_for(PET_PENCERE, win.scale_factor().unwrap_or(1.0)) as i32;
-    let (x, y, yukseklik) = hedef(win, size, balon);
-    let _ = win.set_size(PhysicalSize::new(size as u32, yukseklik as u32));
+    let (x, y, width, yukseklik) = hedef(win, size, balon);
+    let _ = win.set_size(PhysicalSize::new(width as u32, yukseklik as u32));
     let _ = win.set_position(PhysicalPosition::new(x, y));
     if let Some(gate) = gate {
         let pay = if balon { PET_BALON_PAY } else { 0.0 };
-        gate.set_rect(crate::island::IslandRect { x: 0.0, y: pay, w: PET_PENCERE, h: pet_pencere_yuksekligi(balon) - pay });
+        gate.set_rect(crate::island::IslandRect { x: 0.0, y: pay, w: pet_pencere_genisligi(balon), h: pet_pencere_yuksekligi(balon) - pay });
     }
 }
 fn move_segment(win: &tauri::WebviewWindow, runtime: &PetRuntime, generation: u64, from: (i32, i32), to: (i32, i32), ms: u32) -> bool {
@@ -319,12 +328,12 @@ pub fn watch_fullscreen(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crat
                 let size = crate::dpi::physical_for(PET_PENCERE, win.scale_factor().unwrap_or(1.0)) as i32;
                 // P10: balon açıksa hedef yukarı büyümüş konumdur; izleyici onu
                 // küçültmez, çünkü hedef balon durumundan hesaplanır.
-                let (tx, ty, yukseklik) = hedef(&win, size, runtime.balon.load(Ordering::Acquire));
-                let target = Some((tx, ty, yukseklik));
+                let (tx, ty, width, yukseklik) = hedef(&win, size, runtime.balon.load(Ordering::Acquire));
+                let target = Some((tx, ty, width, yukseklik));
                 if target != last_target {
                     if runtime.with_current(generation, || {
                         if runtime.dragging.load(Ordering::Acquire) { return; }
-                        let _ = win.set_size(PhysicalSize::new(size as u32, yukseklik as u32));
+                        let _ = win.set_size(PhysicalSize::new(width as u32, yukseklik as u32));
                         let _ = win.set_position(PhysicalPosition::new(tx, ty));
                     }) { last_target = target; }
                 }
@@ -353,6 +362,23 @@ pub fn balon(app: &AppHandle, runtime: &PetRuntime, gate: &crate::island::PollGa
 
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn m8_balloon_grows_sideways_and_restores_the_pet_at_every_dpi() {
+        for scale in [1.0, 1.25, 1.5] {
+            let pet = crate::dpi::physical_for(pet_pencere_genisligi(false), scale) as i32;
+            let wide = crate::dpi::physical_for(pet_pencere_genisligi(true), scale) as i32;
+            assert_eq!(pet, crate::dpi::physical_for(256.0, scale) as i32);
+            assert_eq!(wide, crate::dpi::physical_for(320.0, scale) as i32);
+            let x = balon_x(600, pet, wide, 0, 1920);
+            assert_eq!(x + wide / 2, 600 + pet / 2);
+            assert_eq!(balon_x(600, pet, pet, 0, 1920), 600);
+            assert_eq!(balon_x(-1920, pet, wide, -1920, 0), -1920);
+            assert_eq!(balon_x(-pet, pet, wide, -1920, 0), -wide);
+            let (h, y) = balon_olcu(true, pet, 1032, 0, scale);
+            assert_eq!(y + h, 1032);
+            assert_eq!(balon_olcu(false, pet, 1032, 0, scale), (pet, 1032 - pet));
+        }
+    }
     #[test]
     fn fullscreen_hides_pet_only_without_pending_approval() {
         assert!(!super::pet_gizli_mi(true, true, true));
@@ -402,7 +428,7 @@ mod tests {
     #[test]
     fn pet_window_grows_only_upwards_at_every_dpi() {
         assert_eq!(pet_pencere_yuksekligi(false), 256.0);
-        assert_eq!(pet_pencere_yuksekligi(true), 414.0);
+        assert_eq!(pet_pencere_yuksekligi(true), 508.0);
         for (scale, size) in [(1.0, 256), (1.25, 320), (1.5, 384)] {
             let taban = 1032i32; // 1080 piksellik ekranda 48 px'lik görev çubuğu
             let (balon, ust) = balon_olcu(true, size, taban, 0, scale);

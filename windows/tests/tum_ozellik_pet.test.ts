@@ -245,8 +245,8 @@ describe("5) Pet balonu", () => {
     expect(petPencereYuksekligi(true)).toBeGreaterThan(petPencereYuksekligi(false));
   });
   it("balon genişliği pet kutusuna sığar", () => {
-    expect(PET_BALON_GENISLIK).toBeLessThanOrEqual(PET_PENCERE);
-    expect(PET_BALON_GENISLIK).toBe(248);
+    expect(PET_BALON_GENISLIK).toBeLessThanOrEqual(320);
+    expect(PET_BALON_GENISLIK).toBe(296);
   });
   it("balon üstündeki şeffaf pay isabet kutusuna girmez (masaüstü tıklanır kalır)", () => {
     // island.rs isabet kutusuna HIT_MARGIN=14 ekliyor.
@@ -269,8 +269,8 @@ describe("5) Pet balonu", () => {
     const glide = readFileSync("src-tauri/src/glide.rs", "utf8");
     expect(glide).toContain("pub const PET_PENCERE: f64 = 256.0;");
     expect(glide).toContain("pub const PET_BALON_PAY: f64 = 24.0;");
-    expect(glide).toContain("pub const PET_BALON_YUKSEKLIK: f64 = 120.0;");
-    expect(glide).toContain("pub const PET_BALON_BOSLUK: f64 = 14.0;");
+    expect(glide).toContain("pub const PET_BALON_YUKSEKLIK: f64 = 220.0;");
+    expect(glide).toContain("pub const PET_BALON_BOSLUK: f64 = 8.0;");
   });
   it("balon açıkken tıklamalar yine de pet kutusuna gider", () => {
     expect(ignoresClicks("pet")).toBe(false);

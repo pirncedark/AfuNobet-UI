@@ -10,10 +10,10 @@ import { buildContext, projectName } from "../chat/context";
 import { appRows, enOnemli, type AppsSnapshot } from "../core/apps";
 import { deriveEvents, EventDeduper } from "../core/events";
  import { AfuCharacter, characterExpression, getDurum } from "../afu/character";
-import { AfuPet } from "../afu/pet";
+import { AfuPet, PET_BOYUT } from "../afu/pet";
 import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
-import { KonusanAfu, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
@@ -117,6 +117,14 @@ export class Island {
     this.syncDom();
     window.addEventListener("resize", () => { this.applyGeometry(); this.pet.positionApps(); void Bridge.scaleFactor().then(s => { if (s) this.setNativeScale(s); }); });
     this.applyGeometry();
+
+    // Follow pose changes and queued messages even while the island is settled.
+    const petGeometry = new MutationObserver(() => {
+      if (this.mode === 'pet' && this.petBalon) this.applyGeometry();
+    });
+    petGeometry.observe(this.pet.image, { attributes: true, attributeFilter: ['src', 'style'] });
+    petGeometry.observe(this.petBalonEl, { childList: true, subtree: true });
+    window.addEventListener('pagehide', () => petGeometry.disconnect(), { once: true });
 
     const ro = new ResizeObserver(() => {
       if (this.mode === "expanded") this.animateGeometry(false);
@@ -417,8 +425,22 @@ export class Island {
       this.islandEl.hidden = true; this.wakeStrip.hidden = true;
       const width = window.innerWidth > 0 ? window.innerWidth : PET_PENCERE;
       const height = window.innerHeight > 0 ? window.innerHeight : petPencereYuksekligi(this.petBalon);
-      // Kesme: pencere tepeden kırpıldıysa balon kutusu kısalır, kuyruk ucu görünür kalır.
-      this.petBalonEl.style.setProperty("--pet-balon-h", `${petBalonKutusu(height)}px`);
+      // Keep the character square when the native window widens for speech.
+      this.pet.el.style.width = `${PET_PENCERE}px`;
+      this.pet.el.style.height = `${PET_PENCERE}px`;
+      this.pet.el.style.left = `${(width - PET_PENCERE) / 2}px`;
+      this.pet.el.style.top = "auto";
+      this.pet.el.style.bottom = "0px";
+      const kare = this.pet.image.getAttribute('src')?.replace(/^.*\/afu\//, '').replace(/^pet\//, '').replace(/\.webp$/, '') ?? this.pet.model.frame;
+      const kutu = PET_BOYUT[kare]?.kutu ?? [0, 0, 1, 1];
+      const scale = Number(this.pet.image.style.scale) || 1;
+      const ty = parseFloat(this.pet.image.style.translate.split(' ')[1]) || 0;
+      const head = PET_PENCERE + (kutu[1] * PET_PENCERE - PET_PENCERE) * scale + ty;
+      // 9px tail + 4px gap, measured from the visible alpha head, not the frame.
+      const bottom = PET_PENCERE - head + 13;
+      this.petBalonEl.style.setProperty('--pet-balon-bottom', `${bottom}px`);
+      this.petBalonEl.style.setProperty("--pet-balon-h", `${petBalonKutusu(height, bottom)}px`);
+      petBalonMetniniSigdir(this.petBalonEl);
       // Pet penceresinin tamamı pet karesidir; kutu pencere biriminde gönderilir.
       // Balon açıkken pencerenin tepesindeki şeffaf pay isabet kutusuna girmez,
       // böylece boş kısım tıklamayı masaüstüne geçirir.

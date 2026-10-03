@@ -104,7 +104,7 @@ describe("gece: P10/P11 görünürlük ve kalıcılık birleşimi", () => {
     const m = new BalonModeli();
     const mesaj: Mesaj = { surum: 1, id: "gece", ajan: "codex", tur: "bilgi", metin: "Test tamamlandı.", zaman: 0 };
     m.gorunur(true, 0); m.ekle(mesaj, 0);
-    expect(petPencereYuksekligi(m.aktif !== null)).toBe(414);
+    expect(petPencereYuksekligi(m.aktif !== null)).toBe(508);
     m.gorunur(false, 1000); m.tick(86400000);
     m.gorunur(true, 86400000);
     expect(m.aktif).toBe(mesaj);

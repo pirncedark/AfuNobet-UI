@@ -16,13 +16,13 @@ describe("P10 pet balonu — pencere yüksekliği", () => {
   it("balon açıkken pencere YUKARI büyür: alt kenar görev çubuğu üstünde sabit", () => {
     expect(PET_BALON_TABAN).toBe(PET_PENCERE + PET_BALON_BOSLUK);
     expect(petPencereYuksekligi(true)).toBe(PET_BALON_TABAN + PET_BALON_YUKSEKLIK + PET_BALON_PAY);
-    expect(petPencereYuksekligi(true)).toBe(414);
+    expect(petPencereYuksekligi(true)).toBe(508);
     // Büyüme yalnız yukarı: alt kenar (pencere dibi) değişmez.
     expect(petPencereYuksekligi(true) - PET_BALON_TABAN).toBe(PET_BALON_YUKSEKLIK + PET_BALON_PAY);
   });
   it("Rust tarafı aynı sayıları kullanır (glide.rs)", () => {
     const glide = readFileSync("src-tauri/src/glide.rs", "utf8");
-    for (const [ad, deger] of [["PET_PENCERE", "256.0"], ["PET_BALON_PAY", "24.0"], ["PET_BALON_YUKSEKLIK", "120.0"], ["PET_BALON_BOSLUK", "14.0"]] as const) {
+    for (const [ad, deger] of [["PET_PENCERE", "256.0"], ["PET_BALON_PAY", "24.0"], ["PET_BALON_YUKSEKLIK", "220.0"], ["PET_BALON_BOSLUK", "8.0"]] as const) {
       expect(glide).toContain(`pub const ${ad}: f64 = ${deger};`);
     }
     expect(glide).toContain("PET_BALON_TABAN + PET_BALON_YUKSEKLIK + PET_BALON_PAY");
@@ -47,7 +47,9 @@ describe("P10 pet balonu — kesme ve tıklama geçişi", () => {
     expect(petBalonKutusu(petPencereYuksekligi(true))).toBe(PET_BALON_YUKSEKLIK);
     expect(petBalonKutusu(300)).toBe(300 - PET_BALON_TABAN - PET_BALON_PAY);
     expect(petBalonKutusu(PET_PENCERE)).toBe(0);
-    for (const pencere of [0, -10, 256, 300, 414, 900]) {
+    expect(petBalonKutusu(350, 200)).toBe(126);
+    expect(petBalonKutusu(200, 200)).toBe(0);
+    for (const pencere of [0, -10, 256, 300, 508, 900]) {
       expect(petBalonKutusu(pencere)).toBeGreaterThanOrEqual(0);
       expect(petBalonKutusu(pencere)).toBeLessThanOrEqual(PET_BALON_YUKSEKLIK);
     }
@@ -56,7 +58,7 @@ describe("P10 pet balonu — kesme ve tıklama geçişi", () => {
     const island = readFileSync("src/island/island.ts", "utf8");
     expect(island).toContain("petBalonUst(this.petBalon)");
     expect(island).toContain("--pet-balon-h");
-    expect(island).toContain("petBalonKutusu(height)");
+    expect(island).toContain("petBalonKutusu(height, bottom)");
     expect(island).toContain("petPencereYuksekligi(this.petBalon)");
     // Balon kutusu ayrı bir katman: `#afu-pet` overflow:hidden olduğu için içine konulamaz.
     expect(island).toContain('h("div", { id: "afu-pet-balon" })');
