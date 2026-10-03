@@ -217,7 +217,13 @@ mod tests {
         let (left, _, width) = fallback_bounds();
         assert!(width >= 800);
         let x = centred_x(left, width, physical_for(PANEL_W, 1.0));
-        assert!(x >= left && x as f64 + PANEL_W <= left as f64 + width as f64);
+        assert!(x >= left);
+        if PANEL_W <= width as f64 {
+            assert!(x as f64 + PANEL_W <= left as f64 + width as f64);
+        } else {
+            // Kart ekrandan geniş (ör. 1024 px CI ekranı): sola yaslanır, dışarı taşmaz.
+            assert_eq!(x, left);
+        }
     }
 
     #[test]

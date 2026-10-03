@@ -529,7 +529,11 @@ mod tests {
         let mut okuyucu = BufReader::new(f);
         while okuyucu.read_line(&mut cevaplar).unwrap_or(0) > 0 {}
         let satirlar: Vec<_> = cevaplar.lines().collect();
-        assert_eq!(satirlar, [r#"{"ok":true}"#, r#"{"ok":true}"#, r#"{"ok":true}"#, r#"{"ok":false,"neden":"sinir"}"#]);
+        // Sınır aşılınca bağlantı FlushFileBuffers'sız kapanır (istemci okumazsa
+        // sunucu takılmasın); bu yüzden "sinir" bildirimi yavaş makinede okunmadan
+        // düşebilir. Güvenlik özelliği: yalnız 3 satır işlenir.
+        assert_eq!(&satirlar[..3], [r#"{"ok":true}"#, r#"{"ok":true}"#, r#"{"ok":true}"#]);
+        assert!(satirlar.len() == 3 || satirlar[3..] == [r#"{"ok":false,"neden":"sinir"}"#], "{satirlar:?}");
         assert_eq!(gelen.lock().unwrap().len(), 3);
         s.durdur();
     }
