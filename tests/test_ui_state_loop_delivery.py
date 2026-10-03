@@ -8,7 +8,8 @@ import sys
 import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT.parent / "AfuNobet"))
+# Worktree'de calisildigi icin gercek depo 3 ust dizinde
+sys.path.insert(0, str(ROOT.parents[2] / "AfuNobet"))
 spec = importlib.util.spec_from_file_location("ui_state_loop_delivery", ROOT / "delivery/AfuNobet/afu/ui_state_loop.py")
 loop = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(loop)
