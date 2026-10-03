@@ -12,7 +12,7 @@
 .soru-govde{flex:1 1 auto;min-height:0;max-height:100%;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;display:flex;flex-direction:column;gap:6px;min-width:0;}
 .soru-metin{flex:0 0 auto;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.4;user-select:text;color:#e8e4f5;}
 .soru-ayrinti-kutu .soru-dugme,.soru-karti .soru-ayrinti-dugme{flex:0 0 auto;align-self:flex-start;min-height:24px;padding:2px 10px;font-size:11px;line-height:1.2;}
-.soru-ayrinti{margin:0;flex:0 0 auto;padding:6px 8px;border-radius:8px;background:#16141d;color:#bdb8d3;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;}
+.soru-ayrinti{margin:0;flex:0 0 auto;max-height:180px;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;padding:6px 8px;border-radius:8px;background:#16141d;color:#bdb8d3;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;}
 .soru-ayrinti[hidden]{display:none;}
 /* Seçenekler ve cevap alanı kartın altına sabitlenir; kart küçülse de görünür. */
 .soru-secenekler{display:flex;flex-wrap:wrap;gap:6px;min-width:0;width:100%;box-sizing:border-box;flex:0 0 auto;}
