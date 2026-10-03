@@ -13,6 +13,8 @@ export const DESIGN_W = 720, DESIGN_H = 320;
 /** Pencere ölçüsü: tasarımın KART_OLCEK katı. Rust tarafındaki karşılığı
  *  `src-tauri/src/dpi.rs` (KART_OLCEK, PANEL_W, PANEL_H) — ikisi de aynı olmalı. */
 export const PANEL_W = 1080, PANEL_H = 480;
+export const PANEL_MIN_H = 480;
+export const PANEL_MAX_H_RATIO = 0.85;
 export const NOTCH_W = 184, NOTCH_H = 32, COMPACT_W = 288, EXPANDED_W = 640;
 export const ROUNDED_CORNER = 14, EXPANDED_CORNER = 22;
 /** Dar pencerede görünürlük CSS yerleşimiyle korunur; ölçek alt sınırı yoktur. */
@@ -32,10 +34,11 @@ export const PET_PENCERE = 256;
  *  (14 px) eklediği için bu pay 14'ten büyük olmak zorunda: aksi hâlde balonun
  *  üstündeki "boş" kısım tıklamayı yutar ve tıklama masaüstüne geçmez. */
 export const PET_BALON_PAY = 24;
-export const PET_BALON_YUKSEKLIK = 120;
-export const PET_BALON_GENISLIK = 248;
+export const PET_BALON_YUKSEKLIK = 220;
+export const PET_BALON_GENISLIK = 296;
+export const PET_BALON_PENCERE = 320;
 /** Balon kuyruğu ile karakterin başı arasındaki boşluk. */
-export const PET_BALON_BOSLUK = 14;
+export const PET_BALON_BOSLUK = 8;
 /** Balon kutusunun alt kenarı, pencerenin alt kenarından bu kadar yukarıda. */
 export const PET_BALON_TABAN = PET_PENCERE + PET_BALON_BOSLUK;
 /** Balon görünürken pet penceresinin yüksekliği (yalnız YUKARI büyür). */
@@ -50,9 +53,9 @@ export function petBalonUst(balon: boolean): number { return balon ? PET_BALON_P
  * için kalan yer kadar yükseklikte çizilir: kuyruk ucu (karakterin başına bakan
  * ::after) hep görünür, yalnız metnin üstü kırpılır.
  */
-export function petBalonKutusu(pencereYuksekligi: number): number {
+export function petBalonKutusu(pencereYuksekligi: number, taban = PET_BALON_TABAN): number {
   if (!(pencereYuksekligi > 0)) return PET_BALON_YUKSEKLIK;
-  return Math.max(0, Math.min(PET_BALON_YUKSEKLIK, pencereYuksekligi - PET_BALON_TABAN - PET_BALON_PAY));
+  return Math.max(0, Math.min(PET_BALON_YUKSEKLIK, pencereYuksekligi - taban - PET_BALON_PAY));
 }
 
 export function islandSize(mode: IslandMode, view: IslandViewName): { w: number; h: number } {

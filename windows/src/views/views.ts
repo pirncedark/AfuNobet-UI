@@ -23,14 +23,19 @@ function createPill(id: string, state: string) {
 const ROW_LIMIT = 3;
 /** Arama sonuç listesi üst sınırı (modal içinde). */
 const SEARCH_LIMIT = 50;
+/** Bu genişliğin altında dört sayfa düğmesi alt satıra sığmaz, "Daha fazla" menüsüne taşınır. */
+const DAR_KART_GENISLIK = 400;
+/** "Küçült" tıklamasının en fazla kaç kez çökme isteyeceği (bildirim kuyruğu sınırlı). */
+const KUCULT_DENEME = 8;
 type MenuView = "quota" | "apps" | "orkestra" | "chat";
 
 export class AfuViews {
-  readonly summary = h("span", { class: "summary", text: "0/0" });
+  readonly summary = h("span", { class: "summary", text: "0/0", title: "0/0" });
   /** M3: en az bir görev varsa arama düğmesi görünür. */
-  readonly searchButton = h("button", { class: "icon-button search-button", type: "button", text: "⌕", "aria-label": UI_TR.search, title: UI_TR.search, hidden: true, onclick: () => this.openSearch() });
+  /** M3: en az bir görev varsa arama düğmesi görünür. M6: SVG ikon. */
+  readonly searchButton = h("button", { class: "icon-button search-button", type: "button", "aria-label": UI_TR.search, title: UI_TR.search, hidden: true, onclick: () => this.openSearch(), html: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>` });
   readonly header = h("header", {}, h("span", { class: "brand", text: UI_TR.brand }), this.summary, this.searchButton,
-    h("span", { class: "claude-lock", text: "🔒 Claude KORUNUYOR", title: UI_TR.claudeProtection, "aria-label": UI_TR.claudeProtection }));
+    h("span", { class: "claude-lock", title: UI_TR.claudeProtection, "aria-label": UI_TR.claudeProtection, html: `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1.5px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Claude&nbsp;<span style="font-weight: 600">KORUNUYOR</span>` }));
   readonly pills = h("nav", { class: "agent-pills", "aria-label": "Ajanlar" });
   readonly card = h("section", { class: "main-task", "aria-live": "polite", tabindex: "0", role: "button", "aria-label": UI_TR.detail });
   readonly others = h("div", { class: "other-tasks" });
@@ -80,6 +85,10 @@ export class AfuViews {
   private pillKey = "";
   private cardKey = "";
   private view: ViewName = "overview";
+  /** Kart açık mı: "Küçült"ün gerçekten çöktüğünü bilmenin tek yolu. */
+  private expanded = true;
+  /** Sayfa düğmeleri şu an menüde mi (dar kart veya menü açıkken). */
+  private darMenu = false;
   private filter: Filter = { ...EMPTY_FILTER };
 
   constructor(private actions: { collapse(): void; quota(): void; pet?(): void; apps?(): void; chat?(): void; orkestra?(): void; sor?(): void; appOpen?(id: string): Promise<string | null | void>; appsRefresh?(): void; retry?(): Promise<void> }) {
@@ -110,7 +119,7 @@ export class AfuViews {
       onclick: () => this.toggleMenu() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "⋯" }), h("span", { class: "btn-label", text: UI_TR.more }));
     this.backButton = h("button", { class: "text-button back-button", type: "button", hidden: true, title: UI_TR.back,
       onclick: () => this.goBack() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "←" }), h("span", { class: "btn-label", text: UI_TR.back }));
-    this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: actions.collapse });
+    this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: () => this.kucult() });
     this.sorButton = h("button", { class: "primary-button sor-button", type: "button", text: UI_TR.ask, onclick: () => actions.sor?.() });
     this.footer = h("footer", {}, this.backButton, this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton, this.moreButton, this.primary, h("span", { class: "footer-gap" }), this.sorButton);
     this.modal.closeButton.className = "modal-close icon-button";
@@ -119,22 +128,10 @@ export class AfuViews {
     this.sorButton.setAttribute("aria-label", UI_TR.ask);
     // Gerçek kart genişliği değişince ikincil sayfalar menüye taşınır.
     if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(([entry]) => {
-        const narrow = entry.contentRect.width < 400;
-        for (const button of [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton]) {
-          if (narrow) {
-            button.setAttribute("role", "menuitem");
-            button.className = "text-button page-button menu-item";
-            this.menu.insertBefore(button, this.petButton);
-          } else {
-            button.removeAttribute("role");
-            button.className = "text-button page-button";
-            this.footer.insertBefore(button, this.moreButton);
-          }
-        }
-      });
+      const observer = new ResizeObserver(() => this.sayfalariYerlestir());
       observer.observe(this.footer);
     }
+    this.sayfalariYerlestir();
     this.card.addEventListener("click", (e: Event) => { if (!this.fromButton(e)) this.openDetail(); });
     this.card.addEventListener("keydown", (e: Event) => {
       const k = (e as KeyboardEvent).key;
@@ -156,9 +153,51 @@ export class AfuViews {
     const t = e.target as { closest?: (s: string) => unknown } | null;
     return !!(t && t !== (this.card as unknown) && typeof t.closest === "function" && t.closest("button"));
   }
+  /** "Küçült" tek tıkla çöker. `collapse()` önce açık bir ajan bildirimini
+   *  kapatır ve döner; kullanıcı kartı küçültmeyi istediği için aynı tıklama
+   *  kalan bildirimleri de kapatıp kartı çökertir. `expanded` yalnız `sync()`
+   *  ile güncellenir, yani "kart hâlâ açık" sorusunun tek doğru cevabıdır.
+   *  Soru katmanı açıkken `collapse()` hiçbir çağrıda çökmez; döngü o zaman
+   *  boşuna döner, üstelik tıklama sonsuza kadar sürmez. */
+  private kucult() {
+    for (let kalan = KUCULT_DENEME; kalan > 0 && this.expanded; kalan--) this.actions.collapse();
+  }
+  /** Dört sayfa düğmesi iki yerde durur: dar kartta "Daha fazla" menüsünde,
+   *  geniş kartta alt satırda. Kullanıcı hangi yeri açarsa sayfa orada
+   *  BULUNMALIDIR, ama menü kartın üstüne serildiği için ikisi aynı anda
+   *  görünür olamaz. Kural tek cümle: MENÜ AÇIKKEN sayfa düğmeleri menüdedir.
+   *  Yalnız menü kapalıyken alt satırın ölçüsü karar verir. Ölçü canlı
+   *  olduğu için kart açılırken (geometri animasyonu) alt satır 400px'i
+   *  geçip geçmez düğmeler yer değiştirir; menü açıkken bu ölçüm yok sayılır,
+   *  yoksa kullanıcı menüyü açtığı anda düğmeler alt satıra kaçar ve menü
+   *  onları örterek Kota'ya erişimi keser. */
+  private sayfalariYerlestir() {
+    // Yer değiştirme yalnız düğmeyi başka kaba taşıyabilen bir DOM'da yapılır:
+    // testlerin ölçülemeyen öğe taklitlerinde (insertBefore yok) kurucudaki alt
+    // satır yerleşimi olduğu gibi kalır, sahte ölçüyle yer değiştirilmez.
+    if (typeof this.menu.insertBefore !== "function" || typeof this.footer.insertBefore !== "function") return;
+    const menuAcik = !this.menu.hidden;
+    // Ölçülebilir bir genişlik yoksa (henüz çizilmemiş) alt satır varsayılanı.
+    const olcu = typeof this.footer.getBoundingClientRect === "function" ? this.footer.clientWidth : 0;
+    const dar = menuAcik || (olcu > 0 && olcu < DAR_KART_GENISLIK);
+    if (dar === this.darMenu) return;
+    this.darMenu = dar;
+    for (const button of [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton]) {
+      if (dar) {
+        button.setAttribute("role", "menuitem");
+        button.className = "text-button page-button menu-item";
+        this.menu?.insertBefore(button, this.petButton);
+      } else {
+        button.removeAttribute("role");
+        button.className = "text-button page-button";
+        this.footer?.insertBefore(button, this.moreButton);
+      }
+    }
+  }
   private lastSyncedView: ViewName | null = null;
   sync(view: ViewName, expanded: boolean) {
     this.view = view;
+    this.expanded = expanded;
     if (!expanded) { this.closeMenu(false); this.modal.close(); }
     this.petButton.setAttribute("aria-checked", String(State.settings.pet));
     this.petButton.textContent = State.settings.pet ? ui("petOn") : ui("petOff");
@@ -182,6 +221,7 @@ export class AfuViews {
     const tasks = currentTasks(State.tasks), task = State.focusTask as RichTask | undefined;
     const rows = listedTasks(topLevel(tasks as RichTask[]).filter(row => row.id !== task?.id));
     this.summary.textContent = `${taskSummary(tasks)} ${ui("completed")}`;
+    this.summary.title = this.summary.textContent;
     this.compactCount.textContent = taskSummary(tasks);
     const compactTitle = State.snapshot.sourceUnavailable ? ui("waiting") : task?.title ?? ui("ready");
     this.compactText.textContent = compactTitle; this.compactText.setAttribute("title", compactTitle);
@@ -200,35 +240,56 @@ export class AfuViews {
     for (const row of rows.filter(t => t.id !== task?.id).slice(0, Math.max(0, ROW_LIMIT - Math.min(subs.length, ROW_LIMIT)))) this.others.append(this.taskRow(row));
     if (view === "quota") this.renderQuota();
   }
-  private healthCheck = { codex: false, ses: false, mesajlar: [] as KopruMesaj[] };
+  private isCodexReady(status: unknown): boolean {
+    return typeof status !== "string" && (status as any)?.status === "hazir" && (status as any)?.loggedIn === true;
+  }
+  
+  private healthCheck = { codex: false, ses: false, hookInstalled: false, mesajlar: [] as KopruMesaj[] };
   private async updateHealth() {
     try { this.healthCheck.ses = !(await Bridge.bildirimAyarlari()).muted; } catch { this.healthCheck.ses = false; }
-    try { const c = await Bridge.codexStatus(); this.healthCheck.codex = typeof c !== "string" && c?.loggedIn === true; } catch { this.healthCheck.codex = false; }
+    try { const c = await Bridge.codexStatus(); this.healthCheck.codex = this.isCodexReady(c); } catch { this.healthCheck.codex = false; }
     try { this.healthCheck.mesajlar = (await Bridge.mesajlar()) ?? []; } catch { /* mesajlar yoksa kopru yalnizca gorevlere bakar */ }
+    try { this.healthCheck.hookInstalled = (await Bridge.claudeHookInstalled()) === true; } catch { this.healthCheck.hookInstalled = false; }
     const afuOk = !State.snapshot.sourceUnavailable;
-    // Claude icin ust satirdaki "Afu baglantisi" ile ayni kaynak: son 5 dk'da
-    // mesaj ya da ada canli is (kopru.ts).
-    const claudeOk = kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, Date.now()).bagli;
+    const now = Date.now();
+    const kd = kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, now);
+    const claudeOk = this.healthCheck.hookInstalled;
+    const claudeCanli = claudeOk && kd.bagli;
+    
     const codexOk = this.healthCheck.codex;
     const sesOk = this.healthCheck.ses;
 
-    // Kucuk hap/rozetler: yesil ✓, gri ✗. Ham metin degil, kartin stiline uyan
-    // rozetler; her rozet durumu hem renkte hem isarette tek tek anlatir.
-    const pill = (ad: string, ok: boolean) => h("span", { class: `health-pill${ok ? " ok" : " kapali"}`, "data-ok": String(ok), title: `${ad} ${ok ? "calisiyor" : "kapali"}`, role: "img", "aria-label": `${ad} ${ok ? "calisiyor" : "kapali"}` },
-      h("span", { class: "hp-ad", text: ad }), " ", h("span", { class: "hp-isaret", text: ok ? "✓" : "✗", "aria-hidden": "true" }));
+    const pill = (ad: string, ok: boolean, canli?: boolean) => {
+      const p = h("span", { class: `health-pill${ok ? " ok" : " kapali"}`, "data-ok": String(ok), title: `${ad} ${ok ? "calisiyor" : "kapali"}`, role: "img", "aria-label": `${ad} ${ok ? "calisiyor" : "kapali"}` },
+        h("span", { class: "hp-ad", text: ad }), " ", h("span", { class: "hp-isaret", text: ok ? "✓" : "✗", "aria-hidden": "true" }));
+      if (canli) {
+        p.className += " canli";
+        p.append(h("span", { class: "hp-dot", title: "Son 5 dk içinde etkinlik" }));
+      }
+      return p;
+    };
+
     this.healthStrip.replaceChildren(
       pill("AfuNöbet", afuOk),
-      pill("Codex", codexOk),
-      pill("Sesler", sesOk),
-      pill("Claude", claudeOk)
+      pill("GPT", codexOk),
+      pill("Ses", sesOk),
+      pill("Claude", claudeOk, claudeCanli)
     );
 
     this.healthStrip.onclick = () => {
-      if (!afuOk) this.flash("AfuNöbet kapalı, uygulamayı yeniden başlat.");
-      else if (!codexOk) this.flash("Codex oturumu yok, 'Afu'ya sor' kısmından giriş yap.");
-      else if (!sesOk) this.flash("Sesler kapalı, tepsi (sağ alt) menüsünden açabilirsin.");
-      else if (!claudeOk) this.flash("Claude görünmüyor, Claude Code hook'unun kurulu olduğundan emin ol.");
-      else this.flash("Tüm sistemler aktif ve çalışıyor.");
+      if (!afuOk) {
+        this.flash("Afu izlemeyi durdurdu, yeniden başlatmak için dokun.");
+      } else if (!codexOk) {
+        this.flash("GPT hesabına bağlı değil, bağlanmak için dokun.");
+        void Bridge.codexLogin().catch(() => this.flash("GPT hesabına bağlanılamadı, yeniden dene."));
+      } else if (!sesOk) {
+        this.flash("Afu'nun sesi kapalı, açmak için dokun.");
+        void Bridge.sesSessiz(false).catch(() => this.flash("Ses açılamadı, yeniden dene."));
+      } else if (!claudeOk) {
+        this.flash("Claude mesajları Afu'ya gelmiyor.");
+      } else {
+        this.flash("Her şey çalışıyor.");
+      }
     };
   }
   private syncFooter(view: ViewName) {
@@ -428,6 +489,9 @@ export class AfuViews {
   toggleMenu() { if (this.menuOpen) this.closeMenu(true); else this.openMenu(); }
   openMenu() {
     this.menu.hidden = false; this.moreButton.setAttribute("aria-expanded", "true");
+    // Alt satırda olmayan sayfa düğmeleri menüye girer: menüyü açan kullanıcı
+    // her sayfayı listede görmelidir (aksi hâlde Kota'ya erişemez).
+    this.sayfalariYerlestir();
     // Q2: odak ilk menü öğesine girer, dışarı tıklama kapatır, Tab menüde kalır.
     this.menuKatmani.ac({ ignore: [this.moreButton] });
   }
@@ -435,6 +499,7 @@ export class AfuViews {
     if (this.menu.hidden) return;
     this.menu.hidden = true; this.moreButton.setAttribute("aria-expanded", "false");
     this.menuKatmani.kapandı();
+    this.sayfalariYerlestir();
     if (refocus) this.moreButton.focus?.();
   }
   private menuItems(): HTMLButtonElement[] { return [this.petButton, this.menuClose]; }

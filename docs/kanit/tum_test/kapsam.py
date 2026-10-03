@@ -10,7 +10,7 @@ def source_contract_contains(source, token):
         return bool(re.search(r"--pet-brightness\s*:\s*1\.03\s*;", source))
     return token in source
 
-CONTRACTS = {1: ('windows/src/views/views.ts', ['health-strip', 'pill("AfuNöbet"', 'pill("Codex"'], 'aktivasyon_kontrol.test.ts'),
+CONTRACTS = {1: ('windows/src/views/views.ts', ['health-strip', 'pill("AfuNöbet"', 'pill("GPT"'], 'aktivasyon_kontrol.test.ts'),
  2: ('windows/src/core/state.ts', ['pendingOrkestra', 'setPendingOrkestra'], 'aktivasyon_kontrol.test.ts'),
  3: ('windows/src/afu/character.ts',
      ['ANIM_HARITASI', 'calisma_yazma.webp', 'onay_bekleme.webp'],
@@ -33,7 +33,7 @@ CONTRACTS = {1: ('windows/src/views/views.ts', ['health-strip', 'pill("AfuNöbet
  15: ('windows/src/views/model.ts', ['modelText', 'effort'], 'tum_ozellik_gorev.test.ts'),
  16: ('windows/src/views/model.ts', ['contextText', 'cached', 'saved'], 'tum_ozellik_gorev.test.ts'),
  17: ('windows/src/views/model.ts', ['costText', 'toFixed(2)'], 'tum_ozellik_gorev.test.ts'),
- 18: ('windows/src/views/views.ts', ['🔒 Claude KORUNUYOR'], 'f1_f5.test.ts'),
+ 18: ('windows/src/views/views.ts', ['claude-lock', 'KORUNUYOR'], 'f1_f5.test.ts'),
  19: ('windows/src/afu/character.ts', ['/afu/front.png', 'characterExpression'], 'character.test.ts'),
  20: ('windows/src/afu/pet.ts', ['pointer', 'click'], 'pet.test.ts'),
  21: ('windows/src-tauri/src/disari.rs', ['outside', 'test'], 'cargo.log'),

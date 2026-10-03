@@ -25,19 +25,21 @@ button:disabled{cursor:default}
 header{display:flex;align-items:center;gap:9px;height:23px;flex-shrink:0;white-space:nowrap;overflow:hidden}
 .brand{font-size:13px;font-weight:700;letter-spacing:.03em;color:#e6edf8;flex-shrink:0}
 .summary{font-size:10px;color:#8797b0;margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.claude-lock{font-size:9px;color:#a8b2c6;background:#ffffff05;border:1px solid #ffffff10;border-radius:7px;padding:4px 6px;flex-shrink:0;white-space:nowrap}
+.claude-lock{display:inline-flex;align-items:center;height:28px;font-size:11px;letter-spacing:.02em;color:#a8b2c6;background:#050810;border:1px solid #d6a84f55;border-radius:8px;padding:0 8px;flex-shrink:0;white-space:nowrap;margin-left:-3px;transition:border-color .2s}
+.claude-lock:hover{border-color:#d6a84f99}
+.search-button{width:28px;height:28px;border-radius:8px;}
 .agent-pills{display:flex;gap:6px;margin-top:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .agent-pills::-webkit-scrollbar{display:none}
 /* An agent with nothing to do stays plainly grey and readable; the one being
    followed is the only highlighted tab. */
-.agent-pill{flex-shrink:0;white-space:nowrap;font-size:9px;letter-spacing:.07em;font-weight:650;border:1px solid #ffffff1f;border-radius:12px;background:#ffffff08;color:#9fb0c8;padding:5px 12px;transition:background .22s,border-color .22s,transform .22s}
+.agent-pill{min-height:28px;flex-shrink:0;white-space:nowrap;font-size:9px;letter-spacing:.07em;font-weight:650;border:1px solid #ffffff1f;border-radius:12px;background:#ffffff08;color:#9fb0c8;padding:5px 12px;transition:background .22s,border-color .22s,transform .22s}
 .agent-pill:hover:not(:disabled){background:#ffffff12;color:#dce7f6}
 .agent-pill.selected{color:#eaf4ff;background:#23456b;border-color:#7fb6e4a8;font-weight:700;transform:scale(1.04);transform-origin:center;border-radius:12px}
 .agent-pill:disabled{opacity:.55}
 .agent-pill[data-expression=working]:not(:disabled)::before{content:"";display:inline-block;width:4px;height:4px;margin-right:5px;border-radius:50%;background:#63d4ff;animation:pill-pulse 2s ease-in-out infinite}
 .agent-pill[data-expression=alert]{border-color:#dda95299}
 .agent-pill[data-expression=happy]{border-color:#7dd9ae77}
-.main-task{height:96px;flex-shrink:0;position:relative;margin-top:7px;padding:10px 12px 12px;background:linear-gradient(110deg,#172233,#121a2b);border:1px solid #b7cef01c;border-radius:12px;overflow:hidden}
+.main-task{height:auto;min-height:96px;flex-shrink:0;position:relative;margin-top:7px;padding:10px 12px 12px;background:linear-gradient(110deg,#172233,#121a2b);border:1px solid #b7cef01c;border-radius:12px;overflow:hidden}
 .task-eyebrow{font-size:9px;font-weight:600;letter-spacing:.08em;color:#91b7df;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
 h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.015em}
 .task-message{font-size:10px;line-height:15px;max-height:45px;color:#a7b4c9;margin-top:4px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
@@ -51,8 +53,8 @@ h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow
 .main-task[data-expression=alert]{border-color:#cc9b4555}
 .main-task[data-expression=error]{border-color:#e2777155}
 .main-task[data-expression=error] .task-message{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block;max-height:15px}
-.other-tasks{margin-top:6px;display:flex;flex-direction:column;gap:1px;flex-shrink:0;overflow:hidden}
-.task-row{height:19px;min-height:19px;display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:transparent;color:#a6b4cb;font-size:9px;border-radius:5px;padding:0 3px}
+.other-tasks{margin-top:6px;display:flex;flex-direction:column;gap:4px;flex-shrink:0;overflow:hidden}
+.task-row{height:28px;min-height:28px;display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:transparent;color:#a6b4cb;font-size:11px;border-radius:5px;padding:0 3px}
 .task-row:hover{background:#ffffff0a}
 .row-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .row-status{width:74px;flex-shrink:0;text-align:right;color:#7f95b5;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -94,7 +96,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 .quota-row{display:grid;grid-template-columns:92px 92px 1fr;align-items:center;min-height:30px;flex-shrink:0;border-bottom:1px solid #ffffff0a;font-size:11px;color:#a7bbd5;overflow:hidden}
 .quota-row strong{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .quota-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.quota-row small{font-size:9px;color:#7a93b5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quota-row small{min-width:0;font-size:9px;line-height:13px;color:#7a93b5;white-space:normal;overflow-wrap:anywhere;padding:4px 0}
 .quota-note{font-size:10px;line-height:16px;color:#7890b1;margin-top:10px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #island[data-mode=hidden] *{animation-play-state:paused!important}
 @keyframes afu-breathe{0%,100%{transform:translate(var(--look-x),var(--look-y)) scale(1)}50%{transform:translate(var(--look-x),calc(var(--look-y) - 2px)) scale(1.015,1.025)}}
@@ -184,7 +186,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  }
  
 /* Proje eylemi sabit kartın üst satırında kalır; uzun açıklama altında kırpılmaz. */
-.main-task .task-project{position:absolute;top:3px;right:8px;font-size:9px;padding:5px 2px;max-width:70px;}
+.main-task .task-project{min-height:28px;position:absolute;top:3px;right:8px;font-size:9px;padding:5px 2px;max-width:70px;}
 .main-task:has(.task-project:not([hidden])) .task-eyebrow{padding-right:72px;}
 /* Tık geri bildirimi (2026-10-02): her düğmede üzerine gelme, basılı, odak ve seçili hâli görünür. */
 .text-button{border-radius:7px;padding:6px 6px;transition:background .15s,color .15s,transform .12s,box-shadow .15s}
@@ -211,7 +213,8 @@ button.tiklandi{animation:tik-nabiz .32s ease-out}
 .sor-view{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
 .apps-view{flex:1 1 auto;min-height:0}
 .tik-bildirim[hidden]{display:none}
-.overview{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.overview{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.overview .main-task{flex-shrink:1;min-height:28px;overflow-y:auto;scrollbar-width:thin}
 /* Orkestra görünümü kartın içinde kalır, alt düğme satırını (Görevlere dön) itip gizlemez. */
 .orkestra-view{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:2px 4px 6px 0;font-size:10px;color:#c9d6e8}
 .orkestra-view h1{font-size:15px;margin:2px 0 6px}
@@ -232,7 +235,12 @@ footer .text-button{padding:6px 5px}
 
 .more-menu .menu-item{font-size:10px}
 footer .page-button{font-size:10px}
-.health-strip{display:flex;gap:4px;margin-top:auto;justify-content:center}
+.health-strip{display:flex;flex-shrink:0;gap:4px;margin-top:6px;justify-content:center}
+.stage-bar{display:flex;flex-wrap:wrap;gap:4px;list-style:none;margin:5px 0 0;padding:0;font-size:12px;line-height:1.4}
+.stage-bar .stage{min-width:0;max-width:100%;overflow-wrap:anywhere;padding:2px 5px;border-radius:5px;background:#ffffff09;color:#a1b4d0}
+.stage-bar .current{background:#26405e;color:#edf5ff;font-weight:600}
+.stage-bar .done{color:#7dd9ae}
+.main-task:has(.stage-bar){height:auto;min-height:96px;padding-bottom:8px}
 .health-pill{font-size:9px;padding:2px 6px;border-radius:4px;background:#ffffff11;color:#a1b4d0}
 .health-pill.ok{background:#1a4d2e;color:#7dd9ae}
 .health-pill.kapali{background:#4d1a1a;color:#d97d7d}
@@ -261,8 +269,8 @@ footer button{flex:0 0 auto;overflow:visible;text-overflow:clip}
 footer .text-button{display:inline-flex;align-items:center;gap:4px;padding:6px 3px}
 footer .sor-button{padding:7px 10px;margin-left:auto}
 footer .sor-button::before{content:"✦";margin-right:4px}
-.more-menu{position:absolute;right:14px;bottom:48px;z-index:20;display:flex;flex-direction:column;gap:2px;width:190px;max-width:calc(100% - 28px);max-height:calc(100% - 60px);overflow-y:auto;padding:6px;border:1px solid #7ea3d54a;border-radius:10px;background:#121a2b;box-shadow:0 8px 20px #02091680}
-.more-menu .menu-item{text-align:left;flex:none;min-height:26px;padding:5px 8px;overflow:visible;text-overflow:clip}
+.more-menu{position:absolute;right:14px;bottom:48px;z-index:20;display:flex;flex-direction:column;gap:4px;width:190px;max-width:calc(100% - 28px);max-height:calc(100% - 60px);overflow-y:auto;padding:6px;border:1px solid #7ea3d54a;border-radius:10px;background:#121a2b;box-shadow:0 8px 20px #02091680}
+.more-menu .menu-item{text-align:left;flex:none;min-height:28px;padding:5px 8px;overflow:visible;text-overflow:clip}
 .tik-bildirim:not([hidden])+.more-menu{bottom:76px;max-height:calc(100% - 88px)}
 .btn-icon{flex:none;font-size:12px}
 .page-button{display:flex;align-items:center;gap:5px}
@@ -273,7 +281,7 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 .collapse-button::before{content:"−";margin-right:3px}
 @container (max-width:360px){
   footer .back-button .btn-label{display:none}
-  footer .collapse-button{font-size:0;width:24px;height:26px;justify-content:center;padding:5px 3px;line-height:16px}
+  footer .collapse-button{font-size:0;width:28px;height:28px;justify-content:center;padding:5px 3px;line-height:16px}
   footer .collapse-button::before{font-size:16px;margin:0}
 }
 /* Kart içi arama katmanı: aynı renk, yükseklik ve odak halkası. */
@@ -281,7 +289,7 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 .modal-dialog{display:flex;flex-direction:column;min-width:0;width:100%;min-height:0;border:1px solid #b7cef02a;border-radius:12px;background:#121a2b;padding:10px}
 .modal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex:none}
 .modal-title{font-size:16px;line-height:1.25;font-weight:650;flex:1;min-width:0}
-.icon-button{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;border:1px solid #ffffff1f;border-radius:7px;background:#ffffff08;color:#a7bbd5;font-size:14px}
+.icon-button{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;border:1px solid #ffffff1f;border-radius:7px;background:#ffffff08;color:#a7bbd5;font-size:14px}
 .icon-button:hover{background:#ffffff14;color:#e6eefa}
 .modal-body{min-height:0;overflow:auto;scrollbar-width:thin}
 .search-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
@@ -295,7 +303,7 @@ footer .sor-button::before{content:"✦";margin-right:4px}
 
 /* M3: standart kartta dört sayfa; dar pencerede okunabilir yerleşim. */
 footer .page-button .btn-icon{display:none}
-footer .page-button,footer .more-button,footer .collapse-button,footer .sor-button{min-height:28px}
+footer .page-button,footer .more-button,footer .collapse-button,footer .sor-button{min-height:28px;min-width:28px}
 footer{height:auto;min-height:32px;padding-top:4px}
 .overview{padding-bottom:5px}
 .task-insight{font-size:9px;line-height:14px;color:#a7bbd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -311,3 +319,15 @@ footer{height:auto;min-height:32px;padding-top:4px}
  #island[data-mode=expanded] #content{grid-column:1;padding-top:8px;padding-bottom:8px}
  footer .collapse-button{min-height:28px}
 }
+
+/* M11: consistent hit areas, including secondary controls inside panels. */
+#content :is(button, summary, input, select, a[href]),
+#afu-pet-balon :is(button, summary, a[href]){min-width:28px;min-height:28px}
+#content header{height:28px}
+#content .log-link{display:inline-flex;align-items:center;justify-content:center}
+#content .menu-advanced[open] summary{margin-bottom:4px}
+#content .menu-advanced .menu-item{width:100%}
+#content .chat-actions{flex-wrap:wrap;gap:4px}
+#content .orkestra-actions{flex-wrap:wrap}
+
+#afu-pet-balon .afu-balon-kapat{min-width:28px;min-height:28px}

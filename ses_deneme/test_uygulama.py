@@ -28,15 +28,15 @@ class AdapterTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice', Model):
             result = adapter.render({'text': 'Merhaba.\n```python\nprint(1)\n```', 'ses': 'sakin_dogal', 'filtre': 'sicak'}, Path(folder))
         self.assertTrue(result['ok'])
-        self.assertIn('Kodu ekrana yazdım.', result['text'])
-        self.assertNotIn('print', result['text'])
+        self.assertEqual(result['text'], 'Merhaba.\npython\nprint(1)\n')
+        self.assertEqual(calls[1], result['text'])
         self.assertEqual(calls[0], 'sakin_dogal')
         self.assertEqual(calls[-2:], ['sicak', 'closed'])
 
     def test_failure_returns_safe_cleaned_fallback(self):
         with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice', side_effect=RuntimeError('private path')):
             result = adapter.render({'text': 'Tamam.\n```\nsecret\n```', 'ses': 'notr', 'filtre': 'sicak'}, Path(folder))
-        self.assertFalse(result['ok']); self.assertNotIn('secret', result['text'])
+        self.assertFalse(result['ok']); self.assertEqual(result['text'], 'Tamam.\n\nsecret\n')
         self.assertNotIn('private', str(result))
 
     def test_cancelled_job_does_not_load_model(self):

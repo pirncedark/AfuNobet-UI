@@ -79,7 +79,7 @@ describe("W4 ajan pill: Claude pill'i yok", () => {
     const pills = agentPills(snap([row("a", "claude", "Calisiyor"), row("b", "codex", "Calisiyor")]));
     expect(pills.some(p => p.id === "claude")).toBe(false);
     expect(pills.some(p => p.label === "Claude")).toBe(false);
-    expect(viewsSrc).toContain("🔒 Claude KORUNUYOR");
+    expect(viewsSrc).toContain("claude-lock");
   });
 });
 

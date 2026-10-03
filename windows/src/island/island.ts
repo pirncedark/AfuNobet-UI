@@ -2,7 +2,7 @@
 import { nextDiscoveryHint } from "../core/settings";
 import { Tracked } from "../core/anim";
 import { Bridge, IS_TAURI } from "../core/bridge";
-import { EXPANDED_CORNER, KART_OLCEK, NOTCH_W, PANEL_H, PANEL_W, PET_PENCERE, ROUNDED_CORNER, fitScale, islandSize, petBalonKutusu, petBalonUst, petPencereYuksekligi, type IslandMode, type IslandViewName } from "../core/layout";
+import { EXPANDED_CORNER, KART_OLCEK, NOTCH_W, PANEL_H, PANEL_W, PET_PENCERE, ROUNDED_CORNER, fitScale, islandSize, petBalonKutusu, petBalonUst, petPencereYuksekligi, PANEL_MAX_H_RATIO, type IslandMode, type IslandViewName } from "../core/layout";
 import { State, type Expression } from "../core/state";
 import { ChatView } from "../chat/chat";
 import { SorView } from "../sor/sor";
@@ -10,10 +10,10 @@ import { buildContext, projectName } from "../chat/context";
 import { appRows, enOnemli, type AppsSnapshot } from "../core/apps";
 import { deriveEvents, EventDeduper } from "../core/events";
  import { AfuCharacter, characterExpression, getDurum } from "../afu/character";
-import { AfuPet } from "../afu/pet";
+import { AfuPet, PET_BOYUT } from "../afu/pet";
 import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
-import { KonusanAfu, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
@@ -80,6 +80,7 @@ export class Island {
   private greetingTimer: number | null = null;
   private returnTimer: number | null = null;
   private wasInIsland = false;
+  private lastSentHeight = -1;
   private pushedRect = { x: -1, y: -1, w: -1, h: -1 };
   /** Pencerenin yerel ölçeği (Tauri scaleFactor). devicePixelRatio bundan büyükse
    *  (Windows metin boyutu) CSS ile pencere birimi ayrışır; bkz. core/hit.ts. */
@@ -116,6 +117,33 @@ export class Island {
     this.syncDom();
     window.addEventListener("resize", () => { this.applyGeometry(); this.pet.positionApps(); void Bridge.scaleFactor().then(s => { if (s) this.setNativeScale(s); }); });
     this.applyGeometry();
+
+    // Follow pose changes and queued messages even while the island is settled.
+    const petGeometry = new MutationObserver(() => {
+      if (this.mode === 'pet' && this.petBalon) this.applyGeometry();
+    });
+    petGeometry.observe(this.pet.image, { attributes: true, attributeFilter: ['src', 'style'] });
+    petGeometry.observe(this.petBalonEl, { childList: true, subtree: true });
+    window.addEventListener('pagehide', () => petGeometry.disconnect(), { once: true });
+
+    const ro = new ResizeObserver(() => {
+      if (this.mode === "expanded") this.animateGeometry(false);
+    });
+    const observeNode = (node: Element) => {
+      ro.observe(node);
+      for (const child of Array.from(node.children)) observeNode(child);
+    };
+    observeNode(this.views.el);
+    new MutationObserver(mutations => {
+      let changed = false;
+      for (const m of mutations) {
+        for (const node of Array.from(m.addedNodes)) {
+          if (node instanceof Element) observeNode(node);
+        }
+        if (m.type === "childList") changed = true;
+      }
+      if (changed && this.mode === "expanded") this.animateGeometry(false);
+    }).observe(this.views.el, { childList: true, subtree: true });
   }
   openChat() {
     if (this.view !== "chat") {
@@ -345,10 +373,50 @@ export class Island {
   }
   reveal() { this.fsm.reveal(); }
   private animateGeometry(shrinking: boolean) {
-    const { w, h: height } = islandSize(this.mode, this.view);
+    let { w, h: height } = islandSize(this.mode, this.view);
+    // Kepenk yalnız gerçek pencerede: önizlemede pencere büyüyemez, kart sabit kalır.
+    if (this.mode === "expanded" && "__TAURI_INTERNALS__" in window) {
+      const activeView = Array.from(this.views.el.children).find(el => !el.hasAttribute("hidden") && el.tagName !== "HEADER") as HTMLElement;
+      if (activeView) {
+        const computed = getComputedStyle(this.views.el);
+        let contentHeight = this.views.header.offsetHeight + activeView.scrollHeight + this.views.footer.offsetHeight + parseFloat(computed.paddingTop || "0") + parseFloat(computed.paddingBottom || "0");
+        if (!this.views.bildirim.hidden) {
+          contentHeight += this.views.bildirim.offsetHeight + 5;
+        }
+        const isQuestionVisible = this.questionHost && !this.questionHost.hidden;
+        if (isQuestionVisible) {
+          const kart = this.questionHost!.firstElementChild as HTMLElement;
+          if (kart) {
+            let kartContentHeight = 20; // 9px top + 9px bottom padding + 2px border
+            let visibleChildren = 0;
+            const children = Array.from(kart.children) as HTMLElement[];
+            for (let i = 0; i < children.length; i++) {
+              const el = children[i];
+              if (el.hidden || el.style.display === "none") continue;
+              kartContentHeight += el.scrollHeight;
+              visibleChildren++;
+            }
+            if (visibleChildren > 1) {
+              kartContentHeight += (visibleChildren - 1) * 6; // gap: 6px
+            }
+            contentHeight = this.views.header.offsetHeight + kartContentHeight + this.views.footer.offsetHeight + parseFloat(computed.paddingTop || "0") + parseFloat(computed.paddingBottom || "0");
+          }
+        }
+        const screenAvail = window.screen.availHeight || 1080;
+        const maxH = (screenAvail / (this.nativeScale || 1)) * PANEL_MAX_H_RATIO;
+        // Kepenk yalnız UZATIR: kart hiçbir zaman sabit kart yüksekliğinden kısa olmaz.
+        height = Math.max(height, Math.min(contentHeight, maxH));
+      }
+    }
     const r = this.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
-    if (shrinking) { this.width.curveTowards(w); this.height.curveTowards(height); this.radius.curveTowards(r); }
-    else { this.width.springTo(w); this.height.springTo(height); this.radius.springTo(r); }
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches || !("__TAURI_INTERNALS__" in window);
+    if (reduced) {
+      this.width.jump(w); this.height.jump(height); this.radius.jump(r);
+    } else if (shrinking) {
+      this.width.curveTowards(w); this.height.curveTowards(height, 200); this.radius.curveTowards(r);
+    } else {
+      this.width.springTo(w); this.height.curveTowards(height, 200); this.radius.springTo(r);
+    }
     this.ensureRunning();
   }
   private applyGeometry() {
@@ -357,8 +425,22 @@ export class Island {
       this.islandEl.hidden = true; this.wakeStrip.hidden = true;
       const width = window.innerWidth > 0 ? window.innerWidth : PET_PENCERE;
       const height = window.innerHeight > 0 ? window.innerHeight : petPencereYuksekligi(this.petBalon);
-      // Kesme: pencere tepeden kırpıldıysa balon kutusu kısalır, kuyruk ucu görünür kalır.
-      this.petBalonEl.style.setProperty("--pet-balon-h", `${petBalonKutusu(height)}px`);
+      // Keep the character square when the native window widens for speech.
+      this.pet.el.style.width = `${PET_PENCERE}px`;
+      this.pet.el.style.height = `${PET_PENCERE}px`;
+      this.pet.el.style.left = `${(width - PET_PENCERE) / 2}px`;
+      this.pet.el.style.top = "auto";
+      this.pet.el.style.bottom = "0px";
+      const kare = this.pet.image.getAttribute('src')?.replace(/^.*\/afu\//, '').replace(/^pet\//, '').replace(/\.webp$/, '') ?? this.pet.model.frame;
+      const kutu = PET_BOYUT[kare]?.kutu ?? [0, 0, 1, 1];
+      const scale = Number(this.pet.image.style.scale) || 1;
+      const ty = parseFloat(this.pet.image.style.translate.split(' ')[1]) || 0;
+      const head = PET_PENCERE + (kutu[1] * PET_PENCERE - PET_PENCERE) * scale + ty;
+      // 9px tail + 4px gap, measured from the visible alpha head, not the frame.
+      const bottom = PET_PENCERE - head + 13;
+      this.petBalonEl.style.setProperty('--pet-balon-bottom', `${bottom}px`);
+      this.petBalonEl.style.setProperty("--pet-balon-h", `${petBalonKutusu(height, bottom)}px`);
+      petBalonMetniniSigdir(this.petBalonEl);
       // Pet penceresinin tamamı pet karesidir; kutu pencere biriminde gönderilir.
       // Balon açıkken pencerenin tepesindeki şeffaf pay isabet kutusuna girmez,
       // böylece boş kısım tıklamayı masaüstüne geçirir.
@@ -377,6 +459,10 @@ export class Island {
     this.viewport = width;
     this.wakeStrip.style.width = `${Math.round(Math.min(width, NOTCH_W * 4 * KART_OLCEK) * 100) / 100}px`;
     const w = this.width.value, height_ = this.height.value, r = this.radius.value;
+    if (this.mode === "expanded" && Math.abs(this.lastSentHeight - height_) > 0.5) {
+      this.lastSentHeight = height_;
+      void Bridge.kartYukseklik(height_);
+    }
     const fit = this.fit;
     this.islandEl.style.width = `${w}px`;
     this.islandEl.style.height = `${height_}px`;

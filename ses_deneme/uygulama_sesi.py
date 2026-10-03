@@ -10,7 +10,7 @@ FILTERS = ('sicak', 'enerjik', 'sakin', 'yok')
 
 def render(request, directory):
     cancelled = lambda: (directory / 'cancel').exists()
-    text = speech_text(str(request.get('text', ''))[:32000])
+    text = speech_text(str(request.get('text', '')))
     result = {'ok': False, 'cancelled': False, 'text': text}
     if cancelled():
         return dict(result, cancelled=True)

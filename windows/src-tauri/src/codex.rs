@@ -1,5 +1,5 @@
 // Codex app-server: yalnız kullanıcı eylemiyle başlar; ana uygulama token görmez.
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use serde_json::{json, Value};
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
@@ -27,17 +27,74 @@ pub enum CodexHata {
     ZamanAsimi,
     GecersizGirdi,
     Mesgul,
+    ModelMismatch,
+    ModelUnavailable,
 }
 pub fn durum_metni(e: &CodexHata) -> &'static str {
     match e {
         CodexHata::Bulunamadi => "Codex bulunamadı.",
-        CodexHata::OturumYok => "Codex oturumu açık değil. Oturum açın.",
-        CodexHata::ZamanAsimi => "Codex yanıt vermedi. Tekrar deneyin.",
+        CodexHata::OturumYok => "Codex hesabına giriş yap.",
+        CodexHata::ZamanAsimi => "GPT-5.6 Sol'a bağlanılamadı.",
         CodexHata::GecersizGirdi => "Mesaj veya dosya okunamadı. Seçiminizi kontrol edin.",
         CodexHata::Mesgul => "Codex yanıt hazırlıyor. Tamamlanmasını bekleyin.",
-        _ => "Codex bağlantısı kesildi. Tekrar deneyin.",
+        CodexHata::ModelMismatch => "GPT-5.6 Sol açılamadı.",
+        CodexHata::ModelUnavailable => "Bu hesapta GPT-5.6 Sol kullanılamıyor.",
+        _ => "GPT-5.6 Sol'a bağlanılamadı.",
     }
 }
+
+pub fn sol_durum_metni(error: &CodexHata) -> &'static str {
+    if *error == CodexHata::Bulunamadi { "Codex kurulu değil." } else { durum_metni(error) }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+struct ThreadState {
+    account_id: String,
+    thread_id: String,
+    cwd: PathBuf,
+}
+
+impl ThreadState {
+    fn matches(&self, account_id: &str, cwd: &Path) -> bool {
+        self.account_id == account_id && self.cwd == cwd
+    }
+}
+fn thread_state_path() -> PathBuf {
+    let base = if let Some(p) = std::env::var_os("LOCALAPPDATA") {
+        PathBuf::from(p).join("AfuNobet")
+    } else {
+        std::env::current_dir().unwrap_or_default()
+    };
+    std::fs::create_dir_all(&base).ok();
+    base.join("sol_thread.json")
+}
+
+fn load_thread(account_id: &str) -> Option<(String, PathBuf)> {
+    if let Ok(data) = std::fs::read_to_string(thread_state_path()) {
+        if let Ok(state) = serde_json::from_str::<ThreadState>(&data) {
+            if state.account_id == account_id {
+                return Some((state.thread_id, state.cwd));
+            }
+        }
+    }
+    None
+}
+
+fn save_thread(account_id: &str, thread_id: &str, cwd: &Path) {
+    let state = ThreadState {
+        account_id: account_id.to_string(),
+        thread_id: thread_id.to_string(),
+        cwd: cwd.to_path_buf(),
+    };
+    if let Ok(data) = serde_json::to_string(&state) {
+        let _ = std::fs::write(thread_state_path(), data);
+    }
+}
+
+fn clear_thread() {
+    let _ = std::fs::write(thread_state_path(), b"null");
+}
+
 #[derive(Default)]
 pub struct Cerceve {
     buffer: Vec<u8>,
@@ -75,16 +132,23 @@ pub struct CodexStatus {
     pub status: String,
     pub logged_in: bool,
     pub plan_type: Option<String>,
+    #[serde(skip_serializing)]
+    pub account_id: Option<String>,
     pub rate_limits: Value,
 }
 pub fn status_from_account(v: &Value) -> CodexStatus {
     let a = &v["account"];
     let logged = a["type"] == "chatgpt";
     CodexStatus {
-        status: if logged { "hazir" } else { "oturum_yok" }.into(),
+        status: if logged { "bagli" } else { "oturum_yok" }.into(),
         logged_in: logged,
         plan_type: if logged {
             a["planType"].as_str().map(str::to_owned)
+        } else {
+            None
+        },
+        account_id: if logged {
+            a["id"].as_str().or(a["email"].as_str()).map(str::to_owned)
         } else {
             None
         },
@@ -115,7 +179,7 @@ pub fn safe_event(method: &str, p: &Value) -> Option<CodexEvent> {
         "account/rateLimits/updated" => safe_limits(p),
         "account/login/completed" => json!({"success":p["success"].as_bool().unwrap_or(false)}),
         "error" => {
-            json!({"threadId":p["threadId"].as_str(),"turnId":p["turnId"].as_str(),"willRetry":p["willRetry"].as_bool().unwrap_or(false),"message":"Codex yanıtı tamamlayamadı. Tekrar deneyin."})
+            json!({"threadId":p["threadId"].as_str(),"turnId":p["turnId"].as_str(),"willRetry":p["willRetry"].as_bool().unwrap_or(false),"message":"GPT-5.6 Sol'a bağlanılamadı."})
         }
         _ => return None,
     };
@@ -183,6 +247,7 @@ pub fn disabled_tool_config(response: &Value) -> Result<Value, CodexHata> {
     for source in sources {
         for (field, output) in [("mcp_servers", &mut mcp), ("apps", &mut apps)] {
             if let Some(value) = source.get(field) {
+                if value.is_null() { continue; }
                 let table = value.as_object().ok_or(CodexHata::Protokol)?;
                 for (name, value) in table {
                     if name.is_empty()
@@ -207,10 +272,16 @@ pub fn disabled_tool_config(response: &Value) -> Result<Value, CodexHata> {
         .collect();
     Ok(json!({"web_search":"disabled","features":features,"mcp_servers":mcp,"apps":apps}))
 }
+pub const SOL_MODEL: &str = "gpt-5.6-sol";
+
+pub fn validate_sol_model(response: &Value) -> Result<(), CodexHata> {
+    if response["model"].as_str() == Some(SOL_MODEL) { Ok(()) }
+    else { Err(CodexHata::ModelMismatch) }
+}
 pub fn thread_params_with_config(cwd: &Path, config: Value) -> Value {
-    json!({"cwd":cwd,"sandbox":"read-only","approvalPolicy":"never","ephemeral":true,
+    json!({"cwd":cwd,"sandbox":"read-only","approvalPolicy":"never","ephemeral":false,
         "config":config,
-        "developerInstructions":"Senin adın Afu. Türkçe, sıcak, tatlı, neşeli ve doğal konuşan bir asistansın. Kısa cevap ver. Yalnız sohbet ve okuma yap. Dosya değiştirme, komut çalıştırma, harici araç veya MCP kullanma."})
+        "model":SOL_MODEL})
 }
 pub fn thread_params(cwd: &Path) -> Value {
     thread_params_with_config(cwd, disabled_tool_config(&json!({"config":{}})).unwrap())
@@ -267,7 +338,12 @@ fn deliver_result(p: &Pending, id: u64, msg: &Value) {
     if let Ok(mut pending) = p.lock() {
         if let Some(tx) = pending.remove(&id) {
             let _ = tx.send(if msg.get("error").is_some() {
-                Err(CodexHata::Protokol)
+                #[cfg(test)]
+                live_diagnostic(&msg["error"]);
+                let message=msg["error"]["message"].as_str().unwrap_or("").to_lowercase();
+                if message.contains("model") && (message.contains("not") || message.contains("access") || message.contains("unavailable")) {
+                    Err(CodexHata::ModelUnavailable)
+                } else { Err(CodexHata::Protokol) }
             } else {
                 Ok(msg["result"].clone())
             });
@@ -333,9 +409,10 @@ pub struct CodexBridge {
     next: AtomicU64,
     reader: Mutex<Option<thread::JoinHandle<()>>>,
     active: Arc<Mutex<Option<(String, String)>>>,
-    thread_id: Mutex<Option<(String, PathBuf)>>,
+    thread_id: Mutex<Option<ThreadState>>,
     send_gate: Mutex<()>,
     login_id: Mutex<Option<String>>,
+    sol_ready: Arc<AtomicBool>,
 }
 impl CodexBridge {
     pub fn start() -> Result<Self, CodexHata> {
@@ -345,6 +422,9 @@ impl CodexBridge {
         let exe = resolve_exe().ok_or(CodexHata::Bulunamadi)?;
         let mut cmd = Command::new(exe);
         cmd.args(app_server_args())
+            .env_remove("OPENAI_API_KEY")
+            .env_remove("CODEX_API_KEY")
+            .env_remove("AZURE_OPENAI_API_KEY")
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
             .stderr(Stdio::null());
@@ -357,6 +437,8 @@ impl CodexBridge {
         let active = Arc::new(Mutex::new(None));
         let closed = Arc::new(AtomicBool::new(false));
         let rc = closed.clone();
+        let sol_ready = Arc::new(AtomicBool::new(false));
+        let ready = sol_ready.clone();
         let (rp, ri, ra) = (pending.clone(), stdin.clone(), active.clone());
         let reader = thread::spawn(move || {
             let mut frame = Cerceve::default();
@@ -387,6 +469,10 @@ impl CodexBridge {
                         }
                     } else if let Some(method) = msg["method"].as_str() {
                         let p = &msg["params"];
+                        #[cfg(test)]
+                        if method == "error" || (method == "turn/completed" && p["turn"]["status"] == "failed") {
+                            live_diagnostic(if method=="error" { &p["error"] } else { &p["turn"]["error"] });
+                        }
                         if method == "turn/started" {
                             if let (Some(id), Some(thread)) =
                                 (p["turn"]["id"].as_str(), p["threadId"].as_str())
@@ -397,8 +483,9 @@ impl CodexBridge {
                             }
                         }
                         if method == "turn/completed" {
+                            ready.store(p["turn"]["status"] == "completed", Ordering::Release);
                             if let Ok(mut a) = ra.lock() {
-                                *a = None;
+                                if a.as_ref().map(|(thread,turn)| p["threadId"] == *thread && p["turn"]["id"] == *turn).unwrap_or(false) { *a = None; }
                             }
                         }
                         if let Some(e) = safe_event(method, p) {
@@ -422,6 +509,7 @@ impl CodexBridge {
             thread_id: Mutex::new(None),
             send_gate: Mutex::new(()),
             login_id: Mutex::new(None),
+            sol_ready,
         };
         bridge.request("initialize",json!({"clientInfo":{"name":"afunobet_ui","version":env!("CARGO_PKG_VERSION")},"capabilities":{"experimentalApi":false}}))?;
         write_message(
@@ -458,6 +546,11 @@ impl CodexBridge {
     pub fn status(&self) -> Result<CodexStatus, CodexHata> {
         let mut s =
             status_from_account(&self.request("account/read", json!({"refreshToken":false}))?);
+        if !s.logged_in {
+            *self.thread_id.lock().map_err(|_| CodexHata::Kapandi)? = None;
+            clear_thread();self.sol_ready.store(false, Ordering::Release);
+        }
+        if s.logged_in && self.sol_ready.load(Ordering::Acquire) { s.status = "hazir".into(); }
         if s.logged_in {
             if let Ok(v) = self.request("account/rateLimits/read", json!({})) {
                 s.rate_limits = safe_limits(&v);
@@ -481,31 +574,34 @@ impl CodexBridge {
             return Err(CodexHata::GecersizGirdi);
         }
         let cwd = cwd.canonicalize().map_err(|_| CodexHata::GecersizGirdi)?;
-        if !self.status()?.logged_in {
-            return Err(CodexHata::OturumYok);
-        }
-        let existing = self
-            .thread_id
-            .lock()
-            .map_err(|_| CodexHata::Kapandi)?
-            .clone();
-        let id = if let Some((id, _)) = existing.filter(|(_, p)| p == &cwd) {
-            id
+        let status = self.status()?;
+        let account_id = status.account_id.ok_or(CodexHata::OturumYok)?;
+        let existing = self.thread_id.lock().map_err(|_| CodexHata::Kapandi)?.clone();
+        let config = disabled_tool_config(&self.request("config/read", json!({"includeLayers":true,"cwd":cwd}))?)?;
+        let id = if let Some(state) = existing.filter(|state| state.matches(&account_id, &cwd)) {
+            state.thread_id
         } else {
-            // Okuma başarısızsa veya bozuksa araç mirası bilinmediğinden thread başlamaz.
-            let effective = self.request("config/read", json!({"includeLayers":true,"cwd":cwd}))?;
-            let config = disabled_tool_config(&effective)?;
-            let v = self.request("thread/start", thread_params_with_config(&cwd, config))?;
-            let id = v["thread"]["id"]
-                .as_str()
-                .ok_or(CodexHata::Protokol)?
-                .to_owned();
-            *self.thread_id.lock().map_err(|_| CodexHata::Kapandi)? =
-                Some((id.clone(), cwd.clone()));
+            self.sol_ready.store(false, Ordering::Release);
+            *self.thread_id.lock().map_err(|_| CodexHata::Kapandi)? = None;
+            let response = if let Some((saved_id, saved_cwd)) = load_thread(&account_id).filter(|(_, path)| path == &cwd) {
+                let mut params = thread_params_with_config(&saved_cwd, config);
+                // Resume uses sandbox settings/model lock too; ephemeral is start-only.
+                params.as_object_mut().unwrap().remove("ephemeral");
+                params["threadId"] = json!(saved_id);
+                self.request("thread/resume", params)?
+            } else {
+                self.request("thread/start", thread_params_with_config(&cwd, config))?
+            };
+            validate_sol_model(&response)?;
+            let id = response["thread"]["id"].as_str().ok_or(CodexHata::Protokol)?.to_owned();
+            *self.thread_id.lock().map_err(|_| CodexHata::Kapandi)? = Some(ThreadState {
+                account_id: account_id.clone(), thread_id:id.clone(), cwd:cwd.clone()
+            });
+            save_thread(&account_id, &id, &cwd);
             id
         };
         *self.active.lock().map_err(|_| CodexHata::Kapandi)? = Some((id.clone(), String::new()));
-        let result=self.request("turn/start",json!({"threadId":id,"input":input,"cwd":cwd,"approvalPolicy":"never","sandboxPolicy":{"type":"readOnly","networkAccess":false}}));
+        let result=self.request("turn/start",json!({"threadId":id,"input":input,"cwd":cwd,"approvalPolicy":"never","model":SOL_MODEL,"sandboxPolicy":{"type":"readOnly","networkAccess":false}}));
         let v = match result {
             Ok(v) => v,
             Err(e) => {
@@ -526,6 +622,21 @@ impl CodexBridge {
             }
         }
         Ok(json!({"threadId":id,"turnId":turn}))
+    }
+    pub fn new_chat(&self) -> Result<(), CodexHata> {
+        let _gate = self.send_gate.try_lock().map_err(|_| CodexHata::Mesgul)?;
+        if self.active.lock().map_err(|_| CodexHata::Kapandi)?.is_some() { return Err(CodexHata::Mesgul); }
+        clear_thread();
+        *self.thread_id.lock().map_err(|_| CodexHata::Kapandi)? = None;
+        self.sol_ready.store(false, Ordering::Release);
+        Ok(())
+    }
+    pub fn logout(&self) -> Result<Value, CodexHata> {
+        let _gate = self.send_gate.try_lock().map_err(|_| CodexHata::Mesgul)?;
+        self.cancel()?;
+        *self.thread_id.lock().map_err(|_| CodexHata::Kapandi)? = None;
+        clear_thread();self.sol_ready.store(false, Ordering::Release);
+        self.request("account/logout", json!({}))
     }
     pub fn cancel(&self) -> Result<Value, CodexHata> {
         let a = self.active.lock().map_err(|_| CodexHata::Kapandi)?.clone();
@@ -588,10 +699,84 @@ impl Drop for CodexBridge {
         self.shutdown();
     }
 }
-
+#[cfg(test)]
+static LIVE_DIAGNOSTIC: AtomicBool = AtomicBool::new(false);
+#[cfg(test)]
+fn live_diagnostic(error: &Value) {
+    if !LIVE_DIAGNOSTIC.load(Ordering::Acquire) { return; }
+    if let Some(message)=error["message"].as_str() {
+        let lower=message.to_lowercase();
+        if !["token", "authorization", "cookie", "api key", "secret", "password"].iter().any(|s| lower.contains(s)) {
+            eprintln!("CANLI CODEX HATASI: {}",message.chars().take(4000).collect::<String>());
+        }
+    }
+}
+#[cfg(test)]
+#[ignore = "real ChatGPT inference; requires local login and network"]
+#[test]
+fn gercek_codex() {
+    LIVE_DIAGNOSTIC.store(true, Ordering::Release);
+    let (tx,rx)=mpsc::channel();
+    let bridge=CodexBridge::start_with_callback(Arc::new(move |event| { let _=tx.send(event); })).expect("Codex app-server açılamadı");
+    let status=bridge.status().expect("account/read başarısız");
+    assert!(status.logged_in,"account/read type chatgpt değil");
+    println!("account/read: type=chatgpt; API key environment removed");
+    let cwd=std::env::current_dir().unwrap().canonicalize().unwrap();
+    // Start a fresh explicit Sol thread, without touching the user's saved conversation.
+    let config=disabled_tool_config(&bridge.request("config/read",json!({"includeLayers":true,"cwd":cwd})).unwrap()).unwrap();
+    let thread=bridge.request("thread/start",thread_params_with_config(&cwd,config)).expect("thread/start başarısız");
+    validate_sol_model(&thread).expect("thread/start result.model Sol değil");
+    println!("thread/start request.model={} response.model={}",SOL_MODEL,thread["model"]);
+    let id=thread["thread"]["id"].as_str().unwrap();
+    let response=bridge.request("turn/start",json!({"threadId":id,"model":SOL_MODEL,"input":build_input("Sen hangi modelsin?",&[]).unwrap(),"approvalPolicy":"never","sandboxPolicy":{"type":"readOnly","networkAccess":false}})).expect("turn/start başarısız");
+    let turn=response["turn"]["id"].as_str().unwrap();
+    println!("turn/start request.model={}",SOL_MODEL);
+    let deadline=std::time::Instant::now()+Duration::from_secs(120);
+    let mut text=String::new();
+    loop {
+        let remaining=deadline.saturating_duration_since(std::time::Instant::now());
+        let event=rx.recv_timeout(remaining).expect("delta/completed timeout");
+        let p=&event.params;
+        if p["threadId"].as_str()!=Some(id) { continue; }
+        if event.method=="item/agentMessage/delta" && p["turnId"].as_str()==Some(turn) { text.push_str(p["delta"].as_str().unwrap_or("")); }
+        if event.method=="turn/completed" && p["turn"]["id"].as_str()==Some(turn) {
+            assert_eq!(p["turn"]["status"],"completed","CANLI turn failed");
+            assert!(!text.is_empty(),"delta alınmadı");
+            println!("item/agentMessage/delta: {} characters; turn/completed: completed",text.chars().count());
+            break;
+        }
+        if event.method=="error" && p["willRetry"]!=true { panic!("CANLI inference error; see diagnostic"); }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn sol_model_response_is_top_level_and_mismatch_never_falls_back() {
+        assert!(validate_sol_model(&json!({"model":SOL_MODEL,"thread":{"id":"t"}})).is_ok());
+        for response in [json!({"model":"gpt-5.6-luna"}), json!({"thread":{"model":SOL_MODEL}}), json!({})] {
+            assert_eq!(validate_sol_model(&response), Err(CodexHata::ModelMismatch));
+        }
+        assert_eq!(thread_params(Path::new("C:/workspace"))["model"], SOL_MODEL);
+        assert_eq!(build_input("  Merhaba\n", &[]).unwrap()[0]["text"], "  Merhaba\n");
+    }
+    #[test]
+    fn auth_only_chatgpt_and_account_scoped_thread() {
+        for kind in ["apiKey", "chatgptAuthTokens", "", "unknown"] {
+            assert!(!status_from_account(&json!({"account":{"type":kind,"id":"a"}})).logged_in);
+        }
+        let state = ThreadState { account_id:"a".into(), thread_id:"t".into(), cwd:PathBuf::from("C:/workspace") };
+        assert!(state.matches("a", Path::new("C:/workspace")));
+        assert!(!state.matches("b", Path::new("C:/workspace")));
+        assert!(!state.matches("a", Path::new("C:/other")));
+    }
+    #[test]
+    fn null_apps_or_mcp_servers_do_not_block_sending() {
+        // Gerçek config/read cevabında "apps": null geliyor; eskiden Protokol hatasıyla her gönderim düşüyordu.
+        let cevap = json!({"config":{"apps":null,"mcp_servers":{"fetch":{"enabled":true}}},"layers":[{"config":{"apps":null,"mcp_servers":null}}]});
+        let config = disabled_tool_config(&cevap).expect("null tablo kabul edilmeli");
+        assert_eq!(config["mcp_servers"]["fetch"]["enabled"], json!(false));
+    }
     #[test]
     fn shutdown_is_explicit_idempotent_even_when_arc_clone_survives() {
         let pending: Pending = Arc::new(Mutex::new(HashMap::new()));
@@ -608,6 +793,7 @@ mod tests {
             thread_id: Mutex::new(None),
             send_gate: Mutex::new(()),
             login_id: Mutex::new(None),
+            sol_ready: Arc::new(AtomicBool::new(false)),
         });
         let clone = bridge.clone();
         bridge.shutdown();
@@ -682,6 +868,7 @@ mod tests {
             thread_id: Mutex::new(None),
             send_gate: Mutex::new(()),
             login_id: Mutex::new(None),
+            sol_ready: Arc::new(AtomicBool::new(false)),
         });
         ready_receiver.recv_timeout(Duration::from_secs(5)).unwrap();
         assert!(bridge

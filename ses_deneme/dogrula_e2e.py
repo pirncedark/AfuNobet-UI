@@ -23,7 +23,7 @@ def main():
             start = time.monotonic()
             reply = client.answer(prompt)
             print('Afu: ' + reply, flush=True)
-            spoken = speech_text(reply)
+            spoken = speech_text(reply, legacy=True)
             target = OUT / f'e2e_{result["started"].replace(":", "").replace(".", "_")}_{index+1}.wav'
             parameters = voice.generate(spoken, target, settings['filtre'])
             row = {'input': prompt, 'reply': reply, 'spoken': spoken, 'route': 'codex', 'threadId': thread_id,

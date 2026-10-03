@@ -120,3 +120,20 @@ if (caseName === "uzun-sohbet") {
 Object.assign(window, { afuTest: { island, State } });
 document.documentElement.dataset.case = caseName;
 document.documentElement.dataset.ready = "true";
+
+// M6: Kepenk kart ve ense hover testi
+if (caseName === "m6-orkestra") {
+  island.fsm.forceHome();
+  // Expanded mode with working status to show full card
+  island.applySnapshot({ version: 1, tasks: [task("focus", "codex", "Calisiyor", "Orkestra projesini duzenle", 45)], mesaj: "" });
+  island.setView("orkestra");
+}
+if (caseName === "m6-pet-hover") {
+  island.fsm.forceHome();
+  // Trigger pet hover animation
+  island.applySnapshot({ version: 1, tasks: [task("focus", "codex", "Calisiyor", "Pet hover testi", 50)], mesaj: "" });
+  if (island.pet) {
+    // Schedule hover on after page is rendered
+    setTimeout(() => island.pet.hover(true), 1500);
+  }
+}

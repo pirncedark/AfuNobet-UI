@@ -34,7 +34,15 @@ export function mountGitHubPanel(host: HTMLElement): () => void {
   const details = document.createElement("details");
   details.className = "sistem-servis";
   const summary = document.createElement("summary");
-  summary.textContent = "GitHub";
+  summary.className = "sistem-ozet";
+  // Stilsiz liste işareti yerine kendi okumuz; aynı satır dili.
+  const ok = document.createElement("span");
+  ok.className = "sistem-ok";
+  ok.setAttribute("aria-hidden", "true");
+  ok.textContent = "▸";
+  const ad = document.createElement("span");
+  ad.textContent = "GitHub";
+  summary.append(ok, ad);
   const pill = document.createElement("span");
   pill.className = "service-pill";
   pill.setAttribute("aria-live", "polite");

@@ -141,6 +141,12 @@ export class BalonKuyrugu {
     this.mevcut = null; this.tick(Date.now());
     return true;
   }
+  /** Ayrıntısı okunan mesajı kimliğiyle düşür; sıradaki mesajı koru. */
+  okundu(id: string) {
+    this.bekleyen = this.bekleyen.filter(m => m.id !== id);
+    if (this.mevcut?.id === id) this.mevcut = null;
+    this.tick(Date.now());
+  }
   /** Zaman ölçümü YOK: otomatik kapanma kaldırıldı, `_now` yalnız imza uyumu. */
   tick(_now: number) {
     if (!this.gosteriliyor) return;
@@ -169,7 +175,8 @@ export function balonOlustur(
   const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket";
   etiket.textContent = etiketAd.text; etiket.title = etiketAd.title || tam;
 
-  const bicim = bicimle(tam.replace(/^(claude|codex|gemini|opencode)\s*[:\-–—]\s*/i, ""));
+  yazi.govde = yazi.govde.replace(/^\s*Ayrıntı\s*:\s*/i, "");
+  const bicim = bicimle(tam.replace(/^(claude|codex|gemini|opencode)\s*[:\-–—]\s*/i, "").replace(/^\s*Ayrıntı\s*:\s*/i, ""));
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
 
   if (bicim.maddeler.length > 0) {
@@ -192,6 +199,8 @@ export function balonOlustur(
     metin.textContent = govdeText || "Yeni mesaj geldi.";
   }
   e.append(etiket, metin);
+  // Pet previews use the available height, rather than the card's 80-character summary.
+  if (!bicim.soru) metin.setAttribute('data-pet-metin', bicim.ayrinti || yazi.govde || tam);
 
   if (bicim.soru) {
     e.style.pointerEvents = "auto"; e.style.cursor = "default";
@@ -232,7 +241,7 @@ export function balonOlustur(
   if (kapat) {
     const k = belge.createElement("span"); k.className = "afu-balon-kapat";
     k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");
-    k.setAttribute("aria-label", "Mesajı kapat"); k.textContent = "×";
+    k.setAttribute("aria-label", "Mesajı kapat (Okudum)"); k.textContent = "Okudum";
     k.addEventListener("pointerdown", ev => ev.stopPropagation());
     k.addEventListener("click", ev => { ev.stopPropagation(); kapat(); });
     k.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); kapat(); } });
@@ -246,9 +255,32 @@ export function balonOlustur(
       if (hedef && typeof hedef.closest === "function" && hedef.closest(".afu-balon-kapat")) return;
       ac(mesaj);
     });
-    e.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); ac(mesaj); } });
+    e.addEventListener("keydown", ev => { if (ev.target === e && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); ev.stopPropagation(); ac(mesaj); } });
   }
   return e;
+}
+
+/** Fit at word boundaries; the original remains in title and the detail view. */
+export function petBalonMetniniSigdir(host: HTMLElement) {
+  const metin = host.querySelector<HTMLElement>(".afu-balon-metin[data-pet-metin]");
+  if (!metin) return;
+  const tam = metin.dataset.petMetin!;
+  const key = `${tam}|${host.clientWidth}|${host.style.getPropertyValue('--pet-balon-h')}`;
+  if (metin.dataset.olcu === key) return;
+  metin.dataset.olcu = key;
+  // Bound the preview even when a long message fits geometrically.
+  const onizleme = kisalt(tam, 180);
+  metin.textContent = onizleme;
+  if (metin.scrollHeight <= metin.clientHeight + 1) return;
+  const kelimeler = onizleme.replace(/…$/, "").trim().split(/\s+/);
+  let lo = 0, hi = kelimeler.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    metin.textContent = kelimeler.slice(0, mid).join(' ') + '…';
+    if (metin.scrollHeight <= metin.clientHeight + 1) lo = mid;
+    else hi = mid - 1;
+  }
+  metin.textContent = kelimeler.slice(0, lo).join(' ') + '…';
 }
 
 export function olayMesaji(olay: AfuEvent, tasks: Task[], now: number, quotas?: Snapshot["quotas"]): Mesaj | null {
@@ -348,26 +380,27 @@ export class KonusanAfu {
   private modGorunur = false;
   private uygulaGorunurluk() { this.model.gorunur(this.modGorunur && !this.askida, Date.now()); }
   ekle(m: Mesaj) { if (this.onMessage) { this.onMessage(m); return; } this.model.ekle(m, Date.now()); this.ciz(); }
-  /** Balona tıklayınca tam metin kartta açılır ve balon kapanır (P11). */
-  private balonaTiklandi(m: Mesaj) { this.tamMetin(m); this.kapat(); }
+  /** Tam metni açmak mesajı okundu saymaz; kullanıcı Okudum ile bitirir. */
+  private balonaTiklandi(m: Mesaj) { this.tamMetin(m); }
   private tamMetin(m: Mesaj) {
     this.detay.replaceChildren();
     const yazi = bolunBaslik(m.metin);
     const baslik = document.createElement("strong"); baslik.textContent = yazi.etiket ?? ad(m.ajan);
     
     const bicim = bicimle(yazi.govde);
-    const ayrintiBaslik = document.createElement("strong");
-    ayrintiBaslik.textContent = "Ayrıntı";
-    ayrintiBaslik.style.display = "block";
-    ayrintiBaslik.style.marginTop = "8px";
 
     const metin = document.createElement("p");
     metin.style.whiteSpace = "pre-wrap";
-    metin.textContent = bicim.ayrinti || yazi.govde || m.metin;
+    metin.textContent = (bicim.ayrinti || yazi.govde || m.metin).replace(/^\s*Ayrıntı\s*:\s*/i, "");
 
-    const kapat = document.createElement("button"); kapat.textContent = "Kapat";
-    kapat.addEventListener("click", () => { this.detay.hidden = true; });
-    this.detay.append(baslik, ayrintiBaslik, metin, kapat); this.detay.hidden = false; this.ac();
+    const hariciKapat = this.hariciMesaj?.id === m.id ? this.hariciKapatCallback : undefined;
+    const kapat = document.createElement("button"); kapat.textContent = "Okudum";
+    kapat.addEventListener("click", () => {
+      this.detay.hidden = true;
+      if (hariciKapat) hariciKapat();
+      else { this.model.okundu(m.id); this.ciz(); }
+    });
+    this.detay.append(baslik, metin, kapat); this.detay.hidden = false; this.ac();
   }
   setHarici(mesaj: Mesaj | null, kapat?: () => void) {
     this.hariciMesaj = mesaj; this.hariciKapatCallback = kapat; this.ciz();

@@ -180,6 +180,49 @@ fn recentre(app: &AppHandle, pref: &str) {
     let _ = win.set_always_on_top(true);
 }
 
+#[tauri::command]
+pub fn kart_yukseklik(app: AppHandle, h: f64) {
+    let Some(win) = crate::island::window(&app) else {
+        return;
+    };
+    let scale = win.scale_factor().ok().and_then(usable_scale).unwrap_or(1.0);
+    
+    // Get the monitor it currently lives on.
+    let (screen_y, screen_h) = match target_monitor(&app, "") {
+        Some(m) => (m.position().y, m.size().height),
+        None => {
+            let (_, y, _) = fallback_bounds();
+            // Guessing 1080 for fallback height
+            (y, 1080)
+        }
+    };
+
+    let max_h_logical = (screen_h as f64 / scale) * 0.85;
+    let clamped_h = h.max(PANEL_H).min(max_h_logical);
+    let new_physical_h = physical_for(clamped_h, scale);
+    
+    if let Ok(inner) = win.inner_size() {
+        if inner.height != new_physical_h {
+            let _ = win.set_size(PhysicalSize::new(physical_for(PANEL_W, scale), new_physical_h));
+        }
+    }
+
+    // Check if it fits on the screen.
+    if let Ok(pos) = win.outer_position() {
+        let bottom = pos.y + new_physical_h as i32;
+        let screen_bottom = screen_y + screen_h as i32;
+        if bottom > screen_bottom {
+            let mut new_y = screen_bottom - new_physical_h as i32;
+            if new_y < screen_y {
+                new_y = screen_y;
+            }
+            if new_y != pos.y {
+                let _ = win.set_position(PhysicalPosition::new(pos.x, new_y));
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -325,5 +368,18 @@ mod tests {
         // is centred instead of inheriting the position the window was born with.
         let window_w = physical_for(PANEL_W, 1.0);
         assert_eq!(centred_x(0, 1920, window_w), (1920 - window_w as i32) / 2);
+    }
+
+    #[test]
+    fn kart_uzama_sinirlari() {
+        let scale = 1.5;
+        let screen_h = 1080.0;
+        let max_h_logical = (screen_h / scale) * 0.85;
+        let h1 = 200.0_f64;
+        assert_eq!(h1.max(PANEL_H).min(max_h_logical), PANEL_H);
+        let h2 = 800.0_f64;
+        assert_eq!(h2.max(PANEL_H).min(max_h_logical), max_h_logical);
+        let h3 = 500.0_f64;
+        assert_eq!(h3.max(PANEL_H).min(max_h_logical), 500.0);
     }
 }
