@@ -35,15 +35,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Node 20 kur
+      - name: Node 22 kur
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           cache-dependency-path: windows/package-lock.json
 
       - name: Bagimliliklari kur
         run: npm ci
+
+      # Bazi testler basliksiz Chromium ile gercek yerlesimi olcer.
+      - name: Playwright tarayicisi
+        run: npx playwright install chromium
 
       - name: Tip kontrolu
         run: npx tsc --noEmit
@@ -59,6 +63,8 @@ jobs:
       # whisper-rs -> whisper-rs-sys -> bindgen LLVM'e ihtiyac duyar.
       # windows-latest goruntusunde LLVM kuruludur; yol burada acikca verilir.
       LIBCLANG_PATH: C:\Program Files\LLVM\bin
+      # whisper.cpp cmake derlemesi derin target yolunda MAX_PATH'e takiliyor.
+      CARGO_TARGET_DIR: C:/t
     defaults:
       run:
         working-directory: windows/src-tauri
@@ -72,8 +78,8 @@ jobs:
       - name: Rust derleme onbellegi
         uses: Swatinem/rust-cache@v2
         with:
-          # Cargo workspace koku windows/ (src-tauri onun uyesi), target orada.
-          workspaces: windows -> target
+          # Cargo workspace koku windows/; target kisa yolda (CARGO_TARGET_DIR).
+          workspaces: windows -> C:/t
 
       # tauri build betigi frontendDist (../dist) dizinini arar; dist .gitignore'lu,
       # bu yuzden derlemeden once bos bir yer tutucu olusturulur.
@@ -111,7 +117,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
-          python -m pip install pytest pillow numpy
+          python -m pip install pytest pillow numpy scipy
 
       # KOK dizinindeki tests/ klasoru: kapi_test.py elle calistirilan bir
       # yardimci betiktir, pytest taramasina girmez (uygulama acmaya calisir).
