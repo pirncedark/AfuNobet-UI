@@ -220,6 +220,50 @@ pub async fn voice_stop(state: State<'_, VoiceState>) -> Result<String, String> 
     .map_err(|e| e.to_string())
 }
 #[tauri::command]
+pub async fn voice_listen_turn(state: State<'_, VoiceState>, max_bekleme_ms: usize) -> Result<String, String> {
+    let motor = state.motor.clone();
+    let closed = state.closed.clone();
+    let speech_lock = state.speech_lock.clone();
+    let pending = state.pending.clone();
+    let recorder = state.recorder.clone();
+    let epoch = state.capture_generation.clone();
+    let ticket = epoch.fetch_add(1, Ordering::AcqRel) + 1;
+    tauri::async_runtime::spawn_blocking(move || {
+        let signal = Arc::new(AtomicBool::new(false));
+        {
+            let mut slot = pending.lock().map_err(|_| SesHata::Microphone)?;
+            if slot.is_some() || recorder.lock().map_err(|_| SesHata::Microphone)?.is_some() {
+                return Err(SesHata::Busy);
+            }
+            *slot = Some((ticket, signal.clone()));
+        }
+        let result = (|| {
+            // Serialize capture with speech; cancellation remains available while waiting.
+            let _speech = speech_lock.lock().map_err(|_| SesHata::Microphone)?;
+            if closed.load(Ordering::Acquire) || epoch.load(Ordering::Acquire) != ticket || signal.load(Ordering::Acquire) {
+                return Ok(String::new());
+            }
+            select_motor(whisper::model_yolu().map(|p| p.is_file()).unwrap_or(false), false)?;
+            let data = capture::Recorder::start_auto(signal.clone(), 0.01, 800, max_bekleme_ms)?.wait_and_stop()?;
+            if signal.load(Ordering::Acquire) || epoch.load(Ordering::Acquire) != ticket || whisper::kisa_mi(&data) {
+                return Ok(String::new());
+            }
+            let mut engine = motor.lock().map_err(|_| SesHata::Model)?;
+            if engine.is_none() {
+                let path = whisper::model_yolu().ok_or(SesHata::ModelMissing)?;
+                *engine = Some(whisper::Motor::yukle(&path)?);
+            }
+            let text = engine.as_ref().ok_or(SesHata::Model)?.cevir(&data)?;
+            if signal.load(Ordering::Acquire) || epoch.load(Ordering::Acquire) != ticket { return Ok(String::new()); }
+            Ok(text)
+        })();
+        if let Ok(mut slot) = pending.lock() {
+            if slot.as_ref().map(|(_, p)| Arc::ptr_eq(p, &signal)).unwrap_or(false) { slot.take(); }
+        }
+        result
+    }).await.map_err(|_| SesHata::Recognition.to_string())?.map_err(|e: SesHata| e.to_string())
+}
+#[tauri::command]
 pub async fn voice_cancel(state: State<'_, VoiceState>) -> Result<(), String> {
     state.generation.fetch_add(1, Ordering::AcqRel);
     state.cancel_afu();

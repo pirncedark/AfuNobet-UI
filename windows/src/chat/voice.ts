@@ -8,6 +8,7 @@ export interface VoiceActions {
  voiceChoices?():Promise<VoiceChoice>;
  voiceChoose?(ses:string,filtre:string):Promise<VoiceChoice>;
  voiceOpenSettings?(kind:VoiceSettingsKind):Promise<unknown>;
+ voiceListenTurn?(maxMs:number): Promise<string>;
  voiceStart(): Promise<unknown>; voiceStop(): Promise<string>; voiceCancel(): Promise<unknown>;
  voiceSpeak(text:string): Promise<unknown>; voiceSilence(): Promise<unknown>;
  voiceSupported(): Promise<{whisper:boolean;winrt_stt:boolean;tts:boolean;afu_tts?:boolean}>;
@@ -134,6 +135,101 @@ export class ResponseSpeech {
  async cancel(stopNative=true){
   ++this.generation;const wasSpeaking=this.speaking;this.speaking=false;this.changed();
   if(wasSpeaking&&stopNative)await this.actions.voiceSilence();
+ }
+}
+export interface ChatModel {
+ send(text: string): Promise<string>;
+}
+
+export class SurekliSohbet {
+ help:VoiceHelp|null=null;
+ state: "idle"|"listening"|"thinking"|"speaking" = "idle";
+ message: string = "";
+ transcript: string = "";
+ get active() { return this.state !== "idle"; }
+ private generation = 0;
+ private stopping: Promise<unknown>|null = null;
+
+ constructor(
+  private actions: VoiceActions,
+  private chat: ChatModel,
+  private changed: () => void = () => {}
+ ) {}
+
+ async baslat() {
+  if (this.state !== "idle" || this.stopping || !this.actions.voiceListenTurn) return;
+  const ticket = ++this.generation;
+  this.message = "";
+  this.help = null;
+  this.transcript = "";
+
+  while (ticket === this.generation) {
+   this.state = "listening";
+   this.changed();
+
+   let text = "";
+   try {
+    text = await this.actions.voiceListenTurn(60000);
+   } catch (error) {
+    if (ticket !== this.generation) return;
+    this.message = voiceErrorMessage(error, "start");
+    this.help = voiceHelp(error);
+    this.state = "idle";
+    this.changed();
+    return;
+   }
+
+   if (ticket !== this.generation) return;
+   if (!text.trim()) {
+    this.state = "idle";
+    this.changed();
+    return; // 60s sessizlik = döngü biter
+   }
+
+   this.transcript = text;
+   this.state = "thinking";
+   this.changed();
+
+   let reply = "";
+   try {
+    reply = await this.chat.send(text);
+   } catch (error) {
+    if (ticket !== this.generation) return;
+    this.message = "Sohbet hatası; yeniden dene.";
+    this.state = "idle";
+    this.changed();
+    return;
+   }
+
+   if (ticket !== this.generation) return;
+   this.state = "speaking";
+   this.changed();
+
+   try {
+    if (this.actions.voiceResponse) {
+     await this.actions.voiceResponse(reply);
+    } else {
+     await this.actions.voiceSpeak(reply);
+    }
+   } catch (error) {
+    if (ticket !== this.generation) return;
+    this.message = "Ses okunamadı; yeniden dene.";
+    this.state = "idle";
+    this.changed();
+    return;
+   }
+  }
+ }
+
+ async bitir() {
+  if (this.state === "idle") return;
+  ++this.generation;
+  this.state = "idle";
+  this.message = "";
+  this.changed();
+  this.stopping = this.actions.voiceCancel();
+  try { await this.stopping; } catch { this.message = "Ses durdurulamadı; yeniden dene."; }
+  finally { this.stopping = null; this.changed(); }
  }
 }
 
