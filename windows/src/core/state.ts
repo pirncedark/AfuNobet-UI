@@ -21,8 +21,29 @@ export interface Task {
 export interface Quota { remaining_percent: number | null; reset_at: string | null; checked_at: string | null }
 export interface Snapshot { connected: boolean; tasks: Task[]; sourceUnavailable: boolean; quotas?: Partial<Record<Exclude<Agent, "claude">, Quota>> }
 export interface Settings { screen: "primary" | "cursor"; autoCloseInterval: number; pet: boolean; tts: boolean; messageAlert?: boolean }
-const TECHNICAL = /\b(?:pid|port|traceback|429|exception)\b|--[\w-]+|\b(?:api[_ -]?key|token|secret|password)\s*[:=]|\bbearer\s+|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\b[a-z]:[\\/]|https?:\/\/|(?:^|\s)\/(?:[^\s/]+\/)*[^\s/]+|\b\d{1,3}(?:\.\d{1,3}){3}\b|\b(?:sk|ghp|gho|AIza)[-_][a-z0-9_-]{12,}/i;
-const COMMAND = /(?:^|[;&|`:]|\b(?:run|execute|calistir)\s+)\s*(?:(?:python(?:w|3)?|powershell|pwsh|cmd|bash|sh|git|npm|npx|pip|curl|wget|node|java|dotnet|cargo|docker|ssh|cat|echo|rm|del|taskkill)(?:\s|$)|(?:codex|claude|gemini|opencode|omp)\s+(?:-\S+|exec\b|run\b|resume\b))/i;
+export const TECHNICAL = /\b(?:pid|port|traceback|429|exception)\b|--[\w-]+|\b(?:api[_ -]?key|token|secret|password)\s*[:=]|\bbearer\s+|[\w.+-]+@[\w.-]+\.[a-z]{2,}|\b[a-z]:[\\/]|https?:\/\/|(?:^|\s)\/(?:[^\s/]+\/)*[^\s/]+|\b\d{1,3}(?:\.\d{1,3}){3}\b|\b(?:sk|ghp|gho|AIza)[-_][a-z0-9_-]{12,}/i;
+export const COMMAND = /(?:^|[;&|`:]|\b(?:run|execute|calistir)\s+)\s*(?:(?:python(?:w|3)?|powershell|pwsh|cmd|bash|sh|git|npm|npx|pip|curl|wget|node|java|dotnet|cargo|docker|ssh|cat|echo|rm|del|taskkill)(?:\s|$)|(?:codex|claude|gemini|opencode|omp)\s+(?:-\S+|exec\b|run\b|resume\b))/i;
+/** W2: kısa bildirim (toast) metni. Yol, adres, e-posta, bayrak ve sır parçaları
+ *  "…" ile maskelenir; komut ya da maskelenemeyen teknik ayrıntı kalırsa yerine
+ *  tek cümlelik sade metin gösterilir. Kullanıcı yazısı (kesme işareti) korunur. */
+export const BILDIRIM_GIZLI = "İşlem tamamlanamadı. Yeniden dene.";
+export function maskeleBildirim(value: unknown): string {
+  if (typeof value !== "string") return BILDIRIM_GIZLI;
+  let text = value.replace(/\x1b\[[0-?]*[ -/]*[@-~]/g, "").replace(/[\x00-\x1f\x7f]/g, " ").replace(/\s+/g, " ").trim();
+  if (!text) return BILDIRIM_GIZLI;
+  if (COMMAND.test(text)) return BILDIRIM_GIZLI;
+  if (!TECHNICAL.test(text)) return text;
+  text = text
+    .replace(/https?:\/\/\S+/gi, "…")
+    .replace(/\b[a-z]:[\\/][^\s,;"'’]*/gi, "…")
+    .replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s/]+/g, "$1…")
+    .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, "…")
+    .replace(/\b\d{1,3}(?:\.\d{1,3}){3}(?::\d+)?\b/g, "…")
+    .replace(/\b(?:sk|ghp|gho|AIza)[-_][a-z0-9_-]{12,}/gi, "…")
+    .replace(/(^|\s)--[\w-]+(?:=\S+)?/g, "$1")
+    .replace(/\s+/g, " ").trim();
+  return text && !TECHNICAL.test(text) && !COMMAND.test(text) ? text : BILDIRIM_GIZLI;
+}
 function object(value: unknown): Record<string, unknown> | null {
   return value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
