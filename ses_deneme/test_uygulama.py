@@ -15,7 +15,9 @@ class AdapterTests(unittest.TestCase):
             def generate(self, text, target, preset):
                 calls.extend([text, preset]); target.write_bytes(b'wave')
             def close(self): calls.append('closed')
-        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'Voice', Model):
+        # Model behavior requires an installed voice root. Missing installation
+        # has its own contract in tests/test_ses_paths.py and must stay fail-safe.
+        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice', Model):
             result = adapter.render({'text': 'Merhaba.\n```python\nprint(1)\n```', 'ses': 'sakin_dogal', 'filtre': 'sicak'}, Path(folder))
         self.assertTrue(result['ok'])
         self.assertIn('Kodu ekrana yazdım.', result['text'])
@@ -24,7 +26,7 @@ class AdapterTests(unittest.TestCase):
         self.assertEqual(calls[-2:], ['sicak', 'closed'])
 
     def test_failure_returns_safe_cleaned_fallback(self):
-        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'Voice', side_effect=RuntimeError('private path')):
+        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice', side_effect=RuntimeError('private path')):
             result = adapter.render({'text': 'Tamam.\n```\nsecret\n```', 'ses': 'notr', 'filtre': 'sicak'}, Path(folder))
         self.assertFalse(result['ok']); self.assertNotIn('secret', result['text'])
         self.assertNotIn('private', str(result))
@@ -36,7 +38,7 @@ class AdapterTests(unittest.TestCase):
             self.assertTrue(result['cancelled']); model.assert_not_called()
 
     def test_invalid_selection_does_not_silently_use_neutral_voice(self):
-        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'Voice') as model:
+        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice') as model:
             result = adapter.render({'text': 'Merhaba', 'ses': 'unknown', 'filtre': 'sicak'}, Path(folder))
             self.assertFalse(result['ok']); model.assert_not_called()
 

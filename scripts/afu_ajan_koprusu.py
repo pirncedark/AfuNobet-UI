@@ -108,14 +108,22 @@ def protokol_satiri(veri: dict, ajan: str | None = None, simdi_ms: int | None = 
     olay = olay_adi(veri)
     if olay is None:
         return None
-    ajan = _ajan_adi(ajan) or _ajan_adi(veri.get("ajan")) or "claude"
+    ajan = _ajan_adi(ajan) or _ajan_adi(_ilk(veri, "ajan", "agent")) or "claude"
+    params = veri.get("params")
+    params = params if isinstance(params, dict) else {}
+    turn = params.get("turn")
+    turn = turn if isinstance(turn, dict) else {}
+    if olay == "turn/completed" and turn.get("status") == "failed":
+        error = turn.get("error")
+        message = error.get("message", "") if isinstance(error, dict) else str(error or "")
+        olay = "rate_limit" if re.search(r"quota|rate.?limit|429|usage limit", message, re.I) else "error"
     arac = _ilk(veri, "tool_name", "toolName", "tool")
     gorev = _kisa(_ilk(veri, "prompt", "gorev"), MAX_GOREV) or _kisa(arac if isinstance(arac, str) else None, MAX_GOREV)
     satir: dict[str, Any] = {
         "surum": 1,
         "ajan": ajan,
         "olay": olay,
-        "oturum": _oturum(_ilk(veri, "session_id", "sessionId", "oturum", "thread-id", "thread_id", "threadId")),
+        "oturum": _oturum(_ilk(veri, "session_id", "sessionId", "oturum", "thread-id", "thread_id", "threadId") or _ilk(params, "threadId", "thread_id")),
         "gorev": gorev,
         "zaman": simdi_ms if simdi_ms is not None else int(time.time() * 1000),
     }
@@ -235,6 +243,7 @@ GUVENLIK = "Güvenlik ayarı değişikliği onaylansın mı?"
 _B = r"[^;&|\n]*"  # aynı komut parçası içinde
 _I = re.IGNORECASE
 RISKLI_KALIPLAR: list[tuple[re.Pattern, str]] = [
+    (re.compile(r"\b(?:rm|Remove-Item|ri|rmdir|rd|del|erase)\b\s+\S+", _I), SILME),
     (re.compile(r"\brm\b" + _B + r"\s(?:-[A-Za-z]*[rR][A-Za-z]*|--recursive)\b"), SILME),
     (re.compile(r"\b(?:Remove-Item|ri|rm|rmdir|rd|del|erase)\b" + _B + r"\s-r(?:ecurse|ecurs|ecur|ecu|ec|e)?\b", _I), SILME),
     (re.compile(r"\b(?:del|erase|rmdir|rd)\b" + _B + r"\s/s\b", _I), SILME),
@@ -301,9 +310,9 @@ def kanca_karari(olay: str, karar: str, neden: str) -> dict:
 
 
 def onay_iste(veri: dict, ajan: str, baslik: str, boru: str, sure_sn: float, zaman_asimi: float = ZAMAN_ASIMI,
-              depo: SoruDeposu | None = None) -> tuple[str, str]:
+              depo: SoruDeposu | None = None, *, baglanti_dogrulandi: bool = False) -> tuple[str, str]:
     """Adaya soru kartı açar, cevabı bekler. Dönüş: (karar, neden) — allow/deny/ask."""
-    if not afu_acik_mi(boru):
+    if not baglanti_dogrulandi and not afu_acik_mi(boru):
         return "ask", "AFU kapalı; onayı burada ver."
     depo = depo or SoruDeposu(varsayilan_kok())
     simdi = depo.simdi_ms()
@@ -409,7 +418,13 @@ def calis(argv: list[str] | None = None) -> None:
                 _stdout(kanca_karari(satir["olay"], "ask", "AFU kapalı; onayı burada ver."))
                 return
             gonder(json.dumps(satir, ensure_ascii=False), boru, zaman_asimi)
-            karar, neden = onay_iste(veri, satir["ajan"], baslik or GERI_ALINAMAZ, boru, args.onay_sure, zaman_asimi)
+            try:
+                # The first event can briefly consume the last pipe instance;
+                # its server creates the next one while processing that event.
+                karar, neden = onay_iste(veri, satir["ajan"], baslik or GERI_ALINAMAZ, boru, args.onay_sure, zaman_asimi,
+                                        baglanti_dogrulandi=True)
+            except Exception:  # Storage failure must never approve a risky operation.
+                karar, neden = "deny", "Onay kaydedilemedi; yeniden dene."
             _stdout(kanca_karari(satir["olay"], karar, neden))
             return
     gonder(json.dumps(satir, ensure_ascii=False), boru, zaman_asimi)

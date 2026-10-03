@@ -18,9 +18,12 @@ def test_feature_source_regression_contract(index):
     source_path, required, behavioral_proof = mapping.CONTRACTS[index]
     source = (ROOT / source_path).read_text(encoding="utf-8-sig")
     for token in required:
-        assert token in source, f"{FEATURES[index-1]['name']}: contract missing: {token}"
+        assert mapping.source_contract_contains(source, token), f"{FEATURES[index-1]['name']}: contract missing: {token}"
     candidates = [ROOT / "windows/tests" / behavioral_proof,
                   ROOT / "tests" / behavioral_proof, EVIDENCE / behavioral_proof]
+    # Recovery pins current sources separately without rewriting R1 evidence.
+    if behavioral_proof == "source_hashes.json":
+        candidates.append(ROOT / "docs/kanit/kurtarma_source_hashes.json")
     assert any(p.is_file() for p in candidates), f"Behavioral proof not found: {behavioral_proof}"
 
 
