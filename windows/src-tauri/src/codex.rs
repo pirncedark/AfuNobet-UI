@@ -183,6 +183,7 @@ pub fn disabled_tool_config(response: &Value) -> Result<Value, CodexHata> {
     for source in sources {
         for (field, output) in [("mcp_servers", &mut mcp), ("apps", &mut apps)] {
             if let Some(value) = source.get(field) {
+                if value.is_null() { continue; }
                 let table = value.as_object().ok_or(CodexHata::Protokol)?;
                 for (name, value) in table {
                     if name.is_empty()
@@ -588,10 +589,29 @@ impl Drop for CodexBridge {
         self.shutdown();
     }
 }
-
+#[cfg(test)]
+#[ignore]
+#[test]
+fn gercek_codex() {
+    // Gerçek ChatGPT girişiyle uçtan uca: durum + ayar + gönderim (kota harcar; elle koş).
+    let bridge = CodexBridge::start_with_callback(std::sync::Arc::new(|_| {})).expect("kopru baslamadi");
+    let status = bridge.status().expect("durum okunamadi");
+    assert!(status.logged_in, "ChatGPT girisi yok");
+    let cwd = std::env::current_dir().unwrap().canonicalize().unwrap();
+    let effective = bridge.request("config/read", json!({"includeLayers":true,"cwd":cwd})).expect("config/read");
+    disabled_tool_config(&effective).expect("null apps/mcp_servers ayari reddedilmemeli");
+    bridge.send("Merhaba, tek cümleyle cevap ver", &[], &cwd).expect("gonderim");
+}
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn null_apps_or_mcp_servers_do_not_block_sending() {
+        // Gerçek config/read cevabında "apps": null geliyor; eskiden Protokol hatasıyla her gönderim düşüyordu.
+        let cevap = json!({"config":{"apps":null,"mcp_servers":{"fetch":{"enabled":true}}},"layers":[{"config":{"apps":null,"mcp_servers":null}}]});
+        let config = disabled_tool_config(&cevap).expect("null tablo kabul edilmeli");
+        assert_eq!(config["mcp_servers"]["fetch"]["enabled"], json!(false));
+    }
     #[test]
     fn shutdown_is_explicit_idempotent_even_when_arc_clone_survives() {
         let pending: Pending = Arc::new(Mutex::new(HashMap::new()));

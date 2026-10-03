@@ -130,7 +130,7 @@ test("giriş tamamlanınca dinler ve Codex yanıtı tamamlandıktan sonra konuş
  const v=new ChatView(a,()=>"bağlam",s);await v.refresh();
  (v.mainVoiceBtn as unknown as Element).click();await Promise.resolve();
  expect(a.codexLogin).toHaveBeenCalledOnce();expect(s.voiceListenTurn).not.toHaveBeenCalled();
- status="hazir";await v.refresh();await vi.waitFor(()=>expect(a.codexSend).toHaveBeenCalledWith("bağlam\n\nMerhaba",[]));
+ status="hazir";await v.refresh();await vi.waitFor(()=>expect(a.codexSend).toHaveBeenCalledWith("bağlam\n\nMerhaba\n\n(Lütfen çok kısa yanıt ver: 1-3 cümle, Türkçe, konuşma dili. Yalnızca yanıtı yaz.)",[]));
  expect(s.voiceResponse).not.toHaveBeenCalled();
  v.onEvent({method:"turn/started",params:{threadId:"t",turn:{id:"1"}}});
  v.onEvent({method:"item/agentMessage/delta",params:{threadId:"t",turnId:"1",delta:"Selam"}});

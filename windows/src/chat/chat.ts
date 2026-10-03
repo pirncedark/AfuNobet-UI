@@ -28,13 +28,14 @@ export class ChatModel {
   return false;
  }
 }
-export interface ChatActions {
- codexStatus():Promise<string|{status:string}>;codexSend(text:string,attachments:string[]):Promise<unknown>;
- codexCancel():Promise<unknown>;codexLogin():Promise<unknown>;codexLoginCancel():Promise<unknown>;
- codexInstall():Promise<unknown>;
-}
+ export interface ChatActions {
+  codexStatus():Promise<string|{status:string, rateLimits?:any}>;codexSend(text:string,attachments:string[]):Promise<unknown>;
+  codexCancel():Promise<unknown>;codexLogin():Promise<unknown>;codexLoginCancel():Promise<unknown>;
+  codexInstall():Promise<unknown>;
+ }
 export class ChatView {
- readonly mainVoiceBtn=h("button",{class:"primary-button",text:"🎙 Sesli sohbeti başlat"});
+  readonly mainVoiceBtn=h("button",{class:"primary-button",text:"🎙 Konuş"});
+  readonly endVoiceBtn=h("button",{class:"text-button",text:"Bitir",hidden:true});
  readonly conversationStatus=h("p",{class:"chat-status","aria-live":"polite"});
  readonly conversationList=h("div",{class:"chat-history","aria-live":"polite",style:"white-space:pre-wrap"});
  readonly conversation?:SurekliSohbet;
@@ -45,7 +46,7 @@ export class ChatView {
  readonly model=new ChatModel();readonly element:HTMLElement;
  readonly input=h("textarea",{class:"chat-input","aria-label":"Mesaj",placeholder:"Nasıl yardımcı olayım?",rows:3,maxlength:8000});
  readonly answer=h("p",{class:"chat-answer","aria-live":"polite"});readonly message=h("p",{class:"chat-status","aria-live":"polite"});
- readonly sendButton=h("button",{class:"primary-button",text:"Gönder"});readonly loginButton=h("button",{class:"text-button",text:"Codex'e giriş yap"});
+  readonly sendButton=h("button",{class:"primary-button",text:"Gönder"});readonly loginButton=h("button",{class:"primary-button",text:"ChatGPT ile giriş yap"});
  readonly logoutButton=h("button",{class:"text-button",text:"Çıkış yap"});
 /** Q2: sohbetin "Daha fazla" katmanı kapatma yolu. */
   readonly advancedClose=kapatDugmesi("text-button chat-advanced-close","Kapat",()=>this.closeAdvanced());
@@ -58,18 +59,17 @@ export class ChatView {
  readonly micButton?:HTMLButtonElement;readonly voiceHint=h("p",{class:"chat-status",hidden:true});private windowsRecognition=false;
  readonly voice?:VoiceController;readonly notifications?:VoiceService;private statusTicket=0;private ready=false;private loginPending=false;private active=true;
  private blur=()=>{if(this.voiceLogin&&this.loginPending)return;void this.suspend();};
- constructor(private actions:ChatActions,private context:()=>string=()=>"",voiceActions?:VoiceActions){
-  this.element=h("div",{class:"chat-panel"},h("h1",{text:"Asistan"}),this.message,this.answer,this.attachments,this.input,h("div",{class:"chat-actions"},this.loginButton,this.cancelButton,this.sendButton),this.advancedMenu);
-  this.sendButton.addEventListener("click",()=>{void this.send();});this.input.addEventListener("input",()=>this.render());
-  this.input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!this.sendButton.disabled)void this.send();}});
-  this.loginButton.addEventListener("click",()=>{void this.login();});this.cancelButton.addEventListener("click",()=>{void this.cancel();});
-  this.logoutButton.addEventListener("click",()=>{void this.actions.codexLoginCancel().finally(()=>{void this.refresh();});});
-   // Q2: Esc kapatır, dışarı tıklama kapatır, odak ilk düğmeye girer ve kapanınca
-   // "Daha fazla" başlığına döner; Tab katmanın içinde kalır.
+  constructor(private actions:ChatActions,private context:()=>string=()=>"",voiceActions?:VoiceActions){
+   this.element=h("div",{class:"chat-panel"},h("h1",{text:"Asistan"}),this.message,this.answer,this.attachments,this.input,h("div",{class:"chat-actions"},this.loginButton,this.cancelButton,this.sendButton),this.advancedMenu);
+   this.sendButton.addEventListener("click",()=>{void this.send();});this.input.addEventListener("input",()=>this.render());
+   this.input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!this.sendButton.disabled)void this.send();}});
+   this.loginButton.addEventListener("click",()=>{void this.login();});this.cancelButton.addEventListener("click",()=>{void this.cancel();});
+   this.logoutButton.addEventListener("click",()=>{void this.actions.codexLoginCancel().finally(()=>{void this.refresh();});});
    this.advancedKatmani=new Katman(this.advancedMenu,()=>this.closeAdvanced());
-  this.advancedMenu.addEventListener("toggle",()=>this.syncAdvanced());
-  this.element.append(this.conversationList,this.mainVoiceBtn,this.conversationStatus);
-  this.mainVoiceBtn.addEventListener("click",()=>{void this.toggleConversation().catch(()=>{this.message.textContent="Sesli sohbet başlatılamadı; yeniden dene.";this.render();});});
+   this.advancedMenu.addEventListener("toggle",()=>this.syncAdvanced());
+   this.element.append(this.conversationList,this.mainVoiceBtn,this.endVoiceBtn,this.conversationStatus);
+   this.mainVoiceBtn.addEventListener("click",()=>{void this.toggleConversation().catch(()=>{this.message.textContent="Sesli sohbet başlatılamadı; yeniden dene.";this.render();});});
+   this.endVoiceBtn.addEventListener("click",()=>{void this.stopConversation();});
   if(voiceActions?.voiceListenTurn){
    this.conversation=new SurekliSohbet(voiceActions,{send:text=>this.sendVoiceTurn(text)},()=>{
     if(this.conversation?.message)this.message.textContent=this.conversation.message;
@@ -102,12 +102,25 @@ export class ChatView {
   }
   if(typeof window!=="undefined")window.addEventListener("blur",this.blur);this.render();
  }
- async refresh(){const ticket=++this.statusTicket;try{const raw=await this.actions.codexStatus();if(ticket!==this.statusTicket||!this.active)return;const status=typeof raw==="string"?raw:raw.status;this.ready=status==="hazir";this.message.textContent=this.ready?"Codex: bağlı (ChatGPT hesabı)":status==="oturum_yok"?"Codex: giriş yapılmadı":"Codex hazır değil; yeniden kontrol et.";if(this.ready){this.clearLoginPoll();this.loginPending=false;if(this.voiceLogin){this.voiceLogin=false;void this.conversation?.baslat();}}}catch(err){if(ticket!==this.statusTicket||!this.active)return;this.ready=false;const reason=err instanceof Error?err.message:String(err);if(reason==="Codex bulunamadı."){this.message.textContent="";this.message.append(document.createTextNode("Codex kurulu değil. "),(() => {const b=h("button",{class:"text-button",text:"Kurmak için dokun.",style:"padding:0;text-decoration:underline;background:transparent;color:inherit;font:inherit;"});b.addEventListener("click",()=>{void this.actions.codexInstall();});return b;})());}else{this.message.textContent="Asistana bağlanılamadı; yeniden dene.";}}this.render();}
+  async refresh(){const ticket=++this.statusTicket;try{const raw=await this.actions.codexStatus();if(ticket!==this.statusTicket||!this.active)return;const status=typeof raw==="string"?raw:raw.status;this.ready=status==="hazir";
+   let limitMessage = "";
+   if (this.ready && typeof raw === "object" && raw.rateLimits) {
+    const primary = raw.rateLimits.primary;
+    if (primary && primary.usedPercent >= 100 && primary.resetsAt) {
+     const date = new Date(primary.resetsAt * 1000);
+     const timeStr = date.toLocaleTimeString("tr-TR", {hour:"2-digit", minute:"2-digit"});
+     limitMessage = `GPT bugünlük doldu; ${timeStr}'de açılır.`;
+     this.ready = false;
+    }
+   }
+   this.message.textContent=limitMessage ? limitMessage : this.ready?"GPT'ye bağlı (ChatGPT hesabı)":status==="oturum_yok"?"Giriş gerekli → Giriş yap":"Codex hazır değil; yeniden kontrol et.";
+   if(this.ready){this.clearLoginPoll();this.loginPending=false;if(this.voiceLogin){this.voiceLogin=false;void this.conversation?.baslat();}}}catch(err){if(ticket!==this.statusTicket||!this.active)return;this.ready=false;const reason=err instanceof Error?err.message:String(err);if(reason==="Codex bulunamadı."){this.message.textContent="";this.message.append(document.createTextNode("Codex kurulu değil. "),(() => {const b=h("button",{class:"text-button",text:"Kurmak için dokun.",style:"padding:0;text-decoration:underline;background:transparent;color:inherit;font:inherit;"});b.addEventListener("click",()=>{void this.actions.codexInstall();});return b;})());}else{this.message.textContent="Asistana bağlanılamadı; yeniden dene.";}}this.render();}
  attach(paths:string[]){if(!this.ready){this.message.textContent="Codex oturumu açık değil; dosya eklenemez.";this.render();return;}this.model.attach(paths);this.message.textContent=paths.length===1?"Dosya sohbete eklendi.":"Dosyalar sohbete eklendi.";this.render();}
  onEvent(e:{method:string;params:unknown}){
   const wasBusy=this.model.busy;
   const completed=this.model.append(e.method,e.params);
   if(wasBusy&&!this.model.busy&&this.pendingReply){
+   console.log("resolving pendingReply! completed:", completed, "error:", this.model.error, "text:", this.model.text);
    const pending=this.pendingReply;this.pendingReply=null;
    if(completed&&!this.model.error){this.addHistory("Afu",this.model.text);pending.resolve(this.model.text);}
    else pending.reject(new Error("Chat failed"));
@@ -132,8 +145,10 @@ export class ChatView {
   void this.conversation.baslat();
  }
  private async sendVoiceTurn(text:string):Promise<string>{
+  console.log("sendVoiceTurn called with:", text);
   if(!this.active||!this.ready||this.model.busy)throw new Error("Chat unavailable");
-  this.input.value=text;this.addHistory("Sen",text);
+  this.input.value=text + "\n\n(Lütfen çok kısa yanıt ver: 1-3 cümle, Türkçe, konuşma dili. Yalnızca yanıtı yaz.)";
+  this.addHistory("Sen",text);
   const reply=new Promise<string>((resolve,reject)=>{this.pendingReply={resolve,reject};});
   // Attach the failure handler before codexSend can reject or complete synchronously.
   const sending=this.send(true).then(()=>{
@@ -162,10 +177,24 @@ export class ChatView {
  closeAdvanced(){this.advancedMenu.open=false;this.advancedKatmani.kapandı();}
  private render(){
   const live=this.conversation?.active??false;
-  this.mainVoiceBtn.textContent=live||this.voiceLogin?"Bitir":"🎙 Sesli sohbeti başlat";
-  this.mainVoiceBtn.disabled=this.voiceStopping||(!live&&!this.voiceLogin&&this.model.busy);
-  this.conversationStatus.textContent=live?({listening:"Dinliyor…",thinking:"Düşünüyor…",speaking:"Konuşuyor…",idle:""}[this.conversation!.state]):"";
-  const help=this.conversation?.help??this.voice?.help;this.voiceHelpButton.hidden=!this.active||!help||!this.canOpenVoiceSettings;this.voiceHelpButton.textContent=help?.label??"";if(this.responseButton&&this.responses){this.responseButton.textContent=`Sesli yanıt ${this.responses.enabled?"açık":"kapalı"}`;this.responseButton.setAttribute("aria-checked",String(this.responses.enabled));}this.onVoiceState?.(live?this.conversation!.state:this.voice?.state!==undefined&&this.voice.state!=="idle"?this.voice.state:this.responses?.speaking?"speaking":this.model.busy?"working":"idle");const cevap=clipBlock(this.model.text,1200);this.answer.textContent=cevap.text;this.answer.title=cevap.title;if(this.model.error)this.message.textContent=this.model.error;this.sendButton.className=this.conversation?"text-button":"primary-button";this.sendButton.disabled=live||!this.ready||this.model.busy||(!this.input.value?.trim()&&!this.model.attachments.length);this.loginButton.hidden=this.ready;this.advancedMenu.hidden=this.choosingVoice||!this.ready;this.cancelButton.hidden=live||(!this.model.busy&&!this.loginPending&&!this.voice?.active&&!this.responses?.speaking);if(this.micButton){this.micButton.hidden=this.choosingVoice||live;this.micButton.classList.toggle("listening",this.voice?.state==="listening");}}
+  const help=this.conversation?.help??this.voice?.help;
+  this.voiceHelpButton.hidden=!this.active||!help||!this.canOpenVoiceSettings;this.voiceHelpButton.textContent=help?.label??"";
+  if(this.responseButton&&this.responses){this.responseButton.textContent=`Sesli yanıt ${this.responses.enabled?"açık":"kapalı"}`;this.responseButton.setAttribute("aria-checked",String(this.responses.enabled));}
+  this.onVoiceState?.(live?this.conversation!.state:this.voice?.state!==undefined&&this.voice.state!=="idle"?this.voice.state:this.responses?.speaking?"speaking":this.model.busy?"working":"idle");
+  const cevap=clipBlock(this.model.text,1200);this.answer.textContent=cevap.text;this.answer.title=cevap.title;
+  if(this.model.error)this.message.textContent=this.model.error;
+  this.sendButton.className=this.conversation?"text-button":"primary-button";
+  this.sendButton.disabled=live||!this.ready||this.model.busy||(!this.input.value?.trim()&&!this.model.attachments.length);
+  this.loginButton.hidden=this.ready || this.message.textContent?.includes("doldu")===true;
+  this.advancedMenu.hidden=true;
+  this.cancelButton.hidden=live||(!this.model.busy&&!this.loginPending&&!this.voice?.active&&!this.responses?.speaking);
+  if(this.micButton) this.micButton.hidden=true;
+  if(this.voicePicker) this.voicePicker.element.hidden=true;
+  this.input.hidden = live;
+  this.mainVoiceBtn.hidden = live || !this.ready;
+  this.endVoiceBtn.hidden = !live;
+  this.conversationStatus.textContent=live?({listening:"Dinliyor…",thinking:"Düşünüyor…",speaking:"Konuşuyor…",idle:""}[this.conversation!.state]||""):"";
+ }
  async suspend(){this.voiceLogin=false;const conversation=this.stopConversation();this.closeAdvanced();this.responseAllowed=false;this.choosingVoice=false;this.voicePicker?.hide();const speech=this.responses?.cancel().catch(()=>{this.message.textContent="Ses durdurulamadı; yeniden dene.";});await this.voice?.cancel();await speech;await conversation;}
  private clearLoginPoll(){if(this.loginPoll!==null){clearInterval(this.loginPoll);this.loginPoll=null;}}
  async detach(){this.clearLoginPoll();this.loginPending=false;this.active=false;this.voicePicker?.detach();this.statusTicket++;if(typeof window!=="undefined")window.removeEventListener("blur",this.blur);await this.suspend();await this.notifications?.silence();}

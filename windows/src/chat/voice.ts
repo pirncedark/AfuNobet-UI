@@ -195,7 +195,7 @@ export class SurekliSohbet {
     reply = await this.chat.send(text);
    } catch (error) {
     if (ticket !== this.generation) return;
-    this.message = "Sohbet hatası; yeniden dene.";
+    this.message = "GPT'ye ulaşılamadı; yeniden dene.";
     this.state = "idle";
     this.changed();
     return;
