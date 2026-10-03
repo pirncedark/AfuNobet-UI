@@ -232,7 +232,12 @@ footer .text-button{padding:6px 5px}
 
 .more-menu .menu-item{font-size:10px}
 footer .page-button{font-size:10px}
-.health-strip{display:flex;gap:4px;margin-top:auto;justify-content:center}
+.health-strip{display:flex;flex-shrink:0;gap:4px;margin-top:6px;justify-content:center}
+.stage-bar{display:flex;flex-wrap:wrap;gap:4px;list-style:none;margin:5px 0 0;padding:0;font-size:12px;line-height:1.4}
+.stage-bar .stage{min-width:0;max-width:100%;overflow-wrap:anywhere;padding:2px 5px;border-radius:5px;background:#ffffff09;color:#a1b4d0}
+.stage-bar .current{background:#26405e;color:#edf5ff;font-weight:600}
+.stage-bar .done{color:#7dd9ae}
+.main-task:has(.stage-bar){height:auto;min-height:96px;padding-bottom:8px}
 .health-pill{font-size:9px;padding:2px 6px;border-radius:4px;background:#ffffff11;color:#a1b4d0}
 .health-pill.ok{background:#1a4d2e;color:#7dd9ae}
 .health-pill.kapali{background:#4d1a1a;color:#d97d7d}

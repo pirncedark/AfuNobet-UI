@@ -19,18 +19,19 @@
    balonu olarak durur. `#afu-pet` `overflow:hidden` olduğu için balon ayrı bir
    kutuya (pet kutusu + balon şeridi) çizilir; konumu core/layout.ts
    (PET_BALON_TABAN/PET_BALON_YUKSEKLIK) ile Rust tarafında aynı sayıdır. */
-#afu-pet-balon{position:absolute;left:50%;bottom:270px;max-width:280px;height:auto;min-height:60px;max-height:300px;transform:translateX(-50%);pointer-events:none;z-index:12}
+#afu-pet-balon{position:absolute;left:50%;bottom:270px;width:calc(100% - 12px);max-width:280px;height:auto;min-height:60px;max-height:300px;transform:translateX(-50%);pointer-events:none;z-index:12}
 #afu-pet-balon:empty{display:none}
-#afu-pet-balon>.afu-konusma-balonu{position:relative;top:auto;left:auto;right:auto;width:100%;overflow:auto;pointer-events:auto;border-width:2px;margin:0}
-.afu-balon-etiket{display:block;font-size:11px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:#ffd97a;opacity:.9;padding-right:20px}
+#afu-pet-balon>.afu-konusma-balonu{display:block;position:relative;top:auto;left:auto;right:auto;width:100%;overflow:auto;pointer-events:auto;border-width:2px;margin:0}
+.afu-balon-etiket{display:block;min-height:26px;font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:#ffd97a;opacity:.9;padding-right:58px}
 .afu-balon-metin{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere;padding-right:16px}
 .afu-balon-ek{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:bold;color:#ffd97a;background:#0f1e30cc;border-radius:8px;padding:0 5px}
-.afu-balon-kapat{position:absolute;right:2px;top:1px;width:18px;height:18px;line-height:16px;text-align:center;border-radius:9px;font-size:13px;color:#cfe2f7;background:#0f1e30cc;cursor:pointer}
+.afu-balon-kapat{position:absolute;right:4px;top:3px;min-width:54px;padding:3px 5px;line-height:18px;text-align:center;border-radius:7px;font-size:12px;color:#cfe2f7;background:#0f1e30cc;cursor:pointer}
 .afu-balon-kapat:hover{background:#26405e}
 /* Kuyruk: başın üstündeki balonun ucu karakterin başına bakar. */
-#afu-pet-balon>.afu-konusma-balonu::after{content:"";position:absolute;left:50%;bottom:-11px;width:0;height:0;margin-left:-8px;border:9px solid transparent;border-top-color:#2c4f74;border-bottom:0;filter:drop-shadow(0 1px 0 #0006)}
+#afu-pet-balon .afu-konusma-balonu::after{content:"";position:absolute;left:50%;bottom:-10px;width:0;height:0;margin-left:-8px;border:9px solid transparent;border-top-color:#659dd5;border-bottom:0;filter:drop-shadow(0 1px 0 #0006)}
 /* P10 kesme: ekranın üstü yetmezse pet penceresi tepeden kırpılır; balon kutusu
    kalan yer kadar kısalır, kuyruk ucu karakterin başına bağlı kalır. Yükseklik
    island.ts `petBalonKutusu()` ile `--pet-balon-h` üzerinden verilir. */
 #afu-pet-balon{height:var(--pet-balon-h,auto);max-height:var(--pet-balon-h,300px)}
-#afu-pet-balon>.afu-konusma-balonu{overflow:auto;max-height:calc(var(--pet-balon-h,300px) - 10px)}
+#afu-pet-balon .afu-konusma-balonu{overflow:visible;max-height:calc(var(--pet-balon-h,300px) - 10px)}
+#afu-pet-balon .afu-balon-metin{max-height:calc(var(--pet-balon-h,300px) - 54px);overflow:auto}

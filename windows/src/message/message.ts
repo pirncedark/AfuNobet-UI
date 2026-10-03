@@ -141,6 +141,12 @@ export class BalonKuyrugu {
     this.mevcut = null; this.tick(Date.now());
     return true;
   }
+  /** Ayrıntısı okunan mesajı kimliğiyle düşür; sıradaki mesajı koru. */
+  okundu(id: string) {
+    this.bekleyen = this.bekleyen.filter(m => m.id !== id);
+    if (this.mevcut?.id === id) this.mevcut = null;
+    this.tick(Date.now());
+  }
   /** Zaman ölçümü YOK: otomatik kapanma kaldırıldı, `_now` yalnız imza uyumu. */
   tick(_now: number) {
     if (!this.gosteriliyor) return;
@@ -232,7 +238,7 @@ export function balonOlustur(
   if (kapat) {
     const k = belge.createElement("span"); k.className = "afu-balon-kapat";
     k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");
-    k.setAttribute("aria-label", "Mesajı kapat"); k.textContent = "×";
+    k.setAttribute("aria-label", "Mesajı kapat (Okudum)"); k.textContent = "Okudum";
     k.addEventListener("pointerdown", ev => ev.stopPropagation());
     k.addEventListener("click", ev => { ev.stopPropagation(); kapat(); });
     k.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); kapat(); } });
@@ -246,7 +252,7 @@ export function balonOlustur(
       if (hedef && typeof hedef.closest === "function" && hedef.closest(".afu-balon-kapat")) return;
       ac(mesaj);
     });
-    e.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); ac(mesaj); } });
+    e.addEventListener("keydown", ev => { if (ev.target === e && (ev.key === "Enter" || ev.key === " ")) { ev.preventDefault(); ev.stopPropagation(); ac(mesaj); } });
   }
   return e;
 }
@@ -348,8 +354,8 @@ export class KonusanAfu {
   private modGorunur = false;
   private uygulaGorunurluk() { this.model.gorunur(this.modGorunur && !this.askida, Date.now()); }
   ekle(m: Mesaj) { if (this.onMessage) { this.onMessage(m); return; } this.model.ekle(m, Date.now()); this.ciz(); }
-  /** Balona tıklayınca tam metin kartta açılır ve balon kapanır (P11). */
-  private balonaTiklandi(m: Mesaj) { this.tamMetin(m); this.kapat(); }
+  /** Tam metni açmak mesajı okundu saymaz; kullanıcı Okudum ile bitirir. */
+  private balonaTiklandi(m: Mesaj) { this.tamMetin(m); }
   private tamMetin(m: Mesaj) {
     this.detay.replaceChildren();
     const yazi = bolunBaslik(m.metin);
@@ -365,8 +371,13 @@ export class KonusanAfu {
     metin.style.whiteSpace = "pre-wrap";
     metin.textContent = bicim.ayrinti || yazi.govde || m.metin;
 
-    const kapat = document.createElement("button"); kapat.textContent = "Kapat";
-    kapat.addEventListener("click", () => { this.detay.hidden = true; });
+    const hariciKapat = this.hariciMesaj?.id === m.id ? this.hariciKapatCallback : undefined;
+    const kapat = document.createElement("button"); kapat.textContent = "Okudum";
+    kapat.addEventListener("click", () => {
+      this.detay.hidden = true;
+      if (hariciKapat) hariciKapat();
+      else { this.model.okundu(m.id); this.ciz(); }
+    });
     this.detay.append(baslik, ayrintiBaslik, metin, kapat); this.detay.hidden = false; this.ac();
   }
   setHarici(mesaj: Mesaj | null, kapat?: () => void) {

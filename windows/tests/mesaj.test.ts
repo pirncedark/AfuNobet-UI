@@ -79,7 +79,7 @@ describe("Konuşan Afu", () => {
     let kapandi = 0;
     balonOlustur(belge as any, mesaj("a"), () => {}, () => { kapandi++; }, 3);
     const kapat = olusan.find(e => e.className === "afu-balon-kapat");
-    expect(kapat.textContent).toBe("×");
+    expect(kapat.textContent).toBe("Okudum");
     kapat.handlers.click({ stopPropagation() {} });
     expect(kapandi).toBe(1);
     const rozet = olusan.find(e => e.className === "afu-balon-ek");

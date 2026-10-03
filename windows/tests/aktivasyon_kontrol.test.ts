@@ -258,7 +258,7 @@ describe("konuşma balonu", () => {
     const rozet = el(balon).find("afu-balon-ek");
     expect(rozet?.textContent).toBe("+2 mesaj");
     const kapat = el(balon).find("afu-balon-kapat");
-    expect(kapat?.textContent).toBe("×");
+    expect(kapat?.textContent).toBe("Okudum");
     kapat!.click();
     expect(kapandi).toBe(1);
   });
