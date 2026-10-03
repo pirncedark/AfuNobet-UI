@@ -26,6 +26,10 @@ pub fn onizle(path: &Path, command: &str, kur: bool) -> Result<Degisiklik, Strin
     Ok(Degisiklik { once, sonra })
 }
 pub fn uygula(path: &Path, degisiklik: &Degisiklik) -> Result<String, String> {
+    let document: Value = serde_json::from_str(&degisiklik.sonra).map_err(|_| hata())?;
+    if !document.is_object() {
+        return Err(hata());
+    }
     let parent=path.parent().ok_or_else(hata)?; fs::create_dir_all(parent).map_err(|_| hata())?;
     // A sibling lock prevents simultaneous AFU installers; old diff cannot overwrite new edits.
     let lock_path=path.with_extension("afu-lock");
@@ -68,5 +72,3 @@ pub fn hook_uygula(app:tauri::AppHandle,command:String,kur:bool,once:String)->Re
     if plan.once!=once {return Err("Ayarlar değişmiş; önizlemeyi yeniden aç.".into());}
     uygula(&path,&plan)
 }
-#[tauri::command]
-pub fn hook_onizle(

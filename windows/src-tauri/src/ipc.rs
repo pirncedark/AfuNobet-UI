@@ -139,7 +139,7 @@ pub fn ayni_kullanici(pid: u32) -> bool {
 struct Guvenlik {
     tanim: PSECURITY_DESCRIPTOR,
 }
-impl Olay {
+impl Guvenlik {
     fn yeni() -> Option<Self> {
         let sid = kendi_sid()?;
         let mut tanim = PSECURITY_DESCRIPTOR::default();
@@ -176,6 +176,27 @@ fn boru_ac(ad: &str, guvenlik: &Guvenlik, ilk: bool) -> Option<Tutamak> {
         // Aynı adı önceden açmış sahte bir boru varsa açılmaz (ad kapma).
         bayrak |= FILE_FLAG_FIRST_PIPE_INSTANCE;
     }
+    let nitelik = guvenlik.nitelik();
+    let h = unsafe {
+        CreateNamedPipeW(
+            &HSTRING::from(ad),
+            bayrak,
+            PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT | PIPE_REJECT_REMOTE_CLIENTS,
+            PIPE_UNLIMITED_INSTANCES,
+            16_384,
+            16_384,
+            0,
+            Some(&nitelik),
+        )
+    };
+    (!h.is_invalid()).then_some(Tutamak(h))
+}
+
+struct Olay(Tutamak);
+impl Olay {
+    fn yeni() -> Option<Self> {
+        unsafe { CreateEventW(None, true, false, None).ok().map(|h| Self(Tutamak(h))) }
+    }
 }
 
 enum Bekle {
@@ -204,12 +225,6 @@ fn bekle(boru: HANDLE, ov: &mut OVERLAPPED, sonuc: windows::core::Result<()>, ms
         Ok(()) => Bekle::Tamam(n),
         Err(_) => Bekle::Hata,
     }
-}
-
-fn yaz(boru: HANDLE, olay: &Olay, veri: &[u8], ms: u32) -> bool {
-    let mut ov = OVERLAPPED { hEvent: olay.0 .0, ..Default::default() };
-    let sonuc = unsafe { WriteFile(boru, Some(veri), None, Some(&mut ov)) };
-    matches!(bekle(boru, &mut ov, sonuc, ms), Bekle::Tamam(n) if n as usize == veri.len())
 }
 
 fn yaz(boru: HANDLE, olay: &Olay, veri: &[u8], ms: u32) -> bool {
@@ -262,8 +277,8 @@ fn baglanti(boru: Tutamak, sinir: Sinirlar, isle: Isleyici) {
             let metin = metin.trim();
             if metin.is_empty() {
                 continue;
-        unsafe {
-            // YASAK: FlushFileBuffers(self.0) — istemci okumazsa sonsuza dek bekler.
+            }
+            if !yaz(boru.0, &olay, &cevap(isle(metin)), sinir.bosta_ms) {
                 return;
             }
         }
@@ -289,19 +304,6 @@ pub struct Sunucu {
     is: Option<std::thread::JoinHandle<()>>,
     pub hazir: Arc<AtomicBool>,
     pub yeniden_kurulum: Arc<AtomicUsize>,
-}
-impl Sunucu {
-    pub fn durdur(mut self) {
-        self.dur.store(true, Ordering::Release);
-        if let Some(is) = self.is.take() {
-            let _ = is.join();
-        }
-    }
-}
-impl Drop for Sunucu {
-    fn drop(&mut self) {
-        self.dur.store(true, Ordering::Release);
-    }
 }
 impl Sunucu {
     pub fn durdur(mut self) {
