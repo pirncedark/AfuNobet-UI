@@ -18,7 +18,7 @@ export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "mutlu": [{ kare: "durum/gulumseme", ms: 500 }],
   "basari": [{ kare: "durum/basari", ms: 500 }],
   "uyku": [{ kare: "durum/uyku_masa", ms: 500 }, { kare: "tepki_uyku", ms: Infinity }],
-  "yuzme": [{ kare: "durum/inis_oturma", ms: 500 }],
+  "yuzme": [{ kare: "uyan_yuzme", ms: 500 }],
   "etkilesim": [{ kare: "durum/inis", ms: 500 }],
   "surukleme": [{ kare: "akis_suzulme", ms: Infinity }],
   "geri_donus": [{ kare: "akis_suzulme", ms: Infinity }],
@@ -34,7 +34,7 @@ export const PET_AYAR: Record<PetPose, { olcek: number; x: number; y: number }> 
   "bekleme": {
     "olcek": 100,
     "x": 0,
-    "y": 0
+    "y": 2
   },
   "gecis": {
     "olcek": 100,
