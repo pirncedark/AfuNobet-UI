@@ -221,3 +221,20 @@ footer .page-button{font-size:10px}
 .health-pill{font-size:9px;padding:2px 6px;border-radius:4px;background:#ffffff11;color:#a1b4d0}
 .health-pill.ok{background:#1a4d2e;color:#7dd9ae}
 .health-pill.kapali{background:#4d1a1a;color:#d97d7d}
+
+/* W4 E2 ajan pill: mevcut ajan sekmesinin görünümü. Kısa ad + ajan rengi +
+   durum noktası. Boşta ajan soluk. Tek satır, şerit taşarsa kendi içinde kayar. */
+.agent-pills{max-width:100%;min-width:0;align-items:center}
+.agent-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;max-width:9em;overflow:hidden;
+  border-color:var(--pill-bg,#ffffff1f);border-color:color-mix(in srgb,var(--pill-color,#9fb0c8) 55%,transparent);
+  background:var(--pill-bg,#ffffff08);color:#dce7f6}
+.agent-pill .pill-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.agent-pill .pill-dot{flex:none;width:6px;height:6px;border-radius:50%;background:#8a97a8}
+.agent-pill[data-state=aktif] .pill-dot{background:#4fd18b;box-shadow:0 0 4px #4fd18b99;animation:pill-pulse 2s ease-in-out infinite}
+.agent-pill[data-state=bekliyor] .pill-dot{background:#e7c35a}
+.agent-pill[data-state=kota] .pill-dot{background:#e56b6b}
+.agent-pill[data-expression=working]:not(:disabled)::before{content:none;display:none}
+.agent-pill.soluk{opacity:.5}
+.agent-pill.soluk[data-state=kapali]{opacity:.38}
+.agent-pill.soluk:hover{opacity:.8}
+.agent-pill.selected{background:var(--pill-bg,#23456b);border-color:var(--pill-color,#7fb6e4a8);opacity:1}

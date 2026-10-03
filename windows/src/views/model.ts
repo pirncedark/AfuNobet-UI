@@ -2,7 +2,7 @@
 // testler doğrudan bunları sınar. Uydurma sayı yok: okunamayan alan gizli ya da "?".
 import { AGENT_TR, ui } from "../core/labels";
 import { clipText } from "../core/metin";
-import { currentTasks, type Agent, type Snapshot, type Task } from "../core/state";
+import { currentTasks, type Agent, type Quota, type Snapshot, type Task } from "../core/state";
 import { ajanKimlik, type AjanKimlik } from "../core/ajan_kimlik";
 
 /**
@@ -22,44 +22,64 @@ export interface TaskExtra {
 export type RichTask = Task & Partial<TaskExtra>;
 
 // ---------------- E2 ajan pill'leri ----------------
-export type PillId = "codex" | "gemini" | "opencode" | "glm" | "orkestra" | "claude";
-export type PillState = "aktif" | "idle" | "kota" | "kapali";
-export const PILL_STATE_TR: Record<PillState, string> = { aktif: "çalışıyor", idle: "hazır", kota: "kota doldu", kapali: "kapalı" };
-export interface PillRow { id: PillId; label: string; state: PillState; title: string; kimlik: AjanKimlik }
+// Pill = mevcut ajan sekmesinin görünümü: kısa ad + ajan rengi + durum noktası.
+// Veri yalnız state.json (Snapshot). Claude pill'i YOK; Claude yalnız kilitli
+// "Claude KORUNUYOR" rozetiyle görünür. Listede olmayan yeni ajan (E1 adı) kendi
+// kaydından otomatik pill alır.
+export type PillId = string;
+export type PillState = "aktif" | "bekliyor" | "kota" | "idle" | "kapali";
+export const PILL_STATE_TR: Record<PillState, string> = { aktif: "çalışıyor", bekliyor: "bekliyor", kota: "kota doldu", idle: "boşta", kapali: "boşta" };
+export interface PillRow { id: PillId; label: string; state: PillState; title: string; kimlik: AjanKimlik; soluk: boolean }
 const RUNNING = new Set(["Calisiyor", "Hazirlaniyor"]);
+const WAITING = new Set(["Bekliyor", "Duraklatildi"]);
+const CORE_PILLS = ["codex", "gemini", "opencode"] as const;
+/** Yeni ajanlar sekme şeridini taşırmasın diye üst sınır (canlı olanlar önce). */
+export const EXTRA_PILL_LIMIT = 4;
+const STATE_RANK: Record<PillState, number> = { aktif: 0, bekliyor: 1, kota: 2, idle: 3, kapali: 4 };
 
-function quotaOf(snapshot: Snapshot, agent: Exclude<Agent, "claude">) {
-  return snapshot.quotas?.[agent] ?? null;
+/** Görevin pill kimliği: bilinen ajan ya da E1 adıyla gelen yeni ajan. */
+export function pillAgentOf(task: Task): string | null {
+  return task.agent ?? task.ajanAdi ?? null;
 }
-export function agentPillState(snapshot: Snapshot, agent: Exclude<Agent, "claude">, now = Date.now()): PillState {
-  const tasks = currentTasks(snapshot.tasks, now).filter(t => t.agent === agent);
+function pillLabel(id: string): string {
+  if (Object.prototype.hasOwnProperty.call(AGENT_TR, id)) return AGENT_TR[id as Agent];
+  return (id === "orkestra" ? "Orkestra" : id.charAt(0).toUpperCase() + id.slice(1));
+}
+function quotaOf(snapshot: Snapshot, agent: string) {
+  const quotas = snapshot.quotas as Record<string, Quota | undefined> | undefined;
+  return quotas && Object.prototype.hasOwnProperty.call(quotas, agent) ? quotas[agent] ?? null : null;
+}
+export function agentPillState(snapshot: Snapshot, agent: string, now = Date.now()): PillState {
+  const tasks = currentTasks(snapshot.tasks, now).filter(t => pillAgentOf(t) === agent);
   const quota = quotaOf(snapshot, agent);
   if (tasks.some(t => t.quotaPaused) || (quota?.remaining_percent !== null && quota?.remaining_percent !== undefined && quota.remaining_percent <= 0)) return "kota";
   if (tasks.some(t => RUNNING.has(t.status))) return "aktif";
-  // "Sık kullanılan ama çalışmayan" ajan idle kalır: güncel kaydı ya da kota bilgisi varsa.
-  if (tasks.length || quota || snapshot.tasks.some(t => t.agent === agent)) return "idle";
+  if (tasks.some(t => WAITING.has(t.status))) return "bekliyor";
+  // "Sık kullanılan ama çalışmayan" ajan soluk "boşta" kalır: güncel kaydı ya da kota bilgisi varsa.
+  if (tasks.length || quota || snapshot.tasks.some(t => pillAgentOf(t) === agent)) return "idle";
   return "kapali";
 }
-/** Ana ekrandaki küçük ajan kimlikleri. Claude yalnız protokolden veri gelirse görünür (otomatik yedek değil). */
+function pillRow(snapshot: Snapshot, id: string, now: number): PillRow {
+  const state = agentPillState(snapshot, id, now);
+  const label = pillLabel(id);
+  return { id, label, state, title: `${label}: ${PILL_STATE_TR[state]}`, kimlik: ajanKimlik(id), soluk: state === "idle" || state === "kapali" };
+}
+/** Ana ekrandaki ajan sekmeleri (pill). Claude hiçbir koşulda pill almaz. */
 export function agentPills(snapshot: Snapshot, now = Date.now()): PillRow[] {
-  const rows: PillRow[] = [];
-  for (const agent of ["codex", "gemini", "opencode"] as const) {
-    const state = agentPillState(snapshot, agent, now);
-    rows.push({ id: agent, label: AGENT_TR[agent], state, title: `${AGENT_TR[agent]}: ${PILL_STATE_TR[state]}`, kimlik: ajanKimlik(agent) });
-  }
+  const rows: PillRow[] = CORE_PILLS.map(agent => pillRow(snapshot, agent, now));
   // GLM yalnız gerçekten kullanılıyorsa (kaydı varsa) yer kaplar.
-  if (snapshot.tasks.some(t => t.agent === "glm")) {
-    const state = agentPillState(snapshot, "glm", now);
-    rows.push({ id: "glm", label: AGENT_TR.glm, state, title: `${AGENT_TR.glm}: ${PILL_STATE_TR[state]}`, kimlik: ajanKimlik("glm") });
+  if (snapshot.tasks.some(t => t.agent === "glm")) rows.push(pillRow(snapshot, "glm", now));
+  // E1 adıyla gelen yeni ajanlar: görünme sırası, canlı olanlar önce, üst sınırlı.
+  const extra: string[] = [];
+  for (const t of snapshot.tasks) {
+    const id = t.agent === null ? t.ajanAdi : undefined;
+    if (id && id !== "claude" && id !== "orkestra" && !extra.includes(id)) extra.push(id);
   }
+  const extraRows = extra.map(id => pillRow(snapshot, id, now));
+  rows.push(...extraRows.map((r, i) => [r, i] as const).sort((a, b) => STATE_RANK[a[0].state] - STATE_RANK[b[0].state] || a[1] - b[1]).slice(0, EXTRA_PILL_LIMIT).map(([r]) => r));
   const live = currentTasks(snapshot.tasks, now);
   const orkestra: PillState = snapshot.sourceUnavailable ? "kapali" : live.some(t => RUNNING.has(t.status) || t.status === "Bekliyor") ? "aktif" : "idle";
-  rows.push({ id: "orkestra", label: "Orkestra", state: orkestra, title: `Orkestra: ${PILL_STATE_TR[orkestra]}`, kimlik: ajanKimlik("orkestra") });
-  if ((snapshot.tasks as RichTask[]).some(t => (t.agent as string) === "claude")) {
-    const busy = (snapshot.tasks as RichTask[]).some(t => (t.agent as string) === "claude" && RUNNING.has(t.status));
-    const state: PillState = busy ? "aktif" : "idle";
-    rows.push({ id: "claude", label: AGENT_TR.claude, state, title: `${AGENT_TR.claude}: ${PILL_STATE_TR[state]}`, kimlik: ajanKimlik("claude") });
-  }
+  rows.push({ id: "orkestra", label: "Orkestra", state: orkestra, title: `Orkestra: ${PILL_STATE_TR[orkestra]}`, kimlik: ajanKimlik("orkestra"), soluk: orkestra !== "aktif" });
   return rows;
 }
 

@@ -8,7 +8,7 @@ import { Bridge } from "../core/bridge";
 import { Modal } from "./modal";
 import { Katman, kapatDugmesi } from "./overlay";
 import { kopruDurumu, type KopruMesaj } from "../core/kopru";
-import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, stageSteps, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
+import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, pillAgentOf, stageSteps, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
 import { ajanKimlik } from "../core/ajan_kimlik";
 
 function createPill(id: string, state: string) {
@@ -221,7 +221,7 @@ export class AfuViews {
   // ---------------- E2 ajan pill'leri ----------------
   private syncPills(focus: Task | undefined) {
     const rows = agentPills(State.snapshot);
-    const key = JSON.stringify([rows, focus?.agent ?? null]);
+    const key = JSON.stringify([rows, focus ? pillAgentOf(focus) : null]);
     if (key === this.pillKey) return;
     this.pillKey = key;
     const buttons = rows.map(row => this.pillButton(row, focus));
@@ -234,7 +234,7 @@ export class AfuViews {
       button.dataset.agent = row.id;
       this.pillButtons.set(row.id, button);
     }
-    const selected = focus?.agent === row.id;
+    const selected = !!focus && pillAgentOf(focus) === row.id;
     button.replaceChildren();
     if (row.kimlik) {
       button.setAttribute("style", `--pill-color: ${row.kimlik.renk}; --pill-bg: ${row.kimlik.arkaPlan}`);
@@ -243,22 +243,24 @@ export class AfuViews {
       button.textContent = row.label;
     }
     button.dataset.state = row.state;
+    button.classList?.toggle("soluk", row.soluk);
     button.title = row.title;
     button.setAttribute("aria-label", row.title);
     button.setAttribute("aria-pressed", String(selected));
     button.classList?.toggle("selected", selected);
     if (row.id !== "orkestra" && row.id !== "claude") {
-      const agentRows = currentTasks(State.tasks).filter(t => t.agent === row.id);
+      const agentRows = currentTasks(State.tasks).filter(t => pillAgentOf(t) === row.id);
       button.dataset.expression = expressionFor(preferredTask(agentRows)?.status);
     }
     return button;
   }
   private pillClick(id: PillId) {
     if (id === "orkestra") { this.actions.orkestra?.(); return; }
-    const name = AGENT_TR[id as Agent] ?? id;
-    const task = preferredTask(currentTasks(State.tasks.filter(t => t.agent === id)));
+    const row = agentPills(State.snapshot).find(r => r.id === id);
+    const name = row?.label ?? id;
+    const task = preferredTask(currentTasks(State.tasks.filter(t => pillAgentOf(t) === id)));
     if (task) { State.setFocus(task.id); this.flash(`${name} görevi gösteriliyor.`); return; }
-    const state = agentPills(State.snapshot).find(r => r.id === id)?.state ?? "kapali";
+    const state = row?.state ?? "kapali";
     this.flash(state === "kota" ? `${name} kotası dolu. Yenilenince devam eder.` : `${name} şu an boşta. Görev verilince burada görünür.`);
   }
   // ---------------- Ana kart (F1/F2/F3/F8/F9) ----------------

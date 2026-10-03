@@ -17,6 +17,8 @@ export interface Task {
   effort?: string | null;
   context?: { used: number | null; total: number | null; cached?: number | null; saved?: number | null } | null;
   cost?: number | null;
+  /** E2: listede olmayan yeni ajanın adı (E1 adı kuralı). Yalnız agent null iken dolu. */
+  ajanAdi?: string;
 }
 export interface Quota { remaining_percent: number | null; reset_at: string | null; checked_at: string | null }
 export interface Snapshot { connected: boolean; tasks: Task[]; sourceUnavailable: boolean; quotas?: Partial<Record<Exclude<Agent, "claude">, Quota>> }
@@ -102,7 +104,8 @@ tasks.push({ id: row.id, agent, status, ...taskMeasurements(row), task: label(ro
       model: label(row.model, 80), currentAction: label(row.current_action), startedAt: moment(row.started_at ?? row.started), repo: label(row.repo, 80),
       file: filename(row.file ?? row.current_file), progress: status === "Tamamlandi" ? 100 : percent(row.progress),
       quota: parseQuota(row.quota), quotaPaused,
-      updatedAt: moment(row.updated_at ?? row.updated) });
+      updatedAt: moment(row.updated_at ?? row.updated),
+      ...(agent === null && typeof row.agent === "string" && AJAN_ADI.test(row.agent) && row.agent !== "orkestra" ? { ajanAdi: row.agent } : {}) });
   }
   const result: Snapshot = { connected: true, tasks, sourceUnavailable: typeof root.mesaj === "string" && root.mesaj.length > 0 };
   const quotas = object(root.quotas);
