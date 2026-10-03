@@ -304,7 +304,7 @@ describe("6) Mini pet eski hali + sürükle-bırak-dön", () => {
     expect(SEKANSLAR.gecis.map(k => k.kare)).toEqual(["durum/ucus", "durum/masa_cikis", "durum/kalkis"]);
     expect(SEKANSLAR.donus.map(k => k.kare))
       .toEqual(["akis_tutunma", "akis_gorunme", "akis_suzulme", "akis_kuculme", "durum/masa_cikis"]);
-    expect(SEKANSLAR.geri_donus.map(k => k.kare)).toEqual(["akis_suzulme"]);
+    expect(SEKANSLAR.geri_donus.map(k => k.kare)).toEqual(["durum/ense_tutma"]);
   });
   it("model sürükleme sırasında sabit uyarı balonunu korur, bırakınca yaslanır", () => {
     const m = new PetModel(0);
