@@ -117,6 +117,8 @@ fn codex_install() -> Result<(), String> {
     crate::apps::login_url_ac("https://www.npmjs.com/package/@openai/codex").map_err(|_| "İndirme sayfası açılamadı; yeniden dene.".to_owned())
 }
 #[tauri::command]
+fn studio_open() -> Result<(), String> { apps::animasyon_studyo_ac(&project_root()) }
+#[tauri::command]
 fn project_open(project: String) -> Result<(), String> { apps::proje_klasoru_ac(&project_root(), &project) }
 #[tauri::command]
 fn log_ac() -> Result<(), String> {
@@ -213,6 +215,11 @@ fn pet_mode(app: AppHandle, shared: State<Shared>, on: bool) {
 fn pet_balon(app: AppHandle, shared: State<Shared>, on: bool) {
     if !shared.pet_runtime.active.load(Ordering::Acquire) { return; }
     glide::balon(&app, &shared.pet_runtime, &shared.gate, on);
+}
+#[tauri::command]
+fn pet_onay_bekliyor(shared: State<Shared>, on: bool) {
+    shared.pet_runtime.onay_bekliyor.store(on, Ordering::Release);
+    shared.pet_runtime.wake_up();
 }
 #[tauri::command]
 async fn pet_drag(app: AppHandle, shared: State<'_, Shared>) -> Result<bool, String> {
@@ -350,6 +357,7 @@ pub fn run() {
             refresh_state,
             pet_mode,
             pet_drag,
+            pet_onay_bekliyor,
             pet_balon,
             pet_apps_popup,
             tray_mode,
@@ -359,6 +367,7 @@ pub fn run() {
             app_open,
             app_download,
             project_open,
+            studio_open,
             codex_status,
             codex_send,
             codex_cancel,

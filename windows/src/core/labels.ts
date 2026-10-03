@@ -3,9 +3,10 @@ import { clipText, type Kirp } from "./metin";
 export const STATUS_TR: Record<Status, string> = { Hazirlaniyor: "Hazırlanıyor", Calisiyor: "Çalışıyor", Bekliyor: "Bekliyor", Duraklatildi: "Duraklatıldı", Tamamlandi: "Tamamlandı", Hata: "Hata" };
 export const AGENT_TR: Record<Agent, string> = { codex: "Codex", glm: "GLM", gemini: "Gemini", opencode: "OpenCode", claude: "Claude" };
 export const UI_TR = {
+  claudeProtection: "Claude’a otomatik iş verilmez; yalnız mesaj ve soruları iletir.",
   brand: "AfuNöbet", waiting: "AfuNöbet bekleniyor", ready: "Afu hazır", welcome: "Afu yanında",
   orientation: "Görevlerini buradan izleyebilirsin", hint: "Üzerine gel, açmak için dokun",
-  quota: "Kota durumu", back: "Görevlere dön", collapse: "Küçült", done: "Tamam",
+  quotaShort: "Kota", quota: "Kota durumu", back: "Görevlere dön", collapse: "Küçült", done: "Tamam",
   progress: "Görev ilerlemesi", completed: "tamamlandı", nextTask: "Yeni görev gelince burada görünecek",
   quotaNote: "Kayıtlı kota bilgileri gösterilir",
   // Alt düğme satırı + menü (2 Eki): 286 px yükseklikteki panelde hiçbir düğme kırpılmaz.
@@ -20,9 +21,10 @@ export const UI_TR = {
 export type UiKey = keyof typeof UI_TR;
 /** F13: İngilizce metinler. Uzun çeviride de arayüz bozulmaz (kırpma + title). */
 export const UI_EN: Record<UiKey, string> = {
+  claudeProtection: "Claude is not assigned work automatically; it only relays messages and questions.",
   brand: "AfuNöbet", waiting: "Waiting for AfuNöbet", ready: "Afu is ready", welcome: "Afu is here",
   orientation: "Follow your tasks from here", hint: "Hover, then tap to open",
-  quota: "Quota status", back: "Back to tasks", collapse: "Collapse", done: "Done",
+  quotaShort: "Quota", quota: "Quota status", back: "Back to tasks", collapse: "Collapse", done: "Done",
   progress: "Task progress", completed: "completed", nextTask: "New tasks will appear here",
   quotaNote: "Recorded quota information is shown",
   ask: "Ask Afu", askBack: "Back", more: "More", apps: "Applications", chat: "Conversation", orkestra: "Orchestra",

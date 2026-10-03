@@ -15,8 +15,7 @@ export const DESIGN_W = 720, DESIGN_H = 320;
 export const PANEL_W = 1080, PANEL_H = 480;
 export const NOTCH_W = 184, NOTCH_H = 32, COMPACT_W = 288, EXPANDED_W = 640;
 export const ROUNDED_CORNER = 14, EXPANDED_CORNER = 22;
-/** Smallest scale the island may shrink to before it would be unreadable. */
-export const MIN_FIT = 0.5;
+/** Dar pencerede görünürlük CSS yerleşimiyle korunur; ölçek alt sınırı yoktur. */
 export const PET_PENCERE = 256;
 /**
  * P10 — mini pet modundayken görev/ajan mesajı balonu karakterin BAŞININ
@@ -60,7 +59,7 @@ export function islandSize(mode: IslandMode, view: IslandViewName): { w: number;
   if (mode === "pet") return { w: PET_PENCERE, h: PET_PENCERE };
   if (mode === "hidden" || mode === "tray") return { w: NOTCH_W, h: 0 };
   if (mode === "compact") return { w: COMPACT_W, h: NOTCH_H };
-  return { w: EXPANDED_W, h: view === "greeting" ? 160 : 286 };
+  return { w: EXPANDED_W, h: view === "greeting" ? 160 : DESIGN_H };
 }
 /**
  * Uniform scale that keeps the whole panel inside the viewport the webview
@@ -78,5 +77,5 @@ export function islandSize(mode: IslandMode, view: IslandViewName): { w: number;
  */
 export function fitScale(viewportW: number, viewportH: number): number {
   if (!(viewportW > 0) || !(viewportH > 0)) return 1;
-  return Math.max(MIN_FIT, Math.min(1, viewportW / PANEL_W, viewportH / PANEL_H));
+  return Math.min(1, viewportW / PANEL_W, viewportH / PANEL_H);
 }

@@ -1,4 +1,5 @@
 // Adapted upstream shell: same geometry, spring, wake strip and hit testing.
+import { nextDiscoveryHint } from "../core/settings";
 import { Tracked } from "../core/anim";
 import { Bridge, IS_TAURI } from "../core/bridge";
 import { EXPANDED_CORNER, KART_OLCEK, NOTCH_W, PANEL_H, PANEL_W, PET_PENCERE, ROUNDED_CORNER, fitScale, islandSize, petBalonKutusu, petBalonUst, petPencereYuksekligi, type IslandMode, type IslandViewName } from "../core/layout";
@@ -251,7 +252,14 @@ export class Island {
       if (to === "greeting") {
         this.view = "greeting";
         this.setMode("expanded");
-        this.greetingTimer = window.setTimeout(() => this.fsm.greetComplete(), 2600);
+        const showNext = () => {
+          const hint = nextDiscoveryHint();
+          if (!hint) { this.fsm.greetComplete(); return; }
+          const line = this.views.greeting.querySelector("p");
+          if (line) line.textContent = hint;
+          this.greetingTimer = window.setTimeout(showNext, 5000);
+        };
+        showNext();
       }
       if (from === "greeting" && to === "home") this.view = "overview";
       this.syncDom();
@@ -259,9 +267,9 @@ export class Island {
   }
   launch() {
     if (messageNotifications.isOpen && State.settings.messageAlert !== false) return;
-    let first = true;
-    try { first = localStorage.getItem("afunobet-orientation-v1") !== "seen"; localStorage.setItem("afunobet-orientation-v1", "seen"); } catch { /* Optional orientation persistence. */ }
-    if (first) this.fsm.launch();
+    let first = true, pendingHints = false;
+    try { first = localStorage.getItem("afunobet-orientation-v1") !== "seen"; pendingHints = Number(localStorage.getItem("afunobet-discovery-v1") ?? 0) < 4; localStorage.setItem("afunobet-orientation-v1", "seen"); } catch { /* Optional orientation persistence. */ }
+    if (first || pendingHints) this.fsm.launch();
     else this.fsm.reveal();
   }
   applySettings() { this.fsm.homeToPetitDelay = State.settings.autoCloseInterval; this.setPetEnabled(State.settings.pet); }

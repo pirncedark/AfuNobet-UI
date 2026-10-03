@@ -58,6 +58,20 @@ async function views(actions: Record<string, unknown> = {}) {
   return { v, calls, el: (x: unknown) => x as unknown as FakeEl };
 }
 beforeEach(() => { setLanguage("tr"); State.settings.pet = true; });
+describe("M3 keşif", () => {
+  it("tek görevde arama, ana kartta aşama ve bağlam, kilitte açıklama", async () => {
+    setTasks([raw({ stage: "RUN", model: "gpt-6.1", effort: "medium", context: { used: 25, total: 100 } })]);
+    const { v, el } = await views(); v.sync("overview", true);
+    expect(v.searchButton.hidden).toBe(false);
+    expect(el(v.card).find("task-insight")?.textContent).toContain("Çalışıyor");
+    expect(el(v.card).find("task-insight")?.textContent).toContain("25 / 100");
+    expect(el(v.header).find("claude-lock")?.getAttribute("title")).toContain("otomatik iş verilmez");
+  });
+  it("dar pencere ölçeği pencerenin dışına çıkmaz", async () => {
+    const { fitScale, PANEL_W } = await import("../src/core/layout");
+    expect(fitScale(360, 480) * PANEL_W).toBeLessThanOrEqual(360);
+  });
+});
 afterEach(() => { vi.unstubAllGlobals(); vi.useRealTimers(); setTasks([]); });
 
 // ---------------- E2 ----------------
@@ -154,7 +168,8 @@ describe("F3 model / F4 context / F5 maliyet", () => {
     setTasks([raw({ id: "a" })], { a: { context: { used: 50, total: 100 }, cost: 1.5 } });
     const { v, el } = await views();
     v.sync("overview", true);
-    expect(el(v.card).textContent).not.toMatch(/Bağlam|Maliyet/);
+    expect(el(v.card).textContent).toContain("Bağlam: 50 / 100");
+    expect(el(v.card).textContent).not.toContain("Maliyet");
     expect(el(v.card).find("task-eyebrow")!.textContent).toMatch(/^CDX · /);
     v.openDetail();
     const body = el(v.modal.body);
@@ -198,13 +213,14 @@ describe("E3 alt ajan satırları", () => {
 // ---------------- F7 / F8 / F9 / F10 ----------------
 describe("F7 arama ve filtre", () => {
   const many = Array.from({ length: 12 }, (_, i) => raw({ id: `t${i}`, agent: i % 2 ? "gemini" : "codex", status: i % 3 ? "Calisiyor" : "Hata", title: i === 5 ? "Şifreli İçerik Düzeltme" : `Görev ${i}` }));
-  it("10'dan az görevde arama gizli, 10+ görevde görünür", async () => {
-    expect(filterVisible(parseState({ version: 1, tasks: many.slice(0, 9) }).tasks)).toBe(false);
+  it("en az bir görevde arama görünür", async () => {
+    expect(filterVisible([])).toBe(false);
+    expect(filterVisible(parseState({ version: 1, tasks: many.slice(0, 9) }).tasks)).toBe(true);
     expect(filterVisible(parseState({ version: 1, tasks: many }).tasks)).toBe(true);
     setTasks(many.slice(0, 9));
     const { v } = await views();
     v.sync("overview", true);
-    expect(v.searchButton.hidden).toBe(true);
+    expect(v.searchButton.hidden).toBe(false);
     setTasks(many); v.sync("overview", true);
     expect(v.searchButton.hidden).toBe(false);
   });
@@ -414,11 +430,12 @@ describe("Alt düğme satırı (kırpılma hatası)", () => {
     const footer = el(v.footer).children.filter(c => c.tagName === "button");
     expect(footer).toEqual([el(v.backButton), el(v.quotaButton), el(v.appsButton), el(v.orkestraButton), el(v.chatButton), el(v.moreButton), el(v.primary), el(v.sorButton)]);
     // Q2: menüde "Daha fazla" ayarı + görünen kapatma düğmesi (✕) vardır.
-    expect(el(v.menu).children.map(b => b.textContent)).toEqual(["Mini pet açık", "✕"]);
+    expect(el(v.menu).textContent).toContain("Ayarlar");
+    expect(el(v.menu).textContent).toContain("Animasyon stüdyosunu aç");
     expect(v.sorButton.className).toContain("primary-button");
     expect(v.sorButton.textContent).toBe("Afu'ya sor");
     for (const b of [v.quotaButton, v.appsButton, v.orkestraButton, v.chatButton]) expect(b.getAttribute("role")).toBeNull();
-    for (const b of [...footer, ...el(v.menu).children]) expect(b.title || b.getAttribute("aria-label")).toBeTruthy();
+    for (const b of [...footer, ...el(v.menu).children.filter(b => b.tagName === "button")]) expect(b.title || b.getAttribute("aria-label")).toBeTruthy();
   });
   it("aria-pressed hangi görünümün açık olduğunu söyler; mini pet anahtarı durumunu taşır", async () => {
     setTasks([]);

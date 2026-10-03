@@ -11,7 +11,7 @@ describe("fareyle taşıma: ense tutma animasyonu", () => {
     expect(SEKANSLAR.surukleme).toEqual([{ kare: ENSE, ms: Infinity }]);
     expect(existsSync(fileURLToPath(new URL("../public/afu/durum/ense_tutma.webp", import.meta.url)))).toBe(true);
     // Geri dönüş (bırakınca uçarak dönme) değişmedi.
-    expect(SEKANSLAR.geri_donus.map(k => k.kare)).toEqual(["akis_suzulme"]);
+    expect(SEKANSLAR.geri_donus.map(k => k.kare)).toEqual(["durum/ense_tutma"]);
   });
 
   it("ense_tutma diğer durum kareleri gibi ölçülmüş: ölçek, kayma ve alfa kutusu", () => {

@@ -230,7 +230,7 @@ export function topLevel(tasks: RichTask[]): RichTask[] {
 export const FILTER_MIN = 10;
 export interface Filter { query: string; agent: Agent | "hepsi"; status: "hepsi" | "calisan" | "bekleyen" | "biten" | "hata" }
 export const EMPTY_FILTER: Filter = { query: "", agent: "hepsi", status: "hepsi" };
-export function filterVisible(tasks: Task[]): boolean { return tasks.length >= FILTER_MIN; }
+export function filterVisible(tasks: Task[]): boolean { return tasks.length > 0; }
 const fold = (s: string) => s.toLocaleLowerCase("tr-TR").replace(/ı/g, "i").normalize("NFD").replace(/[̀-ͯ]/g, "");
 export function filterTasks<T extends Task>(tasks: T[], f: Filter): T[] {
   const q = fold(f.query.trim());
@@ -255,3 +255,12 @@ export function emptyState(snapshot: Snapshot): { title: string; message: string
   return { title: ui("ready"), message: ui("emptyMessage"), retry: false };
 }
 
+
+/** Ana kart: yalnız doğrulanmış mevcut bilgiler. */
+export function taskInsight(task: RichTask): string {
+  const stage = normalizeStage(task.stage);
+  const names: Record<Stage, string> = { triage: "Planlanıyor", split: "Planlanıyor", run: "Çalışıyor", verify: "Kontrol ediliyor", merge: "Birleştiriliyor" };
+  const c = task.context;
+  const context = contextText(task) && c ? `Bağlam: ${c.used} / ${c.total}` : "";
+  return [stage ? names[stage] : "", context].filter(Boolean).join(" · ");
+}

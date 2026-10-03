@@ -20,9 +20,9 @@ describe("kart 1,5 kat", () => {
     expect(PANEL_H).toBe(DESIGN_H * KART_OLCEK);
   });
   it("pencere büyür, ada çizimi tasarım biriminde kalır (zoom büyütür)", () => {
-    expect(islandSize("expanded", "overview")).toEqual({ w: EXPANDED_W, h: 286 });
+    expect(islandSize("expanded", "overview")).toEqual({ w: EXPANDED_W, h: DESIGN_H });
     expect(EXPANDED_W * KART_OLCEK).toBeLessThan(PANEL_W);
-    expect(286 * KART_OLCEK).toBeLessThan(PANEL_H);
+    expect(DESIGN_H * KART_OLCEK).toBeLessThanOrEqual(PANEL_H);
   });
   it("Rust tarafındaki pencere ölçüsü ön yüzle aynı (island.rs'e dokunulmadan)", () => {
     expect(dpi).toContain("const KART_OLCEK: f64 = 1.5;");

@@ -15,13 +15,18 @@ export interface Mesaj { surum: 1; id: string; ajan: MesajAjan; tur: "bitti" | "
 export const ad = (ajan: MesajAjan) => ({ claude: "Claude", codex: "Codex", gemini: "Gemini", opencode: "OpenCode" })[ajan];
 
 /** Balonda görünen gövde en fazla bu kadar karakter; kesilirse "…" eklenir. */
-export const BALON_MAX_KARAKTER = 140;
+export const BALON_MAX_KARAKTER = 80;
 /** Kuyruk en fazla bu kadar mesaj tutar; eskisi düşer. */
 export const BALON_KUYRUGU = 5;
 
 export function kisalt(metin: string, limit = BALON_MAX_KARAKTER): string {
   const c = Array.from(metin);
-  return c.length > limit ? c.slice(0, limit - 1).join("") + "…" : metin;
+  if (c.length <= limit) return metin;
+  // Kelime ortasından kesme: sınırdan önceki son boşlukta kes (çok kısa kalırsa sert kes).
+  const parca = c.slice(0, limit - 1);
+  const bosluk = parca.lastIndexOf(" ");
+  const kes = bosluk >= Math.floor(limit / 2) ? parca.slice(0, bosluk) : parca;
+  return kes.join("").replace(/[\s,.;:!?–-]+$/u, "") + "…";
 }
 /** Yalnız çizgi/işaretlerden oluşan süs satırı (──, ===, ---, ___, ###). */
 const CEZIR_SATIR = /^[─-╿—–«»=\-_~*#.…|/\\:\s]{2,}$/;
@@ -91,7 +96,7 @@ export function bildirimBalonu(belge: Pick<Document, "createElement">, host: HTM
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
   metin.textContent = yazi.tam;
   const dugme = belge.createElement("button"); dugme.className = "afu-balon-kapat";
-  dugme.textContent = "×"; dugme.setAttribute("aria-label", "Mesajı kapat");
+  dugme.textContent = "Okudum"; dugme.setAttribute("aria-label", "Mesajı kapat (Okudum)");
   dugme.addEventListener("click", ev => { ev.stopPropagation(); kapat(mesaj.id); });
   balon.addEventListener("pointerdown", ev => ev.stopPropagation());
   balon.append(etiket, metin, dugme); host.append(balon);
@@ -164,7 +169,7 @@ export function balonOlustur(
   const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket";
   etiket.textContent = etiketAd.text; etiket.title = etiketAd.title || tam;
 
-  const bicim = bicimle(yazi.govde);
+  const bicim = bicimle(tam.replace(/^(claude|codex|gemini|opencode)\s*[:\-–—]\s*/i, ""));
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
 
   if (bicim.maddeler.length > 0) {
@@ -174,8 +179,12 @@ export function balonOlustur(
     }
     const ul = belge.createElement("ul");
     ul.style.margin = "2px 0"; ul.style.paddingLeft = "14px";
-    for (const m of bicim.maddeler) {
-      const li = belge.createElement("li"); li.textContent = m; ul.append(li);
+    for (const m of bicim.maddeler.slice(0, 2)) {
+      const preview = m.slice(0, 49);
+      const boundary = preview.lastIndexOf(" ");
+      const li = belge.createElement("li");
+      li.textContent = m.length > 50 ? (boundary > 0 ? preview.slice(0, boundary) : preview).trimEnd() + "…" : m;
+      ul.append(li);
     }
     metin.append(ul);
   } else {

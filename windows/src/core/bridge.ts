@@ -14,6 +14,7 @@ async function action<T>(command: string, args?: Record<string, unknown>): Promi
   catch (error) { throw new Error(typeof error === "string" && error.length < 180 && !/[\\/]|token|secret|password|traceback/i.test(error) ? error : "İşlem tamamlanamadı. Yeniden dene."); }
 }
 export const Bridge = {
+  studioOpen: () => action<void>("studio_open"),
   codexStatus: async () => {
     const status = await action<{ status: string; loggedIn: boolean; planType: string | null; rateLimits: unknown }>("codex_status");
     State.setCodexLimits(status.rateLimits); return status;
@@ -58,6 +59,7 @@ export const Bridge = {
   reposition: () => call<void>("reposition"),
   petAppsPopup: (on: boolean) => action<void>("pet_apps_popup", { on }),
   petDrag: () => action<boolean>("pet_drag"),
+  petOnayBekliyor: (on: boolean) => action<void>("pet_onay_bekliyor", { on }),
   petMode: (on: boolean) => call<void>("pet_mode", { on }),
   /** P10: pet modunda balon açılınca pencere YUKARI büyür, kapanınca eski boyuta döner. */
   petBalon: (on: boolean) => action<void>("pet_balon", { on }),

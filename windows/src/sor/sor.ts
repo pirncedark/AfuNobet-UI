@@ -12,6 +12,8 @@ export interface SorActions {
   codexaSor(text: string): Promise<void> | void;
 }
 
+export const SOR_EXAMPLES = ["Codex ne yapıyor?", "Hangi iş bitti?", "Kota ne durumda?"] as const;
+
 export const SOR_METIN = {
   iletildi: "Sorunu Codex'e ilettim; cevap sohbette.",
   oturumYok: "Codex oturumu açık değil.",
@@ -21,7 +23,7 @@ export const SOR_METIN = {
 } as const;
 
 export class SorView {
-  readonly input = h("textarea", { class: "sor-input", "aria-label": "Soru", placeholder: "Ne merak ediyorsun?", rows: 2, maxlength: 2000 });
+  readonly input = h("textarea", { class: "sor-input", "aria-label": "Soru", placeholder: SOR_EXAMPLES[0], rows: 2, maxlength: 2000 });
   readonly sorButton = h("button", { class: "primary-button", text: "Sor" });
   /** Yer tutucu: sesli soru ayrı işte bağlanacak; mikrofon burada açılmaz. */
   readonly micButton = h("button", { class: "text-button", text: "Bas ve konuş", title: "Sesli soru yakında" });
@@ -31,6 +33,13 @@ export class SorView {
   private busy = false;
 
   constructor(private actions: SorActions) {
+    let example = 0;
+    const timer = setInterval(() => {
+      if (this.input.value || (typeof document !== "undefined" && document.activeElement === this.input) || this.element.closest?.("[hidden]")) return;
+      example = (example + 1) % SOR_EXAMPLES.length;
+      this.input.setAttribute("placeholder", SOR_EXAMPLES[example]);
+    }, 5000);
+    if (typeof window !== "undefined") window.addEventListener("pagehide", () => clearInterval(timer), { once: true });
     this.micButton.disabled = true;
     this.loginButton.hidden = true;
     this.element = h("div", { class: "sor-panel" }, h("h1", { text: "Afu'ya sor" }), this.input,
