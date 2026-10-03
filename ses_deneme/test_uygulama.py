@@ -8,12 +8,20 @@ from afu_konus import GpuLock
 import uygulama_sesi as adapter
 
 class AdapterTests(unittest.TestCase):
+    def test_unverified_speech_is_not_accepted_for_playback(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice') as model:
+            model.return_value.generate.return_value = {'quality_verified': False}
+            result = adapter.render({'text': 'Merhaba'}, Path(folder))
+            self.assertFalse(result['ok'])
+            model.return_value.close.assert_called_once()
+
     def test_full_answer_is_cleaned_and_selected_identity_is_used(self):
         calls = []
         class Model:
             def __init__(self, selected, cancelled=None): calls.append(selected)
             def generate(self, text, target, preset):
                 calls.extend([text, preset]); target.write_bytes(b'wave')
+                return {'quality_verified': True}
             def close(self): calls.append('closed')
         # Model behavior requires an installed voice root. Missing installation
         # has its own contract in tests/test_ses_paths.py and must stay fail-safe.
@@ -36,6 +44,13 @@ class AdapterTests(unittest.TestCase):
             path = Path(folder); (path/'cancel').touch()
             result = adapter.render({'text': 'Merhaba', 'ses': 'notr', 'filtre': 'sicak'}, path)
             self.assertTrue(result['cancelled']); model.assert_not_called()
+
+    def test_worker_failure_keeps_diagnostics_local(self):
+        with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice', side_effect=RuntimeError('model diagnostic')):
+            result = adapter.render({'text': 'Merhaba', 'headless': True}, Path(folder))
+            self.assertFalse(result['ok'])
+            self.assertNotIn('model diagnostic', str(result))
+            self.assertIn('RuntimeError: model diagnostic', (Path(folder) / 'diagnostic.txt').read_text(encoding='utf-8'))
 
     def test_invalid_selection_does_not_silently_use_neutral_voice(self):
         with tempfile.TemporaryDirectory() as folder, patch.object(adapter, 'LOCAL', Path(folder)), patch.object(adapter, 'Voice') as model:

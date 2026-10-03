@@ -112,7 +112,7 @@ describe("AfuPet çizimi", () => {
     vi.stubGlobal("performance", { now: () => Date.now() });
   });
 
-  type Stil = { style: { transformOrigin: string; translate: string } };
+  type Stil = { style: { transformOrigin: string; translate: string; transform: string; height: string; top: string; bottom: string } };
   const cizim = (pet: AfuPet) => ({ ...(pet.image as unknown as Stil).style });
 
   it("bekleme pozunda ayaklar pencerenin altına değer (alt boşluk yok)", () => {
@@ -124,17 +124,60 @@ describe("AfuPet çizimi", () => {
     expect(translate.split(" ")[1]).toBe("0px");
   });
 
-  it("tutulunca elin üst ucu imlecin tuttuğu noktaya gelir ve sarkaç oradan döner", () => {
+  it("keeps the native hand anchor fixed instead of translating to the initial click", () => {
     const pet = new AfuPet(vi.fn());
-    const ic = pet as unknown as { clickX: number; clickY: number; dragStart: number; paint(): void };
-    ic.clickX = 150; ic.clickY = 40; ic.dragStart = Date.now() - 1000;
+    const ic = pet as unknown as { dragStart: number; paint(): void };
+    ic.dragStart = Date.now() - 1000;
     pet.model.setPose("surukleme");
     ic.paint();
     const t = tutmaNoktasi(ENSE);
     const { translate, transformOrigin } = cizim(pet);
     expect(transformOrigin).toBe(`${t.x / PET_PENCERE * 100}% 0%`);
     const [x, y] = translate.split(" ").map(parseFloat);
-    expect(t.x + x).toBeCloseTo(150, 6);
-    expect(t.y + y).toBeCloseTo(40, 6);
+    expect(x).toBe(0);
+    expect(y).toBe(0);
   });
+  it.each([false, true])("holds the hand fixed from the first frame, reduced motion=%s", reduced => {
+    vi.stubGlobal("matchMedia", () => ({ matches: reduced, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+    const pet = new AfuPet(vi.fn());
+    const state = pet as unknown as { dragStart: number; swingAngle: number; swingVel: number; paint(): void };
+    pet.model.setPose("surukleme");
+    state.dragStart = Date.now();
+    state.swingAngle = 20;
+    state.swingVel = 3;
+    for (const elapsed of [0, 16, 60, 120, 1000]) {
+      vi.advanceTimersByTime(elapsed);
+      state.paint();
+      for (const image of [pet.image, pet.canvas]) {
+        const style = (image as unknown as Stil).style;
+        expect(style.translate).toBe("0px 0px");
+        expect(style.transform).not.toMatch(/translate/);
+        expect(style.transformOrigin).toBe(`${220 / 384 * 100}% 0%`);
+        expect(style.height).toBe("256px");
+        expect(style.top).toBe("auto");
+        expect(style.bottom).toBe("0px");
+      }
+    }
+  });
+
+  it("keeps a square hand frame at the bottom of a balloon window and resets on landing", () => {
+    const pet = new AfuPet(vi.fn());
+    const state = pet as unknown as { paint(): void };
+    for (const width of [256, 255.5, 300]) {
+      window.innerWidth = width;
+      window.innerHeight = width + 158;
+      pet.model.setPose("surukleme");
+      state.paint();
+      expect(cizim(pet).height).toBe(`${width}px`);
+      expect(cizim(pet).translate).toBe("0px 0px");
+      expect(cizim(pet).bottom).toBe("0px");
+    }
+    expect(pet.previous.animate).not.toHaveBeenCalled();
+    pet.model.setPose("bekleme");
+    state.paint();
+    expect(cizim(pet).height).toBe("");
+    expect(cizim(pet).top).toBe("");
+    expect(cizim(pet).bottom).toBe("");
+  });
+
 });

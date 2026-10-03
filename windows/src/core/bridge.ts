@@ -29,6 +29,7 @@ export const Bridge = {
   codexInstall: () => action<void>("codex_install"),
   voiceOpenSettings: (kind: "speech" | "microphone" | "network") => action<void>("voice_open_settings", { kind }),
   voiceStart: () => action<void>("voice_start"),
+  voiceListenTurn: (maxMs:number)=>action<string>("voice_listen_turn",{maxBeklemeMs:maxMs}),
   voiceStop: () => action<string>("voice_stop"),
   voiceCancel: () => action<void>("voice_cancel"),
   voiceSpeak: (text: string) => action<void>("voice_speak", { text }),

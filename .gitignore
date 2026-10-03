@@ -2,6 +2,7 @@
 windows/node_modules/
 windows/dist/
 windows/target/
+windows/target-voice-final/
 windows/release/
 windows/src-tauri/gen/schemas/
 dist/
@@ -26,3 +27,6 @@ test_durum/
 
 __pycache__/
 *.pyc
+ses_deneme/.gpu.lock
+ses_deneme/numba_cache/
+ses_deneme/cikti/

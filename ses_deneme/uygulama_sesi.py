@@ -26,10 +26,15 @@ def render(request, directory):
             return dict(result, ok=True)
         voice = Voice(selected, cancelled=cancelled)
         parameters = voice.generate(text, directory / 'answer.wav', preset)
-        return dict(result, ok=not cancelled(), cancelled=cancelled(), voice=selected, voice_parameters=parameters)
+        verified = isinstance(parameters, dict) and parameters.get('quality_verified') is True
+        return dict(result, ok=verified and not cancelled(), cancelled=cancelled(), voice=selected, voice_parameters=parameters)
     except InterruptedError:
         return dict(result, cancelled=True)
     except Exception:
+        if request.get('headless', False):
+            # Headless proof retains diagnostics locally; UI and speech stay safe.
+            import traceback
+            (directory / 'diagnostic.txt').write_text(traceback.format_exc(), encoding='utf-8')
         # Technical errors never reach the user's screen or speech.
         return dict(result, cancelled=cancelled())
     finally:

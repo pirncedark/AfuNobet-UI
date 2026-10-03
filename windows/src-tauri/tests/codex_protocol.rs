@@ -3,6 +3,36 @@ mod codex;
 use codex::*;
 use serde_json::json;
 #[test]
+#[ignore = "requires a real ChatGPT login and network outside the command sandbox"]
+fn live_voice_reply() {
+    use std::sync::{mpsc, Arc};
+    use std::time::{Duration, Instant};
+    let directory = std::env::var_os("AFU_VOICE_PROOF_DIR")
+        .map(std::path::PathBuf::from).expect("proof directory required");
+    std::fs::create_dir_all(&directory).unwrap();
+    let (tx, rx) = mpsc::channel();
+    let bridge = CodexBridge::start_with_callback(Arc::new(move |event| { let _ = tx.send(event); }))
+        .expect("Codex could not start; run from a normal user terminal");
+    assert!(bridge.status().unwrap().logged_in, "ChatGPT login required");
+    let turn = bridge.send("Merhaba Afu. Yalnız 'Merhaba, birlikte devam edelim.' cümlesiyle yanıt ver.", &[], &std::env::current_dir().unwrap()).unwrap();
+    let deadline = Instant::now() + Duration::from_secs(120);
+    let mut reply = String::new();
+    loop {
+        let event = rx.recv_timeout(deadline.saturating_duration_since(Instant::now())).expect("reply timed out");
+        if event.params["threadId"] != turn["threadId"] { continue; }
+        if event.method == "item/agentMessage/delta" && event.params["turnId"] == turn["turnId"] {
+            reply.push_str(event.params["delta"].as_str().unwrap_or(""));
+        }
+        if event.method == "turn/completed" && event.params["turn"]["id"] == turn["turnId"] {
+            assert_eq!(event.params["turn"]["status"], "completed");
+            break;
+        }
+    }
+    bridge.shutdown();
+    assert!(reply.to_lowercase().contains("merhaba"), "empty or unexpected answer");
+    std::fs::write(directory.join("codex_reply.txt"), reply).unwrap();
+}
+#[test]
 fn partial_and_multiple_frames() {
     let mut c = Cerceve::default();
     assert_eq!(

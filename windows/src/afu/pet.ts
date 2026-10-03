@@ -1073,8 +1073,6 @@ export class AfuPet {
   private active = false;
   private pausedAt: number | null = null;
   private dragStart = 0;
-  private clickX = 0;
-  private clickY = 0;
   private swingAngle = 0;
   private swingVel = 0;
   private fareHiz = 0;
@@ -1105,8 +1103,6 @@ export class AfuPet {
       if (event.button !== 0 || !this.active || this.dragPending) return;
       this.hideApps();
       if (event.isTrusted) this.el.setPointerCapture(event.pointerId);
-      this.clickX = event.clientX;
-      this.clickY = event.clientY;
       this.lastWinX = window.screenX;
 
       let moved = false;
@@ -1294,34 +1290,19 @@ export class AfuPet {
     this.el.dataset.durum = petDurum(this.model.pose, this.gorevDurum);
     // STÜDYO ÇİZİM BAŞLANGIÇ
     const ayar = PET_AYAR[this.model.pose];
-    let scruffTx = 0;
-    let scruffTy = 0;
     let extraTransform = '';
+    const held = this.model.pose === "surukleme";
     const isDragging = this.model.pose === "surukleme" || this.model.pose === "geri_donus";
     const tutma = tutmaNoktasi(next);
     // Hareket azaltma tercihinde sallanma, uzama ve nefes hiç uygulanmaz.
     if (!this.reduced.matches && (this.dragRaf !== null || isDragging)) {
       const stretch = sarkacUzama(this.swingVel);
       const { nefes, bacak } = sarkacNefes(performance.now() - this.dragStart);
-      extraTransform = ` rotate(${this.swingAngle + bacak * 0.5}deg) scaleY(${stretch}) translateY(${nefes}px) translateX(${bacak}px)`;
-      if (isDragging) {
-        const progress = Math.min(1, (performance.now() - this.dragStart) / 120);
-        const easeOut = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-        const kare = next;
-        const scale = (PET_NORMALIZE.includes(this.model.pose) ? (PET_BOYUT[kare] || { olcek: 1 }).olcek : 1) * ayar.olcek / 100;
-        
-        // Tutma noktası (ense ya da elin üst ucu) imlecin tuttuğu yere gelir;
-        // başlangıç karenin ayakları pencere altında olacak şekildedir.
-        const kayma = PET_NORMALIZE.includes(this.model.pose) ? (PET_BOYUT[kare] || { x: 0, y: 0 }) : { x: 0, y: 0 };
-        const targetTx = this.clickX - tutma.x - kayma.x * PET_PENCERE * ayar.olcek / 100;
-        const targetTy = this.clickY - tutma.y - kayma.y * PET_PENCERE * ayar.olcek / 100;
-        const startTx = (PET_PENCERE / 2 - tutma.x) * (1 - scale);
-        const startTy = (PET_PENCERE - tutma.y) * (1 - scale);
-        
-        scruffTx = startTx + (targetTx - startTx) * easeOut;
-        scruffTy = startTy + (targetTy - startTy) * easeOut;
-      }
+      // Rotation/stretch keep the hand pivot fixed; breathing translations do not.
+      extraTransform = ` rotate(${this.swingAngle + bacak * 0.5}deg) scaleY(${stretch})`;
+      if (!held) extraTransform += ` translateY(${nefes}px) translateX(${bacak}px)`;
     }
+
     for (const image of [this.image, this.previous, this.canvas]) {
       // P7: canvas da aynı kareyi çizer, bu yüzden "önceki" kare yalnız previous'a aittir.
       const kare = image === this.previous ? (this.image.getAttribute("src") || "").replace(/^.*\/afu\/(pet\/|durum\/)/, (_, folder) => folder === "durum/" ? "durum/" : "").replace(/\.webp$/, "") : next;
@@ -1329,14 +1310,19 @@ export class AfuPet {
       const n = PET_NORMALIZE.includes(this.model.pose) ? (olculu || { olcek: 1, x: 0, y: 0 }) : { olcek: 1, x: 0, y: 0 };
       const isDraggingNow = this.dragRaf !== null || isDragging;
       const rawScale = n.olcek * ayar.olcek / 100;
-      const rawTx = ayar.x + scruffTx + n.x * PET_PENCERE * ayar.olcek / 100;
-      const rawTy = ayar.y + scruffTy + n.y * PET_PENCERE * ayar.olcek / 100;
+      const rawTx = ayar.x + n.x * PET_PENCERE * ayar.olcek / 100;
+      const rawTy = ayar.y + n.y * PET_PENCERE * ayar.olcek / 100;
       // Ölçülmüş alfa kutusu her kare için geçerli; kare yoksa tüm çerçeve sayılır.
       const kutu = olculu?.kutu ?? ([0, 0, 1, 1] as [number, number, number, number]);
       
       // Alt kenarda pay yok: ayaklar görev çubuğuna (pencerenin altına) değer.
-      const fitted = sigdir(kutu, rawScale, rawTx, rawTy, PET_PENCERE, 6, isDraggingNow ? tutma.y : PET_PENCERE, isDraggingNow ? tutma.x : PET_PENCERE / 2, 0);
+      const fitted = held ? { x: 0, y: 0, olcek: rawScale } : sigdir(kutu, rawScale, rawTx, rawTy, PET_PENCERE, 6, isDraggingNow ? tutma.y : PET_PENCERE, isDraggingNow ? tutma.x : PET_PENCERE / 2, 0);
 
+      // A square bottom-aligned frame also gives the canvas and balloon window
+      // the same pivot as Rust: (client width * 220/384, client height - width).
+      image.style.height = held ? `${window.innerWidth || PET_PENCERE}px` : "";
+      image.style.top = held ? "auto" : "";
+      image.style.bottom = held ? "0px" : "";
       image.style.transformOrigin = isDraggingNow ? `${tutma.x / PET_PENCERE * 100}% ${tutma.y / PET_PENCERE * 100}%` : "50% 100%";
       image.style.translate = `${fitted.x}px ${fitted.y}px`;
       image.style.scale = String(fitted.olcek);
@@ -1354,7 +1340,7 @@ export class AfuPet {
     this.image.src = studyoKareYolu(next);
     this.frame = next;
     for (const animation of this.previous.getAnimations()) animation.cancel();
-    if (!this.reduced.matches) this.previous.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: "forwards" });
+    if (!this.reduced.matches && !held) this.previous.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: "forwards" });
   }
 }
 export function sigdir(
