@@ -30,7 +30,7 @@ const KUCULT_DENEME = 8;
 type MenuView = "quota" | "apps" | "orkestra" | "chat";
 
 export class AfuViews {
-  readonly summary = h("span", { class: "summary", text: "0/0" });
+  readonly summary = h("span", { class: "summary", text: "0/0", title: "0/0" });
   /** M3: en az bir görev varsa arama düğmesi görünür. */
   /** M3: en az bir görev varsa arama düğmesi görünür. M6: SVG ikon. */
   readonly searchButton = h("button", { class: "icon-button search-button", type: "button", "aria-label": UI_TR.search, title: UI_TR.search, hidden: true, onclick: () => this.openSearch(), html: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>` });
@@ -178,7 +178,7 @@ export class AfuViews {
     if (typeof this.menu.insertBefore !== "function" || typeof this.footer.insertBefore !== "function") return;
     const menuAcik = !this.menu.hidden;
     // Ölçülebilir bir genişlik yoksa (henüz çizilmemiş) alt satır varsayılanı.
-    const olcu = typeof this.footer.getBoundingClientRect === "function" ? this.footer.getBoundingClientRect().width : 0;
+    const olcu = typeof this.footer.getBoundingClientRect === "function" ? this.footer.clientWidth : 0;
     const dar = menuAcik || (olcu > 0 && olcu < DAR_KART_GENISLIK);
     if (dar === this.darMenu) return;
     this.darMenu = dar;
@@ -221,6 +221,7 @@ export class AfuViews {
     const tasks = currentTasks(State.tasks), task = State.focusTask as RichTask | undefined;
     const rows = listedTasks(topLevel(tasks as RichTask[]).filter(row => row.id !== task?.id));
     this.summary.textContent = `${taskSummary(tasks)} ${ui("completed")}`;
+    this.summary.title = this.summary.textContent;
     this.compactCount.textContent = taskSummary(tasks);
     const compactTitle = State.snapshot.sourceUnavailable ? ui("waiting") : task?.title ?? ui("ready");
     this.compactText.textContent = compactTitle; this.compactText.setAttribute("title", compactTitle);
@@ -280,10 +281,10 @@ export class AfuViews {
         this.flash("Afu izlemeyi durdurdu, yeniden başlatmak için dokun.");
       } else if (!codexOk) {
         this.flash("GPT hesabına bağlı değil, bağlanmak için dokun.");
-        void Bridge.codexLogin();
+        void Bridge.codexLogin().catch(() => this.flash("GPT hesabına bağlanılamadı, yeniden dene."));
       } else if (!sesOk) {
         this.flash("Afu'nun sesi kapalı, açmak için dokun.");
-        void Bridge.sesSessiz(false);
+        void Bridge.sesSessiz(false).catch(() => this.flash("Ses açılamadı, yeniden dene."));
       } else if (!claudeOk) {
         this.flash("Claude mesajları Afu'ya gelmiyor.");
       } else {
