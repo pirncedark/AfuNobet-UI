@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { mountGitHubPanel } from "./sistem/servis";
 import { State } from "./core/state";
-import { loadMessageAlert, saveMessageAlert } from "./core/settings";
+import { PET_IFADE_OLAYI, loadMessageAlert, loadPetIfade, saveMessageAlert, savePetIfade } from "./core/settings";
 import { showNotification } from "./message/notifications";
 
 // A secondary panel opened from the tray. Existing main/island owners remain independent.
@@ -41,7 +41,20 @@ async function startSystemPanel() {
     State.settings.messageAlert = enabled; paintAlert();
     window.dispatchEvent(new Event("afu-message-setting"));
   });
-  panel.append(heading, message, alertToggle, advanced, close);
+  // W7: Afu boştayken arada kısa ifade yapar (varsayılan açık).
+  const ifadeToggle = document.createElement("button");
+  ifadeToggle.type = "button";
+  ifadeToggle.setAttribute("role", "switch");
+  ifadeToggle.textContent = "Arada ifade yap";
+  let ifadeAcik = loadPetIfade();
+  const paintIfade = () => ifadeToggle.setAttribute("aria-checked", String(ifadeAcik));
+  paintIfade();
+  ifadeToggle.addEventListener("click", () => {
+    if (!savePetIfade(!ifadeAcik)) { message.textContent = "Ayar kaydedilemedi; yeniden dene."; return; }
+    ifadeAcik = !ifadeAcik; paintIfade();
+    window.dispatchEvent(new Event(PET_IFADE_OLAYI));
+  });
+  panel.append(heading, message, alertToggle, ifadeToggle, advanced, close);
   let disposeService: (() => void) | undefined;
   let muted = false;
   const paintMute = () => {

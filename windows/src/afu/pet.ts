@@ -6,6 +6,8 @@ import { appRows, type AppsSnapshot } from "../core/apps";
 import type { AfuEvent } from "../core/events";
 import { Bridge, onEvent } from "../core/bridge";
 import { TUVAL_BOYUTU, WebpOynatici, tuvalCizici } from "./oynatma";
+import { IfadeZamanlayici } from "./ifade";
+import { PET_IFADE_OLAYI, loadPetIfade } from "../core/settings";
 export type PetPose = "donus" | "bekleme" | "gecis" | "uyanma" | "dusunme" | "uyari" | "hata" | "mutlu" | "basari" | "uyku" | "yuzme" | "etkilesim" | "surukleme" | "geri_donus" | "yaslanma";
 export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "donus": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_gorunme", ms: 200 }, { kare: "akis_suzulme", ms: 250 }, { kare: "akis_kuculme", ms: 180 }, { kare: "durum/masa_cikis", ms: 1000 }],
@@ -1032,6 +1034,8 @@ export class PetModel {
   }
   shift(ms: number) { this.now += ms; this.poseAt += ms; this.lastActivity += ms; }
 }
+/** W7: ifade animasyonu normal hızda bir kez oynar, son karede durur. */
+const IFADE_OYNATMA = { hiz: 1, donguArasi: 60000 };
 export class AfuPet {
   readonly image = h("img", { class: "pet-image pet-gizli", src: "/afu/pet/idle_normal.webp", alt: "Afu", draggable: false });
   readonly previous = h("img", { class: "pet-image pet-previous pet-gizli", src: "/afu/pet/idle_normal.webp", alt: "", draggable: false });
@@ -1056,6 +1060,10 @@ export class AfuPet {
   private dragPending: Promise<boolean> | null = null;
   private reduced = matchMedia("(prefers-reduced-motion: reduce)");
   private readonly oynatici: WebpOynatici;
+  // W7: boştayken arada kısa ifade. Meşgul bilgisi (iş, soru, balon) adadan gelir.
+  readonly ifade = new IfadeZamanlayici();
+  private ifadeAcik = loadPetIfade();
+  private mesgul: (() => boolean) | null = null;
   readonly appsMenu = h("div", { class: "pet-apps-menu", hidden: true, role: "dialog", "aria-label": "Afu uygulamaları" });
   private appsSnapshot: AppsSnapshot = { apps: [], durumlar: {} };
   private appOpener: ((id: string) => Promise<string | null | void>) | null = null;
@@ -1133,8 +1141,23 @@ export class AfuPet {
     this.el.addEventListener("mouseleave", () => { if (this.dragPending) return; this.model.tick(Date.now()); this.model.hover(false); this.paint(); });
     document.addEventListener("visibilitychange", () => this.setVisible(this.active && !document.hidden));
     this.reduced.addEventListener("change", () => { this.stopTimer(); this.sallanmaDurdur(); if (this.active) this.run(); });
+    // W7: "Arada ifade yap" ayarı değişince hemen uygulanır.
+    const ifadeAyari = () => { this.ifadeAcik = loadPetIfade(); };
+    if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
+      window.addEventListener(PET_IFADE_OLAYI, ifadeAyari);
+      window.addEventListener("storage", ifadeAyari);
+    }
     // P7: çözücü kurulamazsa oynatıcı açılmaz, <img> aynen oynar.
     this.oynatici = new WebpOynatici({ cizici: tuvalCizici(this.canvas), durum: oynuyor => this.el.classList.toggle("pet-oynuyor", oynuyor) });
+  }
+  /** W7: iş çalışırken / soru ya da balon açıkken true döndüren kontrol. */
+  setMesgul(kontrol: () => boolean) { this.mesgul = kontrol; }
+  /** W7: Afu gerçekten boşta mı? Değilse ifade yapılmaz. */
+  private ifadeBosta() {
+    return this.active && this.pausedAt === null && !document.hidden && !this.reduced.matches
+      && this.model.pose === "bekleme" && this.model.balloon === null
+      && !this.dragPending && this.dragRaf === null && this.appsMenu.hidden
+      && !(this.mesgul?.() ?? false);
   }
   setAppOpener(open: (id: string) => Promise<string | null | void>) { this.appOpener = open; this.renderApps(); }
   setApps(snapshot: AppsSnapshot) { this.appsSnapshot = snapshot; this.renderApps(); this.positionApps(); }
@@ -1240,7 +1263,8 @@ export class AfuPet {
   /** Görevin durumu (adadan gelir); petin kendi tepkisi yoksa ışık rengi bunu izler. */
   setDurum(durum: string) { this.gorevDurum = durum; this.el.dataset.durum = petDurum(this.model.pose, durum); }
   private paint() {
-    const next = this.reduced.matches && ["bekleme", "gecis", "yuzme", "uyanma"].includes(this.model.pose) ? "idle_normal" : this.model.frame;
+    const ifadeKare = this.ifade.tick(Date.now(), { bosta: this.ifadeBosta(), acik: this.ifadeAcik });
+    const next = ifadeKare ?? (this.reduced.matches && ["bekleme", "gecis", "yuzme", "uyanma"].includes(this.model.pose) ? "idle_normal" : this.model.frame);
     this.el.dataset.pose = this.model.pose;
     this.el.dataset.durum = petDurum(this.model.pose, this.gorevDurum);
     // STÜDYO ÇİZİM BAŞLANGIÇ
@@ -1292,7 +1316,7 @@ export class AfuPet {
     // P7: animasyonlu webp kare kare canvas'a çizilir (hız + döngü arası bekleme).
     // Hareket azaltma tercihinde veya çözücü yokken oynatıcı kapalı, <img> oynar.
     if (this.reduced.matches) this.oynatici.durdur();
-    else this.oynatici.oynat(studyoKareYolu(next), PET_OYNATMA[this.model.pose]);
+    else this.oynatici.oynat(studyoKareYolu(next), ifadeKare ? IFADE_OYNATMA : PET_OYNATMA[this.model.pose]);
     this.balloon.textContent = this.model.balloon ?? "";
     this.balloon.hidden = this.model.balloon === null;
     if (next === this.frame) return;

@@ -10,6 +10,7 @@ import { appRows, enOnemli, type AppsSnapshot } from "../core/apps";
 import { deriveEvents, EventDeduper } from "../core/events";
  import { AfuCharacter, characterExpression, getDurum } from "../afu/character";
 import { AfuPet } from "../afu/pet";
+import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
 import { KonusanAfu, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
@@ -95,6 +96,8 @@ export class Island {
     this.views.setSorContent(this.sor.element);
     this.chat.onVoiceState = state => { this.voiceExpression = state === "idle" ? null : state; this.syncDom(); };
     this.pet.setAppOpener(id => this.openApp(id));
+    // W7: iş, soru ya da balon varken Afu arada ifade yapmaz.
+    this.pet.setMesgul(() => petMesgul({ gorevler: State.tasks, soruAcik: this.questionOpen, balonAcik: this.petBalon || !!this.konusan?.balonAcik }));
     this.wireFsm();
     this.wireInput();
     this.konusan = new KonusanAfu(this.pet.el, this.petBalonEl, this.character.el, this.views.overview, () => {
