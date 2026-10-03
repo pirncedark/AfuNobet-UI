@@ -23,3 +23,6 @@ test_durum/
 # kurtarma: yerel gorev/log dosyalari depoya girmez
 /~/
 /_gorev/
+
+__pycache__/
+*.pyc
