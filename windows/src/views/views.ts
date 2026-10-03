@@ -23,6 +23,10 @@ function createPill(id: string, state: string) {
 const ROW_LIMIT = 3;
 /** Arama sonuç listesi üst sınırı (modal içinde). */
 const SEARCH_LIMIT = 50;
+/** Bu genişliğin altında dört sayfa düğmesi alt satıra sığmaz, "Daha fazla" menüsüne taşınır. */
+const DAR_KART_GENISLIK = 400;
+/** "Küçült" tıklamasının en fazla kaç kez çökme isteyeceği (bildirim kuyruğu sınırlı). */
+const KUCULT_DENEME = 8;
 type MenuView = "quota" | "apps" | "orkestra" | "chat";
 
 export class AfuViews {
@@ -80,6 +84,10 @@ export class AfuViews {
   private pillKey = "";
   private cardKey = "";
   private view: ViewName = "overview";
+  /** Kart açık mı: "Küçült"ün gerçekten çöktüğünü bilmenin tek yolu. */
+  private expanded = true;
+  /** Sayfa düğmeleri şu an menüde mi (dar kart veya menü açıkken). */
+  private darMenu = false;
   private filter: Filter = { ...EMPTY_FILTER };
 
   constructor(private actions: { collapse(): void; quota(): void; pet?(): void; apps?(): void; chat?(): void; orkestra?(): void; sor?(): void; appOpen?(id: string): Promise<string | null | void>; appsRefresh?(): void; retry?(): Promise<void> }) {
@@ -110,7 +118,7 @@ export class AfuViews {
       onclick: () => this.toggleMenu() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "⋯" }), h("span", { class: "btn-label", text: UI_TR.more }));
     this.backButton = h("button", { class: "text-button back-button", type: "button", hidden: true, title: UI_TR.back,
       onclick: () => this.goBack() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "←" }), h("span", { class: "btn-label", text: UI_TR.back }));
-    this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: actions.collapse });
+    this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: () => this.kucult() });
     this.sorButton = h("button", { class: "primary-button sor-button", type: "button", text: UI_TR.ask, onclick: () => actions.sor?.() });
     this.footer = h("footer", {}, this.backButton, this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton, this.moreButton, this.primary, h("span", { class: "footer-gap" }), this.sorButton);
     this.modal.closeButton.className = "modal-close icon-button";
@@ -119,22 +127,10 @@ export class AfuViews {
     this.sorButton.setAttribute("aria-label", UI_TR.ask);
     // Gerçek kart genişliği değişince ikincil sayfalar menüye taşınır.
     if (typeof ResizeObserver !== "undefined") {
-      const observer = new ResizeObserver(([entry]) => {
-        const narrow = entry.contentRect.width < 400;
-        for (const button of [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton]) {
-          if (narrow) {
-            button.setAttribute("role", "menuitem");
-            button.className = "text-button page-button menu-item";
-            this.menu.insertBefore(button, this.petButton);
-          } else {
-            button.removeAttribute("role");
-            button.className = "text-button page-button";
-            this.footer.insertBefore(button, this.moreButton);
-          }
-        }
-      });
+      const observer = new ResizeObserver(() => this.sayfalariYerlestir());
       observer.observe(this.footer);
     }
+    this.sayfalariYerlestir();
     this.card.addEventListener("click", (e: Event) => { if (!this.fromButton(e)) this.openDetail(); });
     this.card.addEventListener("keydown", (e: Event) => {
       const k = (e as KeyboardEvent).key;
@@ -156,9 +152,51 @@ export class AfuViews {
     const t = e.target as { closest?: (s: string) => unknown } | null;
     return !!(t && t !== (this.card as unknown) && typeof t.closest === "function" && t.closest("button"));
   }
+  /** "Küçült" tek tıkla çöker. `collapse()` önce açık bir ajan bildirimini
+   *  kapatır ve döner; kullanıcı kartı küçültmeyi istediği için aynı tıklama
+   *  kalan bildirimleri de kapatıp kartı çökertir. `expanded` yalnız `sync()`
+   *  ile güncellenir, yani "kart hâlâ açık" sorusunun tek doğru cevabıdır.
+   *  Soru katmanı açıkken `collapse()` hiçbir çağrıda çökmez; döngü o zaman
+   *  boşuna döner, üstelik tıklama sonsuza kadar sürmez. */
+  private kucult() {
+    for (let kalan = KUCULT_DENEME; kalan > 0 && this.expanded; kalan--) this.actions.collapse();
+  }
+  /** Dört sayfa düğmesi iki yerde durur: dar kartta "Daha fazla" menüsünde,
+   *  geniş kartta alt satırda. Kullanıcı hangi yeri açarsa sayfa orada
+   *  BULUNMALIDIR, ama menü kartın üstüne serildiği için ikisi aynı anda
+   *  görünür olamaz. Kural tek cümle: MENÜ AÇIKKEN sayfa düğmeleri menüdedir.
+   *  Yalnız menü kapalıyken alt satırın ölçüsü karar verir. Ölçü canlı
+   *  olduğu için kart açılırken (geometri animasyonu) alt satır 400px'i
+   *  geçip geçmez düğmeler yer değiştirir; menü açıkken bu ölçüm yok sayılır,
+   *  yoksa kullanıcı menüyü açtığı anda düğmeler alt satıra kaçar ve menü
+   *  onları örterek Kota'ya erişimi keser. */
+  private sayfalariYerlestir() {
+    // Yer değiştirme yalnız düğmeyi başka kaba taşıyabilen bir DOM'da yapılır:
+    // testlerin ölçülemeyen öğe taklitlerinde (insertBefore yok) kurucudaki alt
+    // satır yerleşimi olduğu gibi kalır, sahte ölçüyle yer değiştirilmez.
+    if (typeof this.menu.insertBefore !== "function" || typeof this.footer.insertBefore !== "function") return;
+    const menuAcik = !this.menu.hidden;
+    // Ölçülebilir bir genişlik yoksa (henüz çizilmemiş) alt satır varsayılanı.
+    const olcu = typeof this.footer.getBoundingClientRect === "function" ? this.footer.getBoundingClientRect().width : 0;
+    const dar = menuAcik || (olcu > 0 && olcu < DAR_KART_GENISLIK);
+    if (dar === this.darMenu) return;
+    this.darMenu = dar;
+    for (const button of [this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton]) {
+      if (dar) {
+        button.setAttribute("role", "menuitem");
+        button.className = "text-button page-button menu-item";
+        this.menu?.insertBefore(button, this.petButton);
+      } else {
+        button.removeAttribute("role");
+        button.className = "text-button page-button";
+        this.footer?.insertBefore(button, this.moreButton);
+      }
+    }
+  }
   private lastSyncedView: ViewName | null = null;
   sync(view: ViewName, expanded: boolean) {
     this.view = view;
+    this.expanded = expanded;
     if (!expanded) { this.closeMenu(false); this.modal.close(); }
     this.petButton.setAttribute("aria-checked", String(State.settings.pet));
     this.petButton.textContent = State.settings.pet ? ui("petOn") : ui("petOff");
@@ -428,6 +466,9 @@ export class AfuViews {
   toggleMenu() { if (this.menuOpen) this.closeMenu(true); else this.openMenu(); }
   openMenu() {
     this.menu.hidden = false; this.moreButton.setAttribute("aria-expanded", "true");
+    // Alt satırda olmayan sayfa düğmeleri menüye girer: menüyü açan kullanıcı
+    // her sayfayı listede görmelidir (aksi hâlde Kota'ya erişemez).
+    this.sayfalariYerlestir();
     // Q2: odak ilk menü öğesine girer, dışarı tıklama kapatır, Tab menüde kalır.
     this.menuKatmani.ac({ ignore: [this.moreButton] });
   }
@@ -435,6 +476,7 @@ export class AfuViews {
     if (this.menu.hidden) return;
     this.menu.hidden = true; this.moreButton.setAttribute("aria-expanded", "false");
     this.menuKatmani.kapandı();
+    this.sayfalariYerlestir();
     if (refocus) this.moreButton.focus?.();
   }
   private menuItems(): HTMLButtonElement[] { return [this.petButton, this.menuClose]; }
