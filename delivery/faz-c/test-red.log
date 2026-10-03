@@ -1,0 +1,102 @@
+   Compiling afu-merkez-hazirlik v0.1.0 (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\delivery\faz-c)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.55s
+     Running unittests src\lib.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\delivery\faz-c\target\debug\deps\afu_merkez_hazirlik-0a3ebbb6ba781004.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\delivery\faz-c\target\debug\deps\contract-e0d0368ef02829ca.exe)
+
+running 18 tests
+test bos_yanlis_tur_ve_yinelenen_kimlik_atlanir ... FAILED
+test bozuk_json_ve_dizi_olmayan_bos_kayit_uretir ... ok
+test bozuk_satir_gecerli_komsulari_kaybettirmez ... FAILED
+test bozuk_bilinmeyen_ve_eksik_durum_reddedilir ... ok
+test bayat_gelecek_ve_kimlik_uyusmazligi_yok_sayilir ... ok
+test iso_tarih_araligi_ve_bicimi_kati_dogrulanir ... ok
+test taze_durum_ve_bes_dakika_siniri_okunur ... FAILED
+test tum_durumlar_ve_negatif_ofset_desteklenir ... FAILED
+test teknik_ve_kontrol_metni_ana_uiya_gecmez ... ok
+test turkce_ozet_karakterle_sinirlanir_baytla_degil ... FAILED
+test desen_yol_kacisi_ve_eksik_kok_reddedilir ... ok
+test asiri_buyuk_dosya_okunmaz ... ok
+test acma_hatasi_insan_mesajina_donusur ... ok
+test okuyucu_salt_okur_ve_dosya_kimligini_denetler ... FAILED
+test exe_olmayan_eksik_dizin_ve_argumanli_yol_hic_acilmaz ... ok
+test yalniz_kayitli_mevcut_exe_parametresiz_kanala_ulastirilir ... FAILED
+test cok_parcali_surumlar_sayisal_ve_deterministik ... FAILED
+test sayisal_surum_ve_mevcut_exe_secilir ... FAILED
+
+failures:
+
+---- bos_yanlis_tur_ve_yinelenen_kimlik_atlanir stdout ----
+
+thread 'bos_yanlis_tur_ve_yinelenen_kimlik_atlanir' (35264) panicked at tests\contract.rs:41:2:
+assertion `left == right` failed
+  left: 0
+ right: 1
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+---- bozuk_satir_gecerli_komsulari_kaybettirmez stdout ----
+
+thread 'bozuk_satir_gecerli_komsulari_kaybettirmez' (28312) panicked at tests\contract.rs:32:2:
+assertion `left == right` failed
+  left: []
+ right: ["afudm", "afudesk"]
+
+---- taze_durum_ve_bes_dakika_siniri_okunur stdout ----
+
+thread 'taze_durum_ve_bes_dakika_siniri_okunur' (37600) panicked at tests\contract.rs:79:78:
+called `Option::unwrap()` on a `None` value
+
+---- tum_durumlar_ve_negatif_ofset_desteklenir stdout ----
+
+thread 'tum_durumlar_ve_negatif_ofset_desteklenir' (26100) panicked at tests\contract.rs:108:211:
+called `Option::unwrap()` on a `None` value
+
+---- turkce_ozet_karakterle_sinirlanir_baytla_degil stdout ----
+
+thread 'turkce_ozet_karakterle_sinirlanir_baytla_degil' (30288) panicked at tests\contract.rs:94:2:
+assertion failed: apps_state::ayristir(&state(&"ş".repeat(60), "2026-10-01T12:03:00Z"),
+        "afudm", now()).is_some()
+
+---- okuyucu_salt_okur_ve_dosya_kimligini_denetler stdout ----
+
+thread 'okuyucu_salt_okur_ve_dosya_kimligini_denetler' (9048) panicked at tests\contract.rs:114:126:
+assertion failed: apps_state::oku(&file, now()).is_some()
+
+---- yalniz_kayitli_mevcut_exe_parametresiz_kanala_ulastirilir stdout ----
+
+thread 'yalniz_kayitli_mevcut_exe_parametresiz_kanala_ulastirilir' (28608) panicked at tests\contract.rs:62:2:
+assertion failed: r.ac("afudm", &mut mock).is_ok()
+
+---- cok_parcali_surumlar_sayisal_ve_deterministik stdout ----
+
+thread 'cok_parcali_surumlar_sayisal_ve_deterministik' (18744) panicked at tests\contract.rs:52:2:
+assertion `left == right` failed
+  left: None
+ right: Some("C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\delivery\\faz-c\\target/test-fixtures\\23084-2\\v1.10.0/AfuDesk/afudesk.exe")
+
+---- sayisal_surum_ve_mevcut_exe_secilir stdout ----
+
+thread 'sayisal_surum_ve_mevcut_exe_secilir' (25344) panicked at tests\contract.rs:47:2:
+assertion `left == right` failed
+  left: None
+ right: Some("C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\delivery\\faz-c\\target/test-fixtures\\23084-6\\v140/AfuDesk/afudesk.exe")
+
+
+failures:
+    bos_yanlis_tur_ve_yinelenen_kimlik_atlanir
+    bozuk_satir_gecerli_komsulari_kaybettirmez
+    cok_parcali_surumlar_sayisal_ve_deterministik
+    okuyucu_salt_okur_ve_dosya_kimligini_denetler
+    sayisal_surum_ve_mevcut_exe_secilir
+    taze_durum_ve_bes_dakika_siniri_okunur
+    tum_durumlar_ve_negatif_ofset_desteklenir
+    turkce_ozet_karakterle_sinirlanir_baytla_degil
+    yalniz_kayitli_mevcut_exe_parametresiz_kanala_ulastirilir
+
+test result: FAILED. 9 passed; 9 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.03s
+
+error: test failed, to rerun pass `--test contract`

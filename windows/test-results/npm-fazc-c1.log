@@ -1,0 +1,13 @@
+
+> afunobet-ui@0.1.1 test
+> node node_modules/vitest/vitest.mjs run tests --configLoader runner
+
+
+ RUN  v4.1.10 C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows
+
+
+ Test Files  15 passed (15)
+      Tests  165 passed (165)
+   Start at  14:17:21
+   Duration  927ms (transform 1.86s, setup 0ms, import 2.50s, tests 289ms, environment 3ms)
+

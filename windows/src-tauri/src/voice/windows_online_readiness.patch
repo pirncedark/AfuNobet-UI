@@ -1,0 +1,11 @@
+--- voice/winrt.rs
++++ voice/winrt.rs
+@@ -32,7 +32,7 @@
+             .eq_ignore_ascii_case("tr")
+     })
+ }
+-fn stt_ready_policy(_identity:bool,_languages:&[String])->bool {false}
++fn stt_ready_policy(identity:bool,languages:&[String])->bool {identity && languages.iter().any(|s|s.eq_ignore_ascii_case("tr-TR"))}
+ pub fn tts_supported() -> bool {
+     let Ok(_apt) = Apartment::new() else {
+         return false;

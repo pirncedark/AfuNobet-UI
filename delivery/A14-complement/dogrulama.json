@@ -1,0 +1,610 @@
+{
+  "status": "PARTIAL",
+  "primary_present": 50,
+  "primary_structural_pass": 50,
+  "primary_total": 50,
+  "derived_total": 4,
+  "errors": [],
+  "source_blockers": [
+    "Kaynak idle_bakis_a/b karşıt sol/sağ bakış sağlamıyor; bu iki kare uydurulmadı."
+  ],
+  "content_exceptions": [
+    "efekt/tik.png: gerçek yeşil tik korunuyor (85.40%); eşik teknik olarak geçmiyor"
+  ],
+  "gaze": {
+    "idle_bakis_a": {
+      "direction": "right",
+      "delta": 17.9902,
+      "iris_x": 167.537,
+      "white_x": 149.5468
+    },
+    "idle_bakis_b": {
+      "direction": "right",
+      "delta": 16.672,
+      "iris_x": 161.9728,
+      "white_x": 145.3008
+    }
+  },
+  "ico_sizes": [
+    [
+      16,
+      16
+    ],
+    [
+      24,
+      24
+    ],
+    [
+      32,
+      32
+    ],
+    [
+      48,
+      48
+    ],
+    [
+      64,
+      64
+    ],
+    [
+      128,
+      128
+    ],
+    [
+      256,
+      256
+    ]
+  ],
+  "metrics": {
+    "pet/idle_normal.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 42494,
+      "source_cell_opaque_ratio": 0.43793799983510595,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 824,
+      "errors": []
+    },
+    "pet/idle_nefes.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 45969,
+      "source_cell_opaque_ratio": 0.4783504510973059,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 816,
+      "errors": []
+    },
+    "pet/idle_goz_kapali.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 43013,
+      "source_cell_opaque_ratio": 0.44614666528368424,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 827,
+      "errors": []
+    },
+    "pet/idle_bakis_a.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 42757,
+      "source_cell_opaque_ratio": 0.44064844587352625,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 764,
+      "errors": []
+    },
+    "pet/idle_bakis_b.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 44799,
+      "source_cell_opaque_ratio": 0.46318238213399504,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 835,
+      "errors": []
+    },
+    "pet/akis_bekleme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 47295,
+      "source_cell_opaque_ratio": 0.49373629815220793,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 848,
+      "errors": []
+    },
+    "pet/tepki_mutlu.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 47864,
+      "source_cell_opaque_ratio": 0.49806451612903224,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 853,
+      "errors": []
+    },
+    "pet/tepki_dusunme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 45611,
+      "source_cell_opaque_ratio": 0.47157775020678244,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 816,
+      "errors": []
+    },
+    "pet/tepki_uyari.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 46289,
+      "source_cell_opaque_ratio": 0.48013650319475565,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 854,
+      "errors": []
+    },
+    "pet/tepki_hata.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 44325,
+      "source_cell_opaque_ratio": 0.464228485248374,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 846,
+      "errors": []
+    },
+    "pet/tepki_uyku.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 41093,
+      "source_cell_opaque_ratio": 0.4289905000521975,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 924,
+      "errors": []
+    },
+    "pet/tepki_basari.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 47753,
+      "source_cell_opaque_ratio": 0.49532196498215914,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 767,
+      "errors": []
+    },
+    "pet/tepki_goz_kirpma.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 50510,
+      "source_cell_opaque_ratio": 0.5188814924391848,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 780,
+      "errors": []
+    },
+    "pet/tepki_dinleme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 49500,
+      "source_cell_opaque_ratio": 0.5134428678117998,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 805,
+      "errors": []
+    },
+    "pet/tepki_konusma.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 49827,
+      "source_cell_opaque_ratio": 0.515167493796526,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 766,
+      "errors": []
+    },
+    "pet/uyan_yuzme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 37695,
+      "source_cell_opaque_ratio": 0.38723496055226825,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 6,
+      "errors": []
+    },
+    "pet/akis_normal.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 90071,
+      "source_cell_opaque_ratio": 0.4626427925706772,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 157,
+      "errors": []
+    },
+    "pet/akis_kuculme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 52224,
+      "source_cell_opaque_ratio": 0.26954044345348693,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 12,
+      "errors": []
+    },
+    "pet/akis_suzulme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 77571,
+      "source_cell_opaque_ratio": 0.3984375,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 54,
+      "errors": []
+    },
+    "pet/akis_gorunme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 38210,
+      "source_cell_opaque_ratio": 0.2544347965054336,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 852,
+      "errors": []
+    },
+    "pet/akis_tutunma.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 68570,
+      "source_cell_opaque_ratio": 0.4588033776278989,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 980,
+      "errors": []
+    },
+    "pet/uyan_gizli.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 29129,
+      "source_cell_opaque_ratio": 0.1939657468570211,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 908,
+      "errors": []
+    },
+    "pet/uyan_gozukme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 48378,
+      "source_cell_opaque_ratio": 0.2795511279585799,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 852,
+      "errors": []
+    },
+    "pet/uyan_yukselme.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 64389,
+      "source_cell_opaque_ratio": 0.3738677536231884,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 930,
+      "errors": []
+    },
+    "simge/simge_kaynak.png": {
+      "size": [
+        377,
+        334
+      ],
+      "opaque_pixels": 92413,
+      "source_cell_opaque_ratio": 0.5340063332100592,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 107,
+      "errors": []
+    },
+    "kart/idle.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 81567,
+      "source_cell_opaque_ratio": 0.47246872103799814,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 363,
+      "errors": []
+    },
+    "kart/calisiyor.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 89223,
+      "source_cell_opaque_ratio": 0.5231026294960865,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 392,
+      "errors": []
+    },
+    "kart/dusunme.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 86574,
+      "source_cell_opaque_ratio": 0.500268700702089,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 411,
+      "errors": []
+    },
+    "kart/bekleme_kota.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 88727,
+      "source_cell_opaque_ratio": 0.5176846060492906,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 365,
+      "errors": []
+    },
+    "kart/basari.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 83248,
+      "source_cell_opaque_ratio": 0.49162591831431746,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 39,
+      "errors": []
+    },
+    "kart/hata.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 83709,
+      "source_cell_opaque_ratio": 0.4872354543549626,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 417,
+      "errors": []
+    },
+    "kart/selam.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 90574,
+      "source_cell_opaque_ratio": 0.522124608005903,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 306,
+      "errors": []
+    },
+    "kart/dinleme.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 89859,
+      "source_cell_opaque_ratio": 0.52430464387614,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 304,
+      "errors": []
+    },
+    "kart/konusma.png": {
+      "size": [
+        372,
+        418
+      ],
+      "opaque_pixels": 91671,
+      "source_cell_opaque_ratio": 0.5271811327916084,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 302,
+      "errors": []
+    },
+    "efekt/unlem.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 32457,
+      "source_cell_opaque_ratio": 0.18936958487703842,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 91,
+      "errors": []
+    },
+    "efekt/soru.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 39533,
+      "source_cell_opaque_ratio": 0.2306543364742262,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 76,
+      "errors": []
+    },
+    "efekt/uyku_z.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 38216,
+      "source_cell_opaque_ratio": 0.22350890737036647,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 71,
+      "errors": []
+    },
+    "efekt/parilti.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 33341,
+      "source_cell_opaque_ratio": 0.20236715122454554,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 13,
+      "errors": []
+    },
+    "efekt/tik.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 46038,
+      "source_cell_opaque_ratio": 0.27943309762981394,
+      "green_ratio": 0.8540119032103914,
+      "bottom_three_opaque": 75,
+      "errors": []
+    },
+    "efekt/kalp.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 55981,
+      "source_cell_opaque_ratio": 0.3406040472626827,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 66,
+      "errors": []
+    },
+    "efekt/ses_dalgasi.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 51842,
+      "source_cell_opaque_ratio": 0.2871735216728985,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 75,
+      "errors": []
+    },
+    "efekt/konusma_balonu.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 68477,
+      "source_cell_opaque_ratio": 0.3793214236255366,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 44,
+      "errors": []
+    },
+    "efekt/bas_donmesi.png": {
+      "size": [
+        350,
+        338
+      ],
+      "opaque_pixels": 36052,
+      "source_cell_opaque_ratio": 0.20018879449164306,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 84,
+      "errors": []
+    },
+    "pet/ozel_bas_donmesi.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 117170,
+      "source_cell_opaque_ratio": 0.4469697836676928,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 1483,
+      "errors": []
+    },
+    "pet/ozel_dosya_yakala.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 114846,
+      "source_cell_opaque_ratio": 0.4381043934036003,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 1362,
+      "errors": []
+    },
+    "pet/ozel_dosya_tut.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 113006,
+      "source_cell_opaque_ratio": 0.43534506005901885,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 1291,
+      "errors": []
+    },
+    "pet/ozel_veda.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 114863,
+      "source_cell_opaque_ratio": 0.4433546783388722,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 1305,
+      "errors": []
+    },
+    "pet/ozel_sessiz.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 111896,
+      "source_cell_opaque_ratio": 0.43190248458952357,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 1392,
+      "errors": []
+    },
+    "pet/ozel_yogun.png": {
+      "size": [
+        519,
+        464
+      ],
+      "opaque_pixels": 120130,
+      "source_cell_opaque_ratio": 0.4682664047212542,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 1414,
+      "errors": []
+    },
+    "simge/uygulama_256.png": {
+      "size": [
+        256,
+        256
+      ],
+      "opaque_pixels": 44561,
+      "source_cell_opaque_ratio": 0.6799468994140625,
+      "green_ratio": 0.0,
+      "bottom_three_opaque": 0,
+      "errors": []
+    }
+  }
+}

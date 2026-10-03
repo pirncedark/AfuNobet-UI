@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "task",
+      "agent": "gemini",
+      "status": "Hata",
+      "task": "Devasa dosya analizi",
+      "current_action": "API'ye gonderiliyor...",
+      "started_at": "2026-10-03T11:39:09Z",
+      "updated_at": "2026-10-03T11:39:09Z",
+      "message": "429 Too Many Requests: Quota exceeded",
+      "last_error": "429 quota",
+      "quota": {
+        "remaining_percent": 0
+      }
+    }
+  ],
+  "mesaj": "",
+  "quotas": {
+    "codex": {
+      "remaining_percent": 80
+    },
+    "gemini": {
+      "remaining_percent": 0,
+      "checked_at": "2026-10-03T11:39:09Z"
+    }
+  }
+}

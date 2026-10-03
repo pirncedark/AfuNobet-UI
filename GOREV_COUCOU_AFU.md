@@ -1,0 +1,23 @@
+# GOREV: COUCOU -> AFUNOBET UI V1 (fork: pirncedark/AfuNobet-UI, upstream Louis-CFM/coucou, MIT)
+Calisma klasoru: C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows. Bagimliliklar onceden indirildi (npm install + cargo fetch yapildi); sandbox internetsiz, CARGO_NET_OFFLINE=true ve npm --offline kullan, indirme gerekirse DUR ve raporla. Yeni pencere ACMA (headless/test).
+Referans: afu-character/REFERANS.png (resmi Afu karakteri). Daha once yazilmis Afu UI: C:/Users/afuuu/Desktop/afuproject/AfuNobet/ui (src/state.ts sizinti filtresi, src-tauri/src/state.rs + watch.rs state.json okuyucu); mantigi oradan al. Sozlesme: AfuNobet/docs/UI_SOZLESME.md.
+## Kurallar
+- Coucou penceresi/island davranisi KORUNUR: hidden->petit->home state machine (src/island/fsm.ts, island.ts), ustte merkezden cikma/gizlenme, spring gecisler, always-on-top, click-through, hover ile uyanma, is gelince otomatik gorunme, ajan pill animasyonlari, gorev karti gecisleri, finished animasyonu, dusuk idle CPU. windows/src-tauri/src/island.rs aynen korunur.
+- KALDIR: Coucou ve Mochi adi/karakteri/ikonlari/sesleri/medyasi (src/mochi, NotchBuddy, docs/media, design, tray ikonlari), Claude chat/API, Claude hook (hooks.rs, hook/ crate, pipe.rs Claude kancasi), Stripe/n8n/Vercel/integrations, upload, secrets. Marka: AfuNobet-UI. Claude hicbir sey CALISTIRMAZ; yalniz kilitli rozet "Claude KORUNUYOR" gosterilir.
+- Veri: yalniz AfuNobet state.json (varsayilan C:/Users/afuuu/Desktop/afuproject/AfuNobet/state.json, ayar/ortam degiskeni ile degisir) salt-okur izlenir (dosya degisimi, polling yok). Surec baslatma/oldurme YOK. PID/port/ham hata/429 UI de gorunmez; kota -> "<Ajan> duraklatildi - kota yenilenince devam edecek". Dosya yok/bozuk -> "Baglanti bekleniyor". Context/prompta hicbir sey eklenmez.
+- Afu basitlik kurali: tek ana kart, teknik terim yok, tek cumle mesaj.
+## Karakter (EN ONEMLI)
+afu-character/REFERANS.png resmi karakterdir; yuzu, renkleri, beyin yapisi, kiyafeti DEGISTIRILMEZ. Canvas/SVG ile YENIDEN CIZME. Referanstan temiz kesim yap (rembg/flood-fill, seffaf arka plan; kesim kontrol gorseli uret) -> afu-character/: main-34.png, front.png, happy.png, thinking.png, alert.png, mini-icon.png (ve ? ! parilti efektleri ayri seffaf SVG/PNG). Referansta olmayan durumlar kesilmis mevcut karelerden turetilir (yeni cizim yok): idle=front, working=front+odak efekti, waiting=front yavas, success=happy+parilti, error=alert/thinking kareleri+kisa sarsinti. Hareket yalniz CSS/JS: scale, translate, rotate, spring, squash, blink(opsiyonel overlay), partikul. Acik island da buyuk karakter, petit modda kucuk bas/mini icon.
+Durum eslemesi: JOB_STARTED/FILE_EDIT/COMMAND -> working; WAITING -> thinking; RATE_LIMIT/Duraklatildi -> alert; JOB_FINISHED -> happy; JOB_FAILED -> error; is yok -> idle (nefes + ara sira goz kirpma, mouse e bakis). state.json durumlari Hazirlaniyor/Calisiyor/Bekliyor/Duraklatildi/Tamamlandi/Hata bu ifadelere baglanir.
+## Icerik
+Ajan pill leri: CODEX / GLM / GEMINI (+ OPENCODE); gorev adi + aktif dosya + x/y ilerleme; ust gorev buyuk, digerleri 3-4 satir, kalan +N; ikinci seviye kota paneli.
+## Teslim
+AFU_CHANGES.md (upstream e gore ne degisti, korunan dosyalar), LICENSE-ASSETS.md notu (Coucou assetleri kaldirildi). Windows build: npm run pack veya tauri build (cikti exe -> dist/afunobet-ui-coucou.exe, SHA256). Testler: vitest/tsc + cargo test + headless ekran goruntusu (7 durum). Eski AfuNobet/dist/afunobet-ui.exe ye DOKUNMA. Commit etme. Apostrof yok.
+Son satir tek satir JSON: {"karar":"TAMAM"|"RET","ozet":"...","dosyalar":[...],"test":"...","commit":"-"}
+## EK KABUL OLCUTLERI (sonradan eklendi)
+1. state.json yoksa/yarim/bozuk/eski: UI cokmez, son gecerli state korunur, gerekirse "AfuNobet bekleniyor". Atomik replace takip edilir. Test et.
+2. Claude kilidi kaniti: AfuNobet-UI icinde Anthropic API cagrisi, Claude hook kurulumu, Claude process baslatma kodu KALMASIN. Kod taramasi (grep) sonucunu raporla. KORUNUYOR kilidi yalniz gorsel durum.
+3. Lisans: MIT LICENSE ve upstream atif korunur; Mochi/Coucou ikon, ses, medya build e GIRMEZ (paket icerigini kontrol et). AFU_CHANGES.md bunu acikca yazar.
+4. Headless test gercek Windows testi degildir: always-on-top, click-through, hover wake, ekrana yerlesme, hidden->petit->home dogrulanamadi diye AFU_CHANGES.md de "gercek Windows smoke testi" maddesi olarak ayri listele; dogrulandi deme.
+5. Asil build ciktisini (target/release exe + SHA256) VE dist kopyasini raporla; kopya ile asil ayni SHA256 olmali.
+6. Raporda: degistirilmeden korunan ve Afu icin degistirilen Coucou dosyalari listesi.

@@ -1,509 +1,543 @@
-// Island views — DOM ports of IslandViewContent.swift. Paddings, font sizes,
-// colours and wording are copied from the Swift views so both platforms read
-// identically.
+import { h } from "./dom";
+import "../apps.css";
+import { appRows, type AppsSnapshot } from "../core/apps";
+export type ViewName = "overview" | "quota" | "greeting" | "apps" | "chat" | "orkestra" | "sor";
+import { AGENT_TR, STATUS_TR, UI_TR, ui } from "../core/labels";
+import { NAMES, State, maskeleBildirim, currentTasks, elapsedText, expressionFor, listedTasks, preferredTask, quotaRows, taskMessage, taskSummary, type Agent, type Task } from "../core/state";
+import { Bridge } from "../core/bridge";
+import { Modal } from "./modal";
+import { Katman, kapatDugmesi } from "./overlay";
+import { kopruDurumu, type KopruMesaj } from "../core/kopru";
+import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, pillAgentOf, stageSteps, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
+import { ajanKimlik } from "../core/ajan_kimlik";
 
-import { h, svg, clear, dot } from "./dom";
-import { ICONS } from "./icons";
-import { Ticker } from "./ticker";
-import { State, type AgentTask } from "../core/state";
-import { washRGBA, type IslandViewName, type Wash } from "../core/layout";
-import { createMiniBot, pruneMiniBots } from "../mochi/minibots";
-import { buildPrompt } from "./chat";
-import { buildChoose, buildUpload, buildUploading } from "./upload";
-import { renderIntegrationCard, type IntegrationCardHooks } from "./integrations";
-
-export interface ViewActions {
-  setView(v: IslandViewName): void;
-  collapse(): void;
-  setFocus(id: string): void;
-  openTerminal(): void;
-  /** The ↗ button: opens whatever the focused pill points at. */
-  openTarget(): void;
-  openUrl(url: string): void;
-  decide(d: "allow" | "deny"): void;
-  toggleSound(): void;
-  setVolume(v: number): void;
-  setAutoClose(seconds: number): void;
-  openSettingsWindow(): void;
-  blip(): void;
-}
-
-export interface ViewHost {
-  el: HTMLElement;
-  sync(): void;
-  /** Called when the view becomes active, for views with a text field. */
-  focus?(): void;
-  /** Called every frame while the view is on screen. */
-  tick?(nowMs: number): void;
-}
-
-// ── Shared pieces ─────────────────────────────────────────────────────────────
-
-function card(wash: Wash, ...children: (Node | string)[]): HTMLElement {
-  const el = h("div", { class: wash ? "card wash" : "card" }, ...children);
-  if (wash) el.style.setProperty("--wash", washRGBA(wash));
+function createPill(id: string, state: string) {
+  const kimlik = ajanKimlik(id);
+  const el = h("span", { class: "agent-pill-inline", "data-state": state, style: `--pill-color: ${kimlik.renk}; --pill-bg: ${kimlik.arkaPlan}` });
+  el.append(h("span", { class: "pill-dot" }), h("span", { class: "pill-text", text: kimlik.kisaAd }));
   return el;
 }
 
-function btn(
-  label: string,
-  kind: "primary" | "secondary",
-  onClick: () => void,
-  kbd?: string,
-): HTMLElement {
-  return h(
-    "button",
-    { class: `btn ${kind}`, onclick: onClick },
-    h("span", { text: label }),
-    kbd ? h("span", { class: "kbd", text: kbd }) : null,
-  );
-}
+/** Secondary rows under the main card. Older records are counted, never listed. */
+const ROW_LIMIT = 3;
+/** Arama sonuç listesi üst sınırı (modal içinde). */
+const SEARCH_LIMIT = 50;
+type MenuView = "quota" | "apps" | "orkestra" | "chat";
 
-/** AgentWho — coloured dot + task name + grey label. */
-function agentWho(task: AgentTask | null, label: string): HTMLElement {
-  const row = h("div", { class: "who-row" });
-  if (task) {
-    row.append(dot(task.color, 8), h("span", { class: "n", text: task.name }));
+export class AfuViews {
+  readonly summary = h("span", { class: "summary", text: "0/0" });
+  /** F7: 10+ görevde görünen arama düğmesi (ana ekranı kalabalık etmez). */
+  readonly searchButton = h("button", { class: "icon-button search-button", type: "button", text: "⌕", "aria-label": UI_TR.search, title: UI_TR.search, hidden: true, onclick: () => this.openSearch() });
+  readonly header = h("header", {}, h("span", { class: "brand", text: UI_TR.brand }), this.summary, this.searchButton,
+    h("span", { class: "claude-lock", text: "🔒 Claude KORUNUYOR" }));
+  readonly pills = h("nav", { class: "agent-pills", "aria-label": "Ajanlar" });
+  readonly card = h("section", { class: "main-task", "aria-live": "polite", tabindex: "0", role: "button", "aria-label": UI_TR.detail });
+  readonly others = h("div", { class: "other-tasks" });
+  readonly retryButton = h("button", { class: "text-button retry-button", type: "button", text: UI_TR.retry, onclick: () => void this.retry() });
+  readonly waiting = h("p", { class: "connection" }, h("span", { class: "connection-text", text: UI_TR.waiting }), this.retryButton);
+  readonly healthStrip = h("div", { class: "health-strip", role: "group", "aria-label": "Saglik" });
+  readonly overview = h("div", { class: "overview" }, this.pills, this.card, this.healthStrip, this.others, this.waiting);
+  readonly quota = h("section", { class: "quota-view", "aria-label": UI_TR.quota, hidden: true });
+  readonly greeting = h("section", { class: "greeting-view", hidden: true }, h("h1", { text: UI_TR.welcome }),
+    h("p", { text: UI_TR.orientation }), h("p", { class: "hint", text: UI_TR.hint }));
+  readonly apps = h("section", { class: "apps-view", "aria-label": "Uygulamalar", hidden: true });
+  readonly chat = h("section", { class: "chat-view", "aria-label": "Asistan", hidden: true });
+  readonly chatClose = kapatDugmesi("text-button chat-close", "Kapat", () => this.actions.chat?.());
+  private readonly chatKatmani = new Katman(this.chat, () => this.actions.chat?.());
+  readonly sor = h("section", { class: "sor-view", "aria-label": "Afu'ya sor", hidden: true });
+  /** Ana etkileşim: "Afu'ya sor". Küçült ikincil düğmedir. */
+  readonly sorButton: HTMLButtonElement;
+  readonly appsButton: HTMLButtonElement;
+  readonly chatButton: HTMLButtonElement;
+  readonly orkestra = h("section", { class: "orkestra-view", "aria-label": "Orkestra", hidden: true });
+  readonly orkestraButton: HTMLButtonElement;
+  readonly appsMessage = h("p", { class: "apps-message", "aria-live": "polite" });
+  /** Tıklamanın sonucunu tek cümleyle gösteren kısa bildirim. */
+  readonly bildirim = h("p", { class: "tik-bildirim", role: "status", "aria-live": "polite", hidden: true });
+  private bildirimTimer: number | null = null;
+  private appsSnapshot: AppsSnapshot = { apps: [], durumlar: {} };
+  readonly quotaButton: HTMLButtonElement;
+  readonly primary: HTMLButtonElement;
+  readonly petButton: HTMLButtonElement;
+  /** Alt satır: alt görünümdeyken "Görevlere dön". */
+  readonly backButton: HTMLButtonElement;
+  /** Sayfa geçişleri görünür; Daha fazla yalnız Mini pet ayarını içerir. */
+  readonly moreButton: HTMLButtonElement;
+  readonly menu: HTMLElement;
+  /** Q2: menüyü kapanıran görünür düğme (Esc ve dışarı tıklama dışında yol). */
+  readonly menuClose: HTMLButtonElement;
+  /** Q2: menüde odak hapsi + odak geri dönüşü. */
+  private readonly menuKatmani: Katman;
+  readonly footer: HTMLElement;
+  /** F11: kart içi tek modal katmanı (ayrıntı, arama). */
+  readonly modal = new Modal();
+  readonly compactText = h("span", { class: "compact-text", text: UI_TR.ready });
+  readonly compactCount = h("span", { class: "compact-count", text: "0/0" });
+  readonly compact = h("div", { class: "compact-content" }, this.compactText, this.compactCount);
+  readonly el: HTMLElement;
+  private pillButtons = new Map<PillId, HTMLButtonElement>();
+  private pillKey = "";
+  private cardKey = "";
+  private view: ViewName = "overview";
+  private filter: Filter = { ...EMPTY_FILTER };
+
+  constructor(private actions: { collapse(): void; quota(): void; pet?(): void; apps?(): void; chat?(): void; orkestra?(): void; sor?(): void; appOpen?(id: string): Promise<string | null | void>; appsRefresh?(): void; retry?(): Promise<void> }) {
+    if (typeof window !== "undefined") window.addEventListener("afu-flash", (e) => this.flash((e as CustomEvent).detail));
+    const item = (cls: string, label: string, run: () => void) => h("button", { class: `text-button menu-item ${cls}`.trim(), type: "button", role: "menuitem", text: label, title: label,
+      onclick: () => { this.closeMenu(false); run(); } });
+    const page = (label: string, run: () => void) => h("button", { class: "text-button page-button", type: "button", text: label, title: label,
+      onclick: () => { this.closeMenu(false); run(); } });
+    this.quotaButton = page(UI_TR.quota, () => actions.quota());
+    this.appsButton = page(UI_TR.apps, () => actions.apps?.());
+    this.orkestraButton = page(UI_TR.orkestra, () => actions.orkestra?.());
+    this.chatButton = page(UI_TR.chat, () => actions.chat?.());
+    this.petButton = item("pet-toggle", UI_TR.petOn, () => actions.pet?.());
+    this.petButton.setAttribute("role", "menuitemcheckbox");
+    this.petButton.setAttribute("aria-checked", "true");
+    // Q2: menüyü kapanıran düğme; Esc ve dışarı tıklama dışında görünür yol.
+    this.menuClose = kapatDugmesi("text-button menu-item menu-close", ui("close"), () => this.closeMenu(true), "menuitem");
+    this.menu = h("div", { class: "more-menu", role: "menu", "aria-label": UI_TR.more, hidden: true },
+      this.petButton, this.menuClose);
+    this.menu.addEventListener("keydown", (e: Event) => this.onMenuKey(e as KeyboardEvent));
+    this.menuKatmani = new Katman(this.menu, () => this.closeMenu(true));
+    this.moreButton = h("button", { class: "text-button more-button", type: "button", "aria-haspopup": "menu", "aria-expanded": "false", title: UI_TR.more, "aria-label": UI_TR.more,
+      onclick: () => this.toggleMenu() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "⋯" }), h("span", { class: "btn-label", text: UI_TR.more }));
+    this.backButton = h("button", { class: "text-button back-button", type: "button", hidden: true, title: UI_TR.back,
+      onclick: () => this.goBack() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "←" }), h("span", { class: "btn-label", text: UI_TR.back }));
+    this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: actions.collapse });
+    this.sorButton = h("button", { class: "primary-button sor-button", type: "button", text: UI_TR.ask, onclick: () => actions.sor?.() });
+    this.footer = h("footer", {}, this.backButton, this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton, this.moreButton, this.primary, h("span", { class: "footer-gap" }), this.sorButton);
+    this.card.addEventListener("click", (e: Event) => { if (!this.fromButton(e)) this.openDetail(); });
+    this.card.addEventListener("keydown", (e: Event) => {
+      const k = (e as KeyboardEvent).key;
+      if ((k === "Enter" || k === " ") && !this.fromButton(e)) { e.preventDefault(); this.openDetail(); }
+    });
+    this.el = h("div", { id: "content" }, this.header, this.overview, this.quota, this.apps, this.chat, this.sor, this.orkestra, this.greeting, this.bildirim, this.menu, this.footer, this.modal.el);
+    setInterval(() => this.updateHealth(), 5000);
+    this.updateHealth();
   }
-  row.append(h("span", { text: label }));
-  return row;
-}
-
-function stack(padLeft: number, padRight: number, ...children: Node[]): HTMLElement {
-  const el = h("div", { class: "stack" }, ...children);
-  el.style.padding = `4px ${padRight}px 4px ${padLeft}px`;
-  return el;
-}
-
-// ── Header ────────────────────────────────────────────────────────────────────
-
-export function buildHeader(actions: ViewActions): ViewHost {
-  const tabHome = h("button", { class: "tab", title: "Overview", onclick: () => go("overview") }, svg(ICONS.house, 13));
-  const tabChat = h("button", { class: "tab", title: "Ask", onclick: () => go("prompt") }, svg(ICONS.bubble, 13));
-  const tabDrop = h("button", { class: "tab", title: "Drop", onclick: () => go("upload") }, svg(ICONS.plus, 13));
-
-  const gearBtn = h("button", { title: "Settings", onclick: () => go("settings") }, svg(ICONS.gear, 14));
-  const soundBtn = h("button", { title: "Mute", onclick: () => actions.toggleSound() }, svg(ICONS.speakerOn, 14));
-
-  function go(v: IslandViewName) {
-    actions.blip();
-    actions.setView(v);
+  private fromButton(e: Event) {
+    const t = e.target as { closest?: (s: string) => unknown } | null;
+    return !!(t && t !== (this.card as unknown) && typeof t.closest === "function" && t.closest("button"));
   }
-
-  const el = h(
-    "div",
-    { id: "header" },
-    h("div", { class: "tabs" }, tabHome, tabChat, tabDrop),
-    h("div", { class: "header-actions" }, gearBtn, soundBtn),
-  );
-
-  return {
-    el,
-    sync() {
-      const v = State.view;
-      tabHome.classList.toggle("on", v === "overview" || v === "empty");
-      tabChat.classList.toggle("on", v === "prompt");
-      tabDrop.classList.toggle("on", v === "upload");
-      gearBtn.classList.toggle("on", v === "settings");
-      clear(gearBtn);
-      gearBtn.append(svg(v === "settings" ? ICONS.gearFill : ICONS.gear, 14));
-      clear(soundBtn);
-      soundBtn.append(svg(State.settings.soundEnabled ? ICONS.speakerOn : ICONS.speakerOff, 14));
-      el.style.opacity = v === "confused" ? "0" : "1";
-    },
-  };
-}
-
-// ── Overview ──────────────────────────────────────────────────────────────────
-
-function buildOverview(actions: ViewActions): ViewHost {
-  const ticker = new Ticker();
-  const who = h("div", { class: "who" });
-  const tickerBody = h("div", { class: "card-body" }, who, ticker.el);
-  const leftBody = h("div", { class: "left-body" });
-  const jump = h(
-    "button",
-    { class: "icon-btn jump", title: "Open", onclick: () => actions.openTarget() },
-    svg(ICONS.arrowUpRight, 8),
-  );
-  const left = card(null, leftBody, jump);
-  const pills = h("div", { class: "pills" });
-  const right = card(null, pills);
-
-  const el = h("div", { class: "view overview" },
-    h("div", { class: "left" }, left),
-    h("div", { class: "right" }, right),
-  );
-
-  let pillIds = "";
-  let detailOpen = false;
-  let lastFocus: string | null = null;
-  let mode: "ticker" | "card" | null = null;
-  let cardKey = "";
-
-  const hooks: IntegrationCardHooks = {
-    get detailOpen() {
-      return detailOpen;
-    },
-    openDetail() {
-      detailOpen = true;
-      cardKey = "";
-      State.notify();
-    },
-    closeDetail() {
-      detailOpen = false;
-      cardKey = "";
-      State.notify();
-    },
-    openSettings: () => actions.openSettingsWindow(),
-  };
-
-  return {
-    el,
-    tick(nowMs: number) {
-      if (mode === "ticker") ticker.tick(nowMs);
-    },
-    sync() {
-      const task = State.focusTask;
-      if (task?.id !== lastFocus) {
-        lastFocus = task?.id ?? null;
-        detailOpen = false;
-        cardKey = "";
-        mode = null;
-      }
-
-      // VS Code with a live Claude Code session keeps the ticker; every other
-      // pill shows its own card, exactly like IntegrationCardView.
-      const sessionActive =
-        task?.id === "integration_claude" && (task.state !== "idle" || task.steps.length > 0);
-
-      if (task && sessionActive) {
-        if (mode !== "ticker") {
-          clear(leftBody);
-          leftBody.append(tickerBody);
-          mode = "ticker";
-          cardKey = "";
-        }
-        clear(who);
-        who.append(
-          dot(task.color, 7),
-          h("span", { class: "name", text: task.name }),
-          h("span", { class: "tool", text: task.source === "claudeCode" ? "Claude Code" : "n8n" }),
-        );
-        if (task.steps.length > 1) {
-          who.append(h("span", {
-            class: "count",
-            text: `${Math.min(task.stepIndex + 1, task.steps.length)}/${task.steps.length}`,
-          }));
-        }
-        ticker.sync(task);
-      } else if (task) {
-        const info = State.integrations[task.id];
-        const key = [
-          task.id, detailOpen, task.state, task.steps.join("|"),
-          info?.loaded, info?.error, info?.configured,
-          JSON.stringify(info?.data ?? {}),
-        ].join("~");
-        if (key !== cardKey) {
-          cardKey = key;
-          mode = "card";
-          clear(leftBody);
-          leftBody.append(renderIntegrationCard(task, hooks));
-        }
-      }
-
-      jump.style.display = detailOpen ? "none" : "";
-
-      const others = State.otherTasks.slice(0, 4);
-      const pillKey = others.map((t) => `${t.id}:${t.pillBadge ?? ""}`).join("|");
-      if (pillKey !== pillIds) {
-        pillIds = pillKey;
-        clear(pills);
-        for (const t of others) pills.append(buildPill(t, actions));
-        pruneMiniBots();
-      }
-    },
-  };
-}
-
-function buildPill(task: AgentTask, actions: ViewActions): HTMLElement {
-  const label = task.id === "integration_claude" ? "VS Code" : task.name;
-  const canvas = createMiniBot(task, 24);
-  const pill = h(
-    "div",
-    { class: "pill", onclick: () => actions.setFocus(task.id) },
-    canvas,
-    h("span", { class: "lbl", text: label }),
-  );
-  pill.style.borderColor = `${task.color}24`;
-  pill.addEventListener("mouseenter", () => {
-    pill.style.background = `${task.color}2e`;
-    pill.style.borderColor = `${task.color}8c`;
-    pill.style.boxShadow = `0 2px 10px ${task.color}59`;
-    (pill.querySelector(".lbl") as HTMLElement).style.color = lighten(task.color, 0.3);
-  });
-  pill.addEventListener("mouseleave", () => {
-    pill.style.background = "";
-    pill.style.borderColor = `${task.color}24`;
-    pill.style.boxShadow = "";
-    (pill.querySelector(".lbl") as HTMLElement).style.color = "";
-  });
-
-  if (task.pillBadge) {
-    const colors = { approval: "#F5A524", finished: "#22C55E", error: "#F4505E" } as const;
-    const icons = { approval: ICONS.bang, finished: ICONS.check, error: ICONS.xmark } as const;
-    const inner = h("i", { style: `background:${colors[task.pillBadge]}` }, svg(icons[task.pillBadge], 6, { stroke: task.pillBadge === "finished" ? 3 : 0 }));
-    const badge = h("div", { class: "pill-badge" }, inner);
-    badge.style.boxShadow = `0 0 4px ${colors[task.pillBadge]}99`;
-    pill.append(badge);
+  private lastSyncedView: ViewName | null = null;
+  sync(view: ViewName, expanded: boolean) {
+    this.view = view;
+    if (!expanded) { this.closeMenu(false); this.modal.close(); }
+    this.petButton.setAttribute("aria-checked", String(State.settings.pet));
+    this.petButton.textContent = State.settings.pet ? ui("petOn") : ui("petOff");
+    this.el.hidden = !expanded;
+    this.compact.hidden = expanded;
+    this.overview.hidden = view !== "overview";
+    this.orkestra.hidden = view !== "orkestra";
+    // Yalniz gorunume girerken ciz: her durum guncellemesinde yeniden cizmek yazilan gorevi siler.
+    if (view === "orkestra" && expanded && this.lastSyncedView !== "orkestra") void this.renderOrkestra();
+    this.lastSyncedView = expanded ? view : null;
+    this.quota.hidden = view !== "quota";
+    this.greeting.hidden = view !== "greeting";
+    this.apps.hidden = view !== "apps";
+    this.chat.hidden = view !== "chat";
+    this.sor.hidden = view !== "sor";
+    this.syncFooter(view);
+    if (view === "chat" && expanded) this.chatKatmani.ac({ ignore: [this.chatButton], ilk: this.chatClose, acan: this.chatButton });
+    else this.chatKatmani.kapandı();
+    // The main screen is a live board: only work that is still current reaches
+    // it. A long history is counted in the summary and never listed here.
+    const tasks = currentTasks(State.tasks), task = State.focusTask as RichTask | undefined;
+    const rows = listedTasks(topLevel(tasks as RichTask[]).filter(row => row.id !== task?.id));
+    this.summary.textContent = `${taskSummary(tasks)} ${ui("completed")}`;
+    this.compactCount.textContent = taskSummary(tasks);
+    const compactTitle = State.snapshot.sourceUnavailable ? ui("waiting") : task?.title ?? ui("ready");
+    this.compactText.textContent = compactTitle; this.compactText.setAttribute("title", compactTitle);
+    this.waiting.hidden = !State.snapshot.sourceUnavailable;
+    this.searchButton.hidden = !filterVisible(State.tasks);
+    this.syncPills(task);
+    const key = JSON.stringify({ task, elapsed: task ? elapsedText(task) : "", unavailable: State.snapshot.sourceUnavailable, lang: ui("ready") });
+    if (this.cardKey !== key) {
+      this.cardKey = key;
+      this.renderCard(task);
+    }
+    this.others.replaceChildren();
+    // E3: odaktaki görevin alt ajanları ayrı satır olarak önce gelir; toplam satır sınırı korunur.
+    const subs = subagentRows(task, State.tasks as RichTask[]).filter(s => !s.done);
+    for (const sub of subs.slice(0, ROW_LIMIT)) this.others.append(this.subRow(sub.name, sub.status));
+    for (const row of rows.filter(t => t.id !== task?.id).slice(0, Math.max(0, ROW_LIMIT - Math.min(subs.length, ROW_LIMIT)))) this.others.append(this.taskRow(row));
+    if (view === "quota") this.renderQuota();
   }
-  return pill;
-}
+  private healthCheck = { codex: false, ses: false, mesajlar: [] as KopruMesaj[] };
+  private async updateHealth() {
+    try { this.healthCheck.ses = !(await Bridge.bildirimAyarlari()).muted; } catch { this.healthCheck.ses = false; }
+    try { const c = await Bridge.codexStatus(); this.healthCheck.codex = typeof c !== "string" && c?.loggedIn === true; } catch { this.healthCheck.codex = false; }
+    try { this.healthCheck.mesajlar = (await Bridge.mesajlar()) ?? []; } catch { /* mesajlar yoksa kopru yalnizca gorevlere bakar */ }
+    const afuOk = !State.snapshot.sourceUnavailable;
+    // Claude icin ust satirdaki "Afu baglantisi" ile ayni kaynak: son 5 dk'da
+    // mesaj ya da ada canli is (kopru.ts).
+    const claudeOk = kopruDurumu(this.healthCheck.mesajlar, State.snapshot.tasks, Date.now()).bagli;
+    const codexOk = this.healthCheck.codex;
+    const sesOk = this.healthCheck.ses;
 
-function lighten(hex: string, amount: number): string {
-  const v = parseInt(hex.replace("#", ""), 16);
-  const c = [(v >> 16) & 255, (v >> 8) & 255, v & 255].map((x) =>
-    Math.min(255, Math.round(x + amount * 255)),
-  );
-  return `rgb(${c[0]},${c[1]},${c[2]})`;
-}
+    // Kucuk hap/rozetler: yesil ✓, gri ✗. Ham metin degil, kartin stiline uyan
+    // rozetler; her rozet durumu hem renkte hem isarette tek tek anlatir.
+    const pill = (ad: string, ok: boolean) => h("span", { class: `health-pill${ok ? " ok" : " kapali"}`, "data-ok": String(ok), title: `${ad} ${ok ? "calisiyor" : "kapali"}`, role: "img", "aria-label": `${ad} ${ok ? "calisiyor" : "kapali"}` },
+      h("span", { class: "hp-ad", text: ad }), " ", h("span", { class: "hp-isaret", text: ok ? "✓" : "✗", "aria-hidden": "true" }));
+    this.healthStrip.replaceChildren(
+      pill("AfuNöbet", afuOk),
+      pill("Codex", codexOk),
+      pill("Sesler", sesOk),
+      pill("Claude", claudeOk)
+    );
 
-// ── Empty ─────────────────────────────────────────────────────────────────────
+    this.healthStrip.onclick = () => {
+      if (!afuOk) this.flash("AfuNöbet kapalı, uygulamayı yeniden başlat.");
+      else if (!codexOk) this.flash("Codex oturumu yok, 'Afu'ya sor' kısmından giriş yap.");
+      else if (!sesOk) this.flash("Sesler kapalı, tepsi (sağ alt) menüsünden açabilirsin.");
+      else if (!claudeOk) this.flash("Claude görünmüyor, Claude Code hook'unun kurulu olduğundan emin ol.");
+      else this.flash("Tüm sistemler aktif ve çalışıyor.");
+    };
+  }
+  private syncFooter(view: ViewName) {
+    const inSub = view === "quota" || view === "apps" || view === "orkestra" || view === "chat";
+    this.backButton.hidden = !inSub;
+    (this.backButton.lastChild as HTMLElement | null)?.replaceChildren?.(ui("back"));
+    this.backButton.setAttribute("title", ui("back"));
+    this.moreButton.setAttribute("title", ui("more"));
+    this.moreButton.setAttribute("aria-label", ui("more"));
+    this.menuClose.title = ui("close");
+    this.menuClose.setAttribute("aria-label", ui("close"));
+    (this.moreButton.lastChild as HTMLElement | null)?.replaceChildren?.(ui("more"));
+    const labels: [HTMLButtonElement, MenuView, string][] = [[this.quotaButton, "quota", ui("quota")], [this.appsButton, "apps", ui("apps")], [this.orkestraButton, "orkestra", ui("orkestra")], [this.chatButton, "chat", ui("chat")]];
+    for (const [button, name, label] of labels) {
+      button.textContent = label; button.setAttribute("title", label);
+      button.setAttribute("aria-pressed", String(view === name));
+    }
+    this.sorButton.textContent = view === "sor" ? ui("askBack") : ui("ask");
+    this.sorButton.setAttribute("aria-pressed", String(view === "sor"));
+    this.sorButton.setAttribute("title", this.sorButton.textContent ?? "");
+    const task = State.focusTask;
+    const primaryText = task?.status === "Tamamlandi" ? ui("done") : ui("collapse");
+    this.primary.textContent = primaryText; this.primary.setAttribute("title", primaryText);
+    this.footer.hidden = view === "greeting";
+  }
+  // ---------------- E2 ajan pill'leri ----------------
+  private syncPills(focus: Task | undefined) {
+    const rows = agentPills(State.snapshot);
+    const key = JSON.stringify([rows, focus ? pillAgentOf(focus) : null]);
+    if (key === this.pillKey) return;
+    this.pillKey = key;
+    const buttons = rows.map(row => this.pillButton(row, focus));
+    this.pills.replaceChildren(...buttons);
+  }
+  private pillButton(row: PillRow, focus: Task | undefined) {
+    let button = this.pillButtons.get(row.id);
+    if (!button) {
+      button = h("button", { class: "agent-pill", type: "button", onclick: () => this.pillClick(row.id) });
+      button.dataset.agent = row.id;
+      this.pillButtons.set(row.id, button);
+    }
+    const selected = !!focus && pillAgentOf(focus) === row.id;
+    button.replaceChildren();
+    if (row.kimlik) {
+      button.setAttribute("style", `--pill-color: ${row.kimlik.renk}; --pill-bg: ${row.kimlik.arkaPlan}`);
+      button.append(h("span", { class: "pill-dot" }), h("span", { class: "pill-text", text: row.kimlik.kisaAd }));
+    } else {
+      button.textContent = row.label;
+    }
+    button.dataset.state = row.state;
+    button.classList?.toggle("soluk", row.soluk);
+    button.title = row.title;
+    button.setAttribute("aria-label", row.title);
+    button.setAttribute("aria-pressed", String(selected));
+    button.classList?.toggle("selected", selected);
+    if (row.id !== "orkestra" && row.id !== "claude") {
+      const agentRows = currentTasks(State.tasks).filter(t => pillAgentOf(t) === row.id);
+      button.dataset.expression = expressionFor(preferredTask(agentRows)?.status);
+    }
+    return button;
+  }
+  private pillClick(id: PillId) {
+    if (id === "orkestra") { this.actions.orkestra?.(); return; }
+    const row = agentPills(State.snapshot).find(r => r.id === id);
+    const name = row?.label ?? id;
+    const task = preferredTask(currentTasks(State.tasks.filter(t => pillAgentOf(t) === id)));
+    if (task) { State.setFocus(task.id); this.flash(`${name} görevi gösteriliyor.`); return; }
+    const state = row?.state ?? "kapali";
+    this.flash(state === "kota" ? `${name} kotası dolu. Yenilenince devam eder.` : `${name} şu an boşta. Görev verilince burada görünür.`);
+  }
+  // ---------------- Ana kart (F1/F2/F3/F8/F9) ----------------
+  private renderCard(task: RichTask | undefined) {
+    this.card.replaceChildren();
+    this.card.dataset.expression = expressionFor(task?.status);
+    this.card.setAttribute("aria-disabled", String(!task));
+    if (task) {
+      // A failure or a pause carries one sentence and nothing else: the file
+      // the job happened to touch is noise on the screen the user reads.
+      const running = task.status === "Calisiyor" || task.status === "Hazirlaniyor";
+      const eyebrow = [task.agent ? AGENT_TR[task.agent] : "Ajan", modelText(task), task.repo, elapsedText(task)].filter(Boolean).join(" · ");
+      const title = clipText(task.title, 90);
+      const handoff = handoffText(task, Date.now(), State.snapshot.quotas);
+      const message = running && task.currentAction ? task.currentAction : taskMessage(task);
+      const model = modelText(task);
+      this.card.append(h("div", { class: "task-eyebrow", title: eyebrow },
+        task.agent ? createPill(task.agent, expressionFor(task.status) === "idle" ? "idle" : "aktif") : h("span", { text: "Ajan" }),
+        model ? h("span", { class: "f3-model-info", text: ` · ${model}` }) : null,
+        h("span", { text: `${task.repo ? " · " + task.repo : ""} · ${elapsedText(task)}` })),
+        h("h1", { text: title.text, title: title.title }));
+      if (handoff) this.card.append(h("p", { class: "task-handoff", text: handoff, title: handoff }));
+      this.card.append(h("p", { class: `task-message${handoff ? " short" : ""}`, text: message, title: message }));
+      const steps = stageSteps(task);
+      if (steps) this.card.append(this.stageBar(steps, true));
+      else this.card.append(h("div", { class: "task-meta" },
+        h("span", { class: "active-file", text: running ? task.file ?? "" : "" }),
+        h("span", { class: "task-percent", text: task.progress === null ? "" : `%${Math.round(task.progress)}` })));
+      if (task.progress !== null) {
+        const meter = h("div", { class: "progress-track", role: "progressbar", "aria-label": UI_TR.progress, "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": task.progress });
+        meter.append(h("div", { class: "progress-fill", style: `width:${task.progress}%` }));
+        this.card.append(meter);
+      }
+    } else {
+      const empty = emptyState(State.snapshot);
+      this.card.append(h("h1", { text: empty.title }), h("p", { class: "task-message empty-message", text: empty.message }));
+    }
+    this.card.animate?.([{ opacity: 0, transform: "translateY(5px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 220, easing: "ease-out" });
+  }
+  private stageBar(steps: NonNullable<ReturnType<typeof stageSteps>>, compact: boolean) {
+    const bar = h("ol", { class: `stage-bar${compact ? " compact" : ""}`, "aria-label": UI_TR.stages });
+    for (const step of steps) {
+      const li = h("li", { class: `stage ${step.state}`, title: step.label, text: step.label });
+      if (step.state === "current") li.setAttribute("aria-current", "step");
+      bar.append(li);
+    }
+    return bar;
+  }
+  /** F4/F5 ve diğer ayrıntılar yalnız burada: ana ekranda yok. */
+  openDetail(selected?: RichTask) {
+    const task = selected ?? State.focusTask as RichTask | undefined;
+    if (!task) return;
+    const parts: Node[] = [];
+    const line = (cls: string, text: string | null) => { if (text) parts.push(h("p", { class: `detail-line ${cls}`, text, title: text })); };
+    const agentHeader = h("p", { class: "detail-line detail-agent" });
+    if (task.agent) agentHeader.append(createPill(task.agent, expressionFor(task.status) === "idle" ? "idle" : "aktif"));
+    agentHeader.append(h("span", { text: ` · ${STATUS_TR[task.status]}` }));
+    parts.push(agentHeader);
+    const model = modelText(task);
+    if (model) line("detail-model", `${ui("model")}: ${model}`);
+    line("detail-handoff", handoffText(task, Date.now(), State.snapshot.quotas));
+    line("detail-message", taskMessage(task));
+    const steps = stageSteps(task);
+    if (steps) parts.push(this.stageBar(steps, false));
+    line("detail-context", contextText(task));
+    if (contextText(task) && task.context?.used != null && task.context.total != null) {
+      const value = task.context.used / task.context.total * 100;
+      const meter = h("div", { class: "f4-context-track", role: "progressbar", "aria-label": "Kullanılan bağlam", "aria-valuemin": 0, "aria-valuemax": 100, "aria-valuenow": value });
+      meter.append(h("div", { class: "f4-context-fill", style: `width:${value}%` }));
+      parts.push(meter);
+    }
+    line("detail-cost", costText(task));
+    const subs = subagentRows(task, State.tasks as RichTask[]);
+    if (subs.length) {
+      parts.push(h("h3", { class: "detail-sub-title", text: ui("subagents") }));
+      for (const s of subs) parts.push(h("p", { class: `detail-sub${s.done ? " done" : ""}`, text: `↳ ${s.name} · ${s.status}`, title: s.name }));
+    }
+    this.modal.open(clipText(task.title, 70).text, parts, { label: ui("detail") });
+  }
+  // ---------------- F7 arama/filtre ----------------
+  openSearch() {
+    const input = h("input", { class: "search-input", type: "search", placeholder: ui("searchPlaceholder"), "aria-label": ui("search") }) as HTMLInputElement;
+    input.value = this.filter.query;
+    const agentSel = h("select", { class: "search-select", "aria-label": ui("allAgents") }) as HTMLSelectElement;
+    agentSel.append(h("option", { value: "hepsi", text: ui("allAgents") }));
+    for (const a of ["codex", "gemini", "opencode", "glm"] as const) agentSel.append(h("option", { value: a, text: AGENT_TR[a] }));
+    agentSel.value = this.filter.agent;
+    const statusSel = h("select", { class: "search-select", "aria-label": ui("allStatus") }) as HTMLSelectElement;
+    for (const [v, k] of [["hepsi", "allStatus"], ["calisan", "running"], ["bekleyen", "queued"], ["biten", "finished"], ["hata", "failed"]] as const) statusSel.append(h("option", { value: v, text: ui(k) }));
+    statusSel.value = this.filter.status;
+    const list = h("div", { class: "search-results", role: "list" });
+    const render = () => {
+      this.filter = { query: input.value, agent: agentSel.value as Filter["agent"], status: statusSel.value as Filter["status"] };
+      const found = filterTasks(State.tasks, this.filter);
+      list.replaceChildren();
+      if (!found.length) list.append(h("p", { class: "search-empty", text: ui("noMatch") }));
+      for (const t of found.slice(0, SEARCH_LIMIT)) {
+        const title = clipText(t.title, 60);
+        list.append(h("button", { class: "task-row search-row", type: "button", role: "listitem", title: title.title,
+          onclick: () => { State.setFocus(t.id); this.modal.close(); if (State.focusTask?.id !== t.id) this.openDetail(t); } },
+          h("i", { class: `status-dot ${expressionFor(t.status)}` }), h("span", { class: "row-title", text: title.text }),
+          h("span", { class: "row-status", text: `${t.agent ? AGENT_TR[t.agent] : ""} · ${STATUS_TR[t.status]}` })));
+      }
+    };
+    input.addEventListener("input", render); agentSel.addEventListener("change", render); statusSel.addEventListener("change", render);
+    render();
+    this.modal.open(ui("search"), [h("div", { class: "search-bar" }, input, agentSel, statusSel), list], { label: ui("search") });
+  }
+  // ---------------- F10 Tekrar dene ----------------
+  async retry() {
+    if (this.retryButton.disabled) return;
+    this.retryButton.disabled = true; this.retryButton.textContent = ui("retrying");
+    try {
+      if (this.actions.retry) await this.actions.retry();
+      else { const value = await Bridge.refreshState(); if (value !== null) State.apply(value); }
+    } catch { /* aşağıdaki tek cümle yeterli */ }
+    finally { this.retryButton.disabled = false; this.retryButton.textContent = ui("retry"); }
+    this.flash(State.snapshot.sourceUnavailable ? ui("retryFail") : ui("retryOk"));
+  }
+  // ---------------- Daha fazla menüsü (F12 klavye) ----------------
+  get menuOpen() { return !this.menu.hidden; }
+  toggleMenu() { if (this.menuOpen) this.closeMenu(true); else this.openMenu(); }
+  openMenu() {
+    this.menu.hidden = false; this.moreButton.setAttribute("aria-expanded", "true");
+    // Q2: odak ilk menü öğesine girer, dışarı tıklama kapatır, Tab menüde kalır.
+    this.menuKatmani.ac({ ignore: [this.moreButton] });
+  }
+  closeMenu(refocus: boolean) {
+    if (this.menu.hidden) return;
+    this.menu.hidden = true; this.moreButton.setAttribute("aria-expanded", "false");
+    this.menuKatmani.kapandı();
+    if (refocus) this.moreButton.focus?.();
+  }
+  private menuItems(): HTMLButtonElement[] { return [this.petButton, this.menuClose]; }
+  onMenuKey(e: KeyboardEvent) {
+    const items = this.menuItems();
+    const i = items.indexOf(document.activeElement as HTMLButtonElement);
+    // Q2: Esc ve Tab katman sınıfında; burada yalnız ok/Home/End gezinir.
+    if (e.key === "ArrowDown") { e.preventDefault(); items[(i + 1) % items.length].focus?.(); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); items[(i - 1 + items.length) % items.length].focus?.(); }
+    else if (e.key === "Home") { e.preventDefault(); items[0].focus?.(); }
+    else if (e.key === "End") { e.preventDefault(); items[items.length - 1].focus?.(); }
+  }
+  /** Alt görünümden ana ekrana: o görünümün kendi aç/kapa eylemi geri döndürür. */
+  goBack() {
+    const toggles: Partial<Record<ViewName, (() => void) | undefined>> = { quota: this.actions.quota, apps: this.actions.apps, orkestra: this.actions.orkestra, chat: this.actions.chat };
+    toggles[this.view]?.();
+  }
+  setChatContent(content: HTMLElement) { this.chat.replaceChildren(content); }
+  setSorContent(content: HTMLElement) { this.sor.replaceChildren(content); }
+  setAppsMessage(message: string) { this.appsMessage.textContent = message; }
+  flash(message: string) {
+    // W2: yol/komut maskelenir; tek satıra sığmazsa tam (maskeli) metin title'da kalır.
+    const metin = maskeleBildirim(message);
+    this.bildirim.textContent = metin; this.bildirim.setAttribute("title", metin); this.bildirim.hidden = false;
+    this.bildirim.animate?.([{ opacity: 0, transform: "translateY(4px)" }, { opacity: 1, transform: "translateY(0)" }], { duration: 160, easing: "ease-out" });
+    if (this.bildirimTimer !== null) clearTimeout(this.bildirimTimer);
+    this.bildirimTimer = setTimeout(() => { this.bildirimTimer = null; this.bildirim.hidden = true; }, 2600) as unknown as number;
+  }
+  setApps(snapshot: AppsSnapshot) {
+    this.appsSnapshot = snapshot;
+    this.apps.replaceChildren(h("h1", { text: "Uygulamalar" }));
+    const rows = appRows(snapshot.apps, snapshot.durumlar);
+    if (!rows.length) this.apps.append(h("p", { class: "connection", text: "Uygulama listesi okunamadı; Tekrar dene'ye bas." }), h("button", { class: "text-button", text: "Tekrar dene", onclick: () => this.actions.appsRefresh?.() }));
+    for (const row of rows) {
+      const button = h("button", { class: "app-open", text: row.etiket, onclick: () => {
+        if (row.indirilebilir && row.indirUrl) {
+          void Bridge.appDownload(row.id);
+        } else {
+          void this.openApp(row.id);
+        }
+      } });
+      button.disabled = (!row.acilabilir && !row.indirilebilir) || (!this.actions.appOpen && !row.indirilebilir);
+      const item = h("div", { class: `app-row${row.acilabilir || row.indirilebilir ? "" : " unavailable"}` },
+        h("i", { class: `app-dot ${row.nokta ?? "bos"}`, "aria-hidden": true }),
+        h("div", { class: "app-description" }, h("strong", { text: row.ad }), h("small", { text: row.ozet })), button);
+      this.apps.append(item);
+    }
+    this.apps.append(this.appsMessage);
+  }
+  private async openApp(id: string) {
+    if (!appRows(this.appsSnapshot.apps, this.appsSnapshot.durumlar).some(row => row.id === id && row.acilabilir)) return;
+    this.setAppsMessage("");
+    try { const message = await this.actions.appOpen?.(id); if (typeof message === "string") this.setAppsMessage(message); }
+    catch { this.setAppsMessage("Uygulama açılamadı. Yeniden dene."); }
+  }
+  private taskRow(task: Task) {
+    const title = clipText(task.title, 70);
+    return h("button", { class: "task-row", type: "button", title: title.title, onclick: () => State.setFocus(task.id) },
+      h("i", { class: `status-dot ${expressionFor(task.status)}` }), h("span", { class: "row-title", text: title.text, title: title.title }),
+      h("span", { class: "row-status", text: STATUS_TR[task.status] }));
+  }
+  /** E3: alt ajan satırı — ana görevin altında, girintili. */
+  private subRow(name: string, status: string) {
+    return h("div", { class: "task-row sub-row", role: "listitem", title: name },
+      h("i", { class: "status-dot working" }), h("span", { class: "row-title", text: `↳ ${name}` }), h("span", { class: "row-status", text: status }));
+  }
+  private renderQuota() {
+    this.quota.replaceChildren(h("h1", { text: ui("quota") }));
+    for (const row of quotaRows(State.snapshot)) {
+      this.quota.append(h("div", { class: "quota-row" }, h("strong", { text: NAMES[row.agent] }),
+        h("span", { text: `${row.percent}${row.stale ? " · Eski bilgi" : ""}` }),
+        h("small", { text: `Yenilenme: ${row.reset} · Son kontrol: ${row.checked}` })));
+    }
+    this.quota.append(h("p", { class: "quota-note", text: ui("quotaNote") }));
+  }
+  private async renderOrkestra() {
+    this.orkestra.replaceChildren(h("h1", { text: "Afu Orkestra" }));
+    const tasks = State.snapshot.tasks || [];
 
-function buildEmpty(actions: ViewActions): ViewHost {
-  const body = h(
-    "div",
-    { class: "stack", style: "padding:0 18px 0 118px;flex-direction:row;align-items:center;gap:16px" },
-    h(
-      "div",
-      { style: "display:flex;flex-direction:column;gap:5px" },
-      h("div", { class: "title", text: "Nothing running right now." }),
-      h("div", { class: "sub", text: "Drop a file or window, or ask me anything." }),
-    ),
-    h("div", { class: "grow" }),
-    btn("Ask Claude", "primary", () => actions.setView("prompt")),
-  );
-  return { el: h("div", { class: "view" }, card(null, body)), sync() {} };
-}
+    // 1. Ajan listesi — ana ekrandaki pill'lerle aynı dört durum.
+    const agentList = h("div", { class: "orkestra-agents" });
+    for (const row of agentPills(State.snapshot).filter(r => r.id !== "orkestra")) {
+      agentList.append(h("div", { class: "orkestra-agent-row", "data-state": row.state },
+        h("strong", { text: row.label }),
+        h("span", { text: PILL_STATE_TR[row.state] })
+      ));
+    }
+    this.orkestra.append(agentList);
 
-// ── Approval ──────────────────────────────────────────────────────────────────
+    // 2. İş ver formu
+    const agentSelect = h("select", { class: "orkestra-select", "aria-label": "Ajan" });
+    agentSelect.append(h("option", { value: "otomatik", text: "Otomatik (en uygun ajan)" }));
+    for (const a of ["codex", "gemini", "opencode"]) {
+      agentSelect.append(h("option", { value: a, text: AGENT_TR[a as Agent] }));
+    }
 
-function buildApproval(actions: ViewActions): ViewHost {
-  const who = h("div");
-  const code = h("div", { class: "code" });
-  const row = h("div", { class: "actions" });
-  const el = h("div", { class: "view" }, card("amber", stack(116, 16, who, code, row)));
-  let rowKey = "";
-  return {
-    el,
-    sync() {
-      clear(who);
-      who.append(agentWho(State.focusTask, "needs permission"));
-      // The whole point of approving here rather than in the terminal: this line
-      // is the command, the file path or the URL being authorised, not just the
-      // name of the tool asking.
-      code.textContent = State.pendingApproval?.command || State.pendingApproval?.tool || "…";
-      // Two buttons, built once. Rebuilding them between a mouse-down and a
-      // mouse-up would swallow the click, and there is nothing left to vary:
-      // "Always" is gone until the remembered-rules list exists to back it.
-      if (rowKey === "built") return;
-      rowKey = "built";
-      clear(row);
-      row.append(
-        btn("Deny", "secondary", () => actions.decide("deny"), "N"),
-        btn("Allow", "primary", () => actions.decide("allow"), "Y"),
-      );
-    },
-  };
-}
+    const projectSelect = h("select", { class: "orkestra-select", "aria-label": "Proje" });
+    const projects = await Bridge.orkestraProjects() || ["AfuNobet-UI"];
+    for (const p of projects) {
+      const opt = h("option", { value: p, text: p });
+      if (p === "AfuNobet-UI") opt.selected = true;
+      projectSelect.append(opt);
+    }
 
-// ── Question ──────────────────────────────────────────────────────────────────
+    const taskInput = h("input", { class: "orkestra-input", type: "text", placeholder: "Görev yazın...", required: "true", "aria-label": "Görev" }) as HTMLInputElement;
+    const submitBtn = h("button", { type: "submit", class: "primary-button", text: "Gönder" });
+    const projectBtn = h("button", { type: "button", class: "text-button", text: "Proje klasörünü aç", onclick: () => {
+      void Bridge.projectOpen(projectSelect.value);
+    } });
 
-function buildQuestion(): ViewHost {
-  const who = h("div");
-  const title = h("div", { class: "title" });
-  const row = h("div", { class: "actions" });
-  const el = h("div", { class: "view" }, card("cyan", stack(116, 16, who, title, row)));
-  return {
-    el,
-    sync() {
-      clear(who);
-      who.append(agentWho(State.focusTask, "Claude Code is asking a question"));
-      const task = State.focusTask;
-      title.textContent = task?.steps.at(-1) ?? "Claude needs an answer.";
-      clear(row);
-      row.append(h("div", { class: "sub", text: "Answer in your terminal — Coucou can't reply for you yet." }));
-    },
-  };
-}
+    const form = h("form", { class: "orkestra-form", onsubmit: async (e: Event) => {
+      e.preventDefault();
+      const oldText = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Gönderiliyor...";
+      try {
+        State.setPendingOrkestra(agentSelect.value, taskInput.value);
+        await Bridge.orkestraSend(agentSelect.value, projectSelect.value, taskInput.value);
+        taskInput.value = "";
+        this.flash("Görev gönderildi.");
+      } catch (err: unknown) {
+        // F11: engelleyen uyarı kutusu pencereyi kilitler; tek cümlelik bildirim yeterli.
+        const message = err instanceof Error ? err.message : String(err);
+        this.flash(message || "Görev gönderilemedi. Yeniden dene.");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = oldText;
+      }
+    } });
 
-// ── Error ─────────────────────────────────────────────────────────────────────
+    form.append(agentSelect, projectSelect, taskInput, h("div", { class: "orkestra-actions" }, submitBtn, projectBtn));
+    this.orkestra.append(h("h2", { text: "İş ver" }), form);
 
-function buildError(actions: ViewActions): ViewHost {
-  const who = h("div");
-  const title = h("div", { class: "title", text: "Workflow stopped." });
-  const detail = h("div", { class: "detail" });
-  const row = h("div", { class: "actions" },
-    btn("Retry", "primary", () => actions.setView(State.defaultView())),
-    btn("Open in n8n", "secondary", () => actions.openUrl("")),
-  );
-  const el = h("div", { class: "view" }, card("red", stack(116, 16, who, title, detail, row)));
-  return {
-    el,
-    sync() {
-      const task = State.focusTask;
-      clear(who);
-      who.append(agentWho(task, task?.source === "n8n" ? "n8n" : "Claude Code"));
-      title.textContent = task?.source === "n8n" ? "Workflow stopped." : "Session stopped on an error.";
-      detail.textContent = task?.steps.at(-1) ?? "No detail available.";
-    },
-  };
-}
-
-// ── Finished ──────────────────────────────────────────────────────────────────
-
-function buildFinished(actions: ViewActions): ViewHost {
-  const who = h("div");
-  const title = h("div", { class: "title" });
-  const row = h("div", { class: "actions" },
-    btn("Open terminal", "primary", () => actions.openTerminal()),
-    btn("OK", "secondary", () => actions.collapse()),
-  );
-  const el = h("div", { class: "view" }, card("green", stack(116, 16, who, title, row)));
-  return {
-    el,
-    sync() {
-      clear(who);
-      who.append(agentWho(State.focusTask, "Claude Code finished"));
-      title.textContent = State.focusTask?.steps.at(-1) ?? "Session finished";
-    },
-  };
-}
-
-// ── Confused ──────────────────────────────────────────────────────────────────
-
-function buildConfused(): ViewHost {
-  const body = h(
-    "div",
-    { class: "stack", style: "padding:0 18px 0 128px" },
-    h("div", { class: "title", text: "Too many hits at once." }),
-    h("div", { class: "sub", text: "Give me a sec — back to work in three seconds." }),
-  );
-  return { el: h("div", { class: "view" }, card("pink", body)), sync() {} };
-}
-
-// ── Note ──────────────────────────────────────────────────────────────────────
-
-function buildNote(): ViewHost {
-  const title = h("div", { class: "title" });
-  const el = h("div", { class: "view" }, card(null, h("div", { class: "stack", style: "padding:0 18px 0 98px" }, title)));
-  return {
-    el,
-    sync() {
-      title.textContent = State.noteMessage ?? "";
-    },
-  };
-}
-
-// ── In-island settings ────────────────────────────────────────────────────────
-
-function buildSettings(actions: ViewActions): ViewHost {
-  const soundSwitch = h("button", { class: "switch", onclick: () => actions.toggleSound() });
-  const volume = h("input", {
-    type: "range", min: "0", max: "0.2", step: "0.005",
-    oninput: (e: Event) => actions.setVolume(Number((e.target as HTMLInputElement).value)),
-  }) as HTMLInputElement;
-  const autoLabel = h("span", {});
-  const segButtons = [10, 15, 30].map((s) =>
-    h("button", { onclick: () => actions.setAutoClose(s) }, `${s}s`),
-  );
-  const claudeBadge = h("span", { class: "status-badge" });
-  const apiBadge = h("span", { class: "status-badge" });
-
-  const rows = h(
-    "div",
-    { class: "settings-rows" },
-    h("div", { class: "settings-row" }, soundSwitch, h("span", { text: "Sound" }), volume),
-    h(
-      "div",
-      { class: "settings-row" },
-      svg(ICONS.timer, 12),
-      autoLabel,
-      h("div", { class: "seg" }, ...segButtons),
-    ),
-    h(
-      "div",
-      { class: "settings-row", style: "gap:14px" },
-      claudeBadge,
-      apiBadge,
-      h("div", { class: "grow" }),
-      h("button", {
-        class: "link-btn",
-        style: "color:#8e939c;font-size:11.5px",
-        text: "Settings…",
-        onclick: () => actions.openSettingsWindow(),
-      }),
-    ),
-  );
-
-  const el = h("div", { class: "view" },
-    card(null, h("div", { class: "stack", style: "padding:14px 16px 14px 84px" }, rows)));
-
-  return {
-    el,
-    sync() {
-      const s = State.settings;
-      soundSwitch.classList.toggle("on", s.soundEnabled);
-      volume.value = String(s.soundVolume);
-      volume.style.opacity = s.soundEnabled ? "1" : "0.4";
-      autoLabel.textContent = `Auto-close · ${Math.round(s.autoCloseInterval)}s`;
-      segButtons.forEach((b, i) => b.classList.toggle("on", s.autoCloseInterval === [10, 15, 30][i]));
-      clear(claudeBadge);
-      claudeBadge.append(
-        dot(s.hooksInstalled ? "#22C55E" : "#F4505E", 6),
-        h("span", { text: "Claude Code" }),
-      );
-      clear(apiBadge);
-      apiBadge.append(dot("#F4505E", 6), h("span", { text: "API" }));
-    },
-  };
-}
-
-// ── Placeholders filled in later stages ───────────────────────────────────────
-
-function buildPlaceholder(title: string, sub: string): ViewHost {
-  const body = h(
-    "div",
-    { class: "stack", style: "padding:0 18px 0 118px" },
-    h("div", { class: "title", text: title }),
-    h("div", { class: "sub", text: sub }),
-  );
-  return { el: h("div", { class: "view" }, card(null, body)), sync() {} };
-}
-
-// ── Registry ──────────────────────────────────────────────────────────────────
-
-export function buildViews(
-  actions: ViewActions,
-  onChatHeightChange: () => void,
-): Map<IslandViewName, ViewHost> {
-  const map = new Map<IslandViewName, ViewHost>();
-  map.set("overview", buildOverview(actions));
-  map.set("empty", buildEmpty(actions));
-  map.set("approval", buildApproval(actions));
-  map.set("question", buildQuestion());
-  map.set("error", buildError(actions));
-  map.set("finished", buildFinished(actions));
-  map.set("confused", buildConfused());
-  map.set("note", buildNote());
-  map.set("settings", buildSettings(actions));
-  map.set("prompt", buildPrompt(onChatHeightChange));
-  map.set("upload", buildUpload());
-  map.set("uploading", buildUploading());
-  map.set("choose", buildChoose(actions));
-  // Not in the Windows v1: sending a file by email, window attach + web result.
-  map.set("mail", buildPlaceholder("Sending by email isn't in this version.", ""));
-  map.set("searching", buildPlaceholder("Claude is searching…", ""));
-  map.set("result", buildPlaceholder("Result", ""));
-  return map;
+    // 3. Son işler
+    this.orkestra.append(h("h2", { text: "Son işler" }));
+    const recent = tasks.slice().sort((a, b) => (b.updatedAt ?? 0) - (a.updatedAt ?? 0)).slice(0, 5);
+    for (const t of recent) {
+      const title = clipText(t.title, 60);
+      this.orkestra.append(h("div", { class: "orkestra-task-row" },
+        h("strong", { text: title.text, title: title.title }),
+        h("span", { text: STATUS_TR[t.status] || t.status }),
+        h("a", { href: "#", class: "log-link", text: "Log", onclick: (e: Event) => {
+          e.preventDefault();
+          void Bridge.logAc();
+        } })
+      ));
+    }
+  }
 }

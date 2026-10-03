@@ -1,162 +1,72 @@
-// Thin wrapper over the Tauri commands/events. Every call is a no-op when the
-// page is opened in a plain browser, so the island can be iterated on with
-// `npm run dev` alone.
-
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
-import { getCurrentWebview } from "@tauri-apps/api/webview";
-import type { Settings } from "./state";
-
-export const IS_TAURI =
-  typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
-
-async function call<T>(cmd: string, args?: Record<string, unknown>): Promise<T | null> {
+import { State, type Settings } from "./state";
+export const IS_TAURI = typeof window !== "undefined" && "__TAURI_INTERNALS__" in window;
+async function call<T>(command: string, args?: Record<string, unknown>): Promise<T | null> {
   if (!IS_TAURI) return null;
-  try {
-    return await invoke<T>(cmd, args);
-  } catch (err) {
-    console.error(`[coucou] ${cmd} failed`, err);
-    return null;
-  }
+  try { return await invoke<T>(command, args); } catch { return null; }
 }
-
-export interface BootInfo {
-  settings: Settings;
-  /** Logical screen rect of the monitor the island lives on. */
-  screen: { x: number; y: number; width: number; height: number; scale: number };
-  version: string;
-  hookPath: string;
+export interface BootInfo { settings: Settings; screen: { x: number; y: number; width: number; height: number; scale: number }; version: string }
+export interface AppDto { id: string; ad: string; kurulu: boolean; telefonda: boolean; durum: "bos" | "calisiyor" | "uyari" | "hata" | null; ozet: string | null }
+async function action<T>(command: string, args?: Record<string, unknown>): Promise<T> {
+  if (!IS_TAURI) throw new Error("Bu işlem uygulamada kullanılabilir.");
+  try { return await invoke<T>(command, args); }
+  catch (error) { throw new Error(typeof error === "string" && error.length < 180 && !/[\\/]|token|secret|password|traceback/i.test(error) ? error : "İşlem tamamlanamadı. Yeniden dene."); }
 }
-
 export const Bridge = {
-  boot: () => call<BootInfo>("boot"),
-
-  saveSettings: (settings: Settings) => call<void>("save_settings", { settings }),
-
-  /** Shrink the window down to the invisible wake strip (hidden) or back to full. */
+  codexStatus: async () => {
+    const status = await action<{ status: string; loggedIn: boolean; planType: string | null; rateLimits: unknown }>("codex_status");
+    State.setCodexLimits(status.rateLimits); return status;
+  },
+  codexSend: (text: string, attachments: string[]) => action<unknown>("codex_send", { text, attachments }),
+  orkestraProjects: async () => call<string[]>("orkestra_projects"),
+  orkestraSend: async (agent: string, project: string, task: string) => action<void>("orkestra_send", { agent, project, task }),
+  logAc: async () => action<void>("log_ac"),
+  codexCancel: () => action<unknown>("codex_cancel"),
+  codexLogin: () => action<void>("codex_login"),
+  bildirimAyarlari: () => action<{ muted: boolean }>("bildirim_ayarlari"),
+  codexLoginCancel: () => action<unknown>("codex_login_cancel"),
+  codexInstall: () => action<void>("codex_install"),
+  voiceOpenSettings: (kind: "speech" | "microphone" | "network") => action<void>("voice_open_settings", { kind }),
+  voiceStart: () => action<void>("voice_start"),
+  voiceStop: () => action<string>("voice_stop"),
+  voiceCancel: () => action<void>("voice_cancel"),
+  voiceSpeak: (text: string) => action<void>("voice_speak", { text }),
+  voiceResponse: (text:string) => action<{warning:string|null}>("voice_response",{text}),
+  voiceWarning: async (handler:()=>void) => listen("afu-voice-fallback",()=>handler()),
+  voiceChoices: () => action<import("../chat/voice").VoiceChoice>("voice_choices"),
+  voiceChoose: (ses:string,filtre:string) => action<import("../chat/voice").VoiceChoice>("voice_choose",{ses,filtre}),
+  voiceSilence: () => action<void>("voice_silence"),
+  voiceSupported: () => action<{ whisper: boolean; winrt_stt: boolean; tts: boolean; afu_tts:boolean }>("voice_supported"),
+  projectOpen: (project: string) => action<void>("project_open", { project }),
+  appsList: () => call<AppDto[]>("apps_list"),
+  appOpen: (id: string) => action<void>("app_open", { id }),
+  appDownload: (id: string) => action<void>("app_download", { id }),
+  boot: () => call<BootInfo>("boot"), readState: () => call<unknown>("read_state"),
+  refreshState: () => call<unknown>("refresh_state"),
+  /** Kopru canliligi icin ajan mesajlari (bos liste = sinyal yok). */
+  mesajlar: () => call<{ ajan: string; zaman: number }[]>("mesajlar_list"),
   setCollapsed: (collapsed: boolean) => call<void>("set_collapsed", { collapsed }),
-
-  /**
-   * Pushes the island shape in window coordinates. Rust flips click-through from
-   * its own cursor poll, so the flag is never a frame behind a click.
-   */
-  setIslandRect: (x: number, y: number, width: number, height: number) =>
-    call<void>("set_island_rect", { x, y, width, height }),
-
-  /** Give the window keyboard focus (chat field) and take it away again. */
+  setIslandRect: (x: number, y: number, width: number, height: number) => call<void>("set_island_rect", { x, y, width, height }),
   focusWindow: (focused: boolean) => call<void>("focus_window", { focused }),
-
+  setCardOpen: (open: boolean) => call<void>("set_card_open", { open }),
+  scaleFactor: async (): Promise<number | null> => {
+    if (!IS_TAURI) return null;
+    try { const { getCurrentWindow } = await import("@tauri-apps/api/window"); return await getCurrentWindow().scaleFactor(); } catch { return null; }
+  },
   reposition: () => call<void>("reposition"),
-
-  openUrl: (url: string) => call<void>("open_url", { url }),
-
-  /** "Open terminal" → opens the folder in VS Code when `code` is on PATH. */
-  openInVSCode: (path: string | null) => call<boolean>("open_in_vscode", { path }),
-
-  quit: () => call<void>("quit_app"),
-
-  openSettingsWindow: () => call<void>("open_settings_window"),
-
-  /** Writes to %LOCALAPPDATA%\Coucou\coucou.log, next to the Rust lines. */
-  log: (message: string) => call<void>("log_line", { message }),
-
-  // ── Claude Code hooks ─────────────────────────────────────────────────────
-  hooksStatus: () => call<HookStatus>("hooks_status"),
-  /** Diff to show before anything is written. `install: false` previews removal. */
-  hooksPreview: (install: boolean) => callOrThrow<HookPreview>("hooks_preview", { install }),
-  /**
-   * Writes ~/.claude/settings.json — only ever after an explicit click, and only
-   * when the file still matches the preview the user looked at.
-   */
-  hooksApply: (install: boolean, fingerprint: string) =>
-    callOrThrow<string>("hooks_apply", { install, fingerprint }),
-
-  approvalDecision: (requestId: string, decision: "allow" | "deny") =>
-    call<void>("approval_decision", { requestId, decision }),
-  /** "The card is up" — until this lands the relay only waits a moment. */
-  approvalAck: (requestId: string) => call<void>("approval_ack", { requestId }),
-  /** "Nobody can act on this" — Claude Code asks in the terminal right away. */
-  approvalDecline: (requestId: string) => call<void>("approval_decline", { requestId }),
-
-  // ── Chat, files, secrets ──────────────────────────────────────────────────
-  /** One chat turn. The API key and any file bytes never leave Rust. */
-  chatSend: (query: string, context: ChatContext | null) =>
-    callOrThrow<{ text: string }>("chat_send", { query, context }),
-  chatReset: () => call<void>("chat_reset"),
-  /** Copies a dropped file into the inbox. */
-  ingestFile: (path: string) => callOrThrow<DroppedFile>("ingest_file", { path }),
-  /** Only ever tells you whether a key exists — never its value. */
-  secretPresent: (key: string) => call<boolean>("secret_present", { key }),
-  secretSet: (key: string, value: string) => callOrThrow<void>("secret_set", { key, value }),
-  secretClear: (key: string) => callOrThrow<void>("secret_clear", { key }),
-
-  // ── Integrations ──────────────────────────────────────────────────────────
-  refreshIntegration: (id: string) => call<void>("refresh_integration", { id }),
-  /** Opens the configured n8n instance in the browser. */
-  openN8n: () => call<void>("open_n8n"),
-
-  /** Tray → Pause. Stops the integration pollers, not just the island. */
-  setPaused: (paused: boolean) => call<void>("set_paused", { paused }),
+  petAppsPopup: (on: boolean) => action<void>("pet_apps_popup", { on }),
+  petDrag: () => action<boolean>("pet_drag"),
+  petMode: (on: boolean) => call<void>("pet_mode", { on }),
+  /** P10: pet modunda balon açılınca pencere YUKARI büyür, kapanınca eski boyuta döner. */
+  petBalon: (on: boolean) => action<void>("pet_balon", { on }),
+  setPet: (on: boolean) => call<boolean>("set_pet", { on }),
+  trayMode: (on: boolean) => call<void>("tray_mode", { on }),
+  trayStatus: (durum: string, title: string) => call<void>("set_tray_status", { durum, title }),
 };
-
-export interface IntegrationUpdate {
-  id: string;
-  data: Record<string, unknown>;
-  error: string | null;
-  event: { success: boolean; label: string; detail: string | null } | null;
-}
-
-export type ChatContext =
-  | { kind: "file"; name: string; path: string }
-  | { kind: "window"; appName: string; title: string; url?: string };
-
-export interface DroppedFile {
-  name: string;
-  path: string;
-  size: number;
-}
-
-export interface HookStatus {
-  installed: boolean;
-  settingsPath: string;
-  hookPath: string;
-  hookReady: boolean;
-}
-
-export interface HookPreview {
-  diff: string;
-  backup: string;
-  settingsPath: string;
-  /** Hand back to hooksApply so only the reviewed diff is ever written. */
-  fingerprint: string;
-}
-
-/** Same as `call`, but surfaces the error so the UI can show what went wrong. */
-async function callOrThrow<T>(cmd: string, args?: Record<string, unknown>): Promise<T> {
-  if (!IS_TAURI) throw new Error("not running inside Coucou");
-  return invoke<T>(cmd, args);
-}
-
-export type BridgeEvent =
-  | { name: "cursor"; payload: { x: number; y: number } }
-  | { name: "tray"; payload: string }
-  | { name: "hook"; payload: Record<string, unknown> }
-  | { name: "screen-changed"; payload: null };
-
-export interface DragDropPayload {
-  type: "enter" | "over" | "drop" | "leave";
-  paths?: string[];
-}
-
-/** Files dragged onto the island. Only reaches us when the window takes the mouse. */
-export async function onDragDrop(handler: (e: DragDropPayload) => void) {
-  if (!IS_TAURI) return () => {};
-  return getCurrentWebview().onDragDropEvent((event) => {
-    handler(event.payload as DragDropPayload);
-  });
-}
-
 export async function onEvent<T>(name: string, handler: (payload: T) => void) {
   if (!IS_TAURI) return () => {};
-  return listen<T>(name, (e) => handler(e.payload));
+  return listen<T>(name, e => handler(e.payload));
 }
+
+

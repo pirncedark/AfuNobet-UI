@@ -1,0 +1,130 @@
+name: CI
+
+# Pull request'lerde (hedef dal fark etmez) ve main'e push'ta calisir.
+# workflow_dispatch: Actions sekmesinden elle tetiklemek icin.
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+# Ayni dal icin eski kosulari iptal et, en son durum gecerli olsun.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Bu is akisi tamamen acik ve gizli anahtar kullanmaz; butun bagimliliklar
+# kilit dosyalarindan (package-lock.json, Cargo.lock) kurulur.
+permissions:
+  contents: read
+
+jobs:
+  node:
+    name: Node (tsc + vitest)
+    # Testler Windows yol bicimine (\\) ve win32 davranisina dayaniyor;
+    # bu yuzden ubuntu yerine windows-latest.
+    runs-on: windows-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: windows
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22 kur
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: windows/package-lock.json
+
+      - name: Bagimliliklari kur
+        run: npm ci
+
+      # Bazi testler basliksiz Chromium ile gercek yerlesimi olcer.
+      - name: Playwright tarayicisi
+        run: npx playwright install chromium
+
+      - name: Tip kontrolu
+        run: npx tsc --noEmit
+
+      - name: Birim testler (vitest)
+        run: npm test
+
+  rust:
+    name: Rust (cargo test)
+    # windows/.cargo/config.toml CMAKE_GENERATOR="Visual Studio 17 2022" ister;
+    # windows-latest artik VS 2022 icermiyor.
+    runs-on: windows-2022
+    timeout-minutes: 45
+    env:
+      # whisper-rs -> whisper-rs-sys -> bindgen LLVM'e ihtiyac duyar.
+      # windows-latest goruntusunde LLVM kuruludur; yol burada acikca verilir.
+      LIBCLANG_PATH: C:\Program Files\LLVM\bin
+      # whisper.cpp cmake derlemesi derin target yolunda MAX_PATH'e takiliyor.
+      CARGO_TARGET_DIR: C:/t
+      # windows/.cargo/config.toml yerel BuildTools cmake yolunu verir (force=false);
+      # runner'da o yol yok, PATH'teki cmake kullanilir.
+      CMAKE: cmake
+    defaults:
+      run:
+        working-directory: windows/src-tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust derleme onbellegi
+        uses: Swatinem/rust-cache@v2
+        with:
+          # Cargo workspace koku windows/; target kisa yolda (CARGO_TARGET_DIR).
+          workspaces: windows -> C:/t
+
+      # tauri build betigi frontendDist (../dist) dizinini arar; dist .gitignore'lu,
+      # bu yuzden derlemeden once bos bir yer tutucu olusturulur.
+      - name: Dist yer tutucu
+        shell: pwsh
+        working-directory: windows
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          if (-not (Test-Path dist/index.html)) {
+            New-Item -ItemType File -Force dist/index.html | Out-Null
+          }
+
+      - name: Birim ve sozlesme testleri
+        run: cargo test --locked
+
+  python:
+    name: Python (pytest)
+    # tests/ _winapi gibi Windows'a ozel moduller kullaniyor.
+    runs-on: windows-latest
+    timeout-minutes: 15
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Python 3.11 kur
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Kokte requirements dosyasi yok; varsa onu da kur.
+      - name: Test bagimliliklari
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          if (Test-Path requirements.txt) { python -m pip install -r requirements.txt }
+          python -m pip install pytest pillow numpy scipy
+
+      # KOK dizinindeki tests/ klasoru: kapi_test.py elle calistirilan bir
+      # yardimci betiktir, pytest taramasina girmez (uygulama acmaya calisir).
+      - name: Birim testler (kok)
+        run: python -m pytest -q tests -p no:cacheprovider
