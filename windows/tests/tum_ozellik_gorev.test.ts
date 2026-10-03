@@ -339,11 +339,11 @@ describe("9) Alt ajan satırları ve devir bağlamı", () => {
     expect(topLevel([ana, cocuk]).map(t => t.id)).toEqual(["ana"]);
   });
   it("Claude hedefli devir gösterilmez (yalnız KORUNUYOR)", () => {
-    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: "claude", reason: "kota doldu" } })).toBeNull();
-    expect(handoffText({ ...kayit({}), handoff: { from: "claude", to: "codex", reason: "kota doldu" } })).toBeNull();
-    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: "gemini", reason: "kota doldu" } })).toBe("Codex kotası doldu → Gemini devraldı");
-    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: null, reason: "hata verdi" } })).toBe("Codex hata verdi → bekliyor");
-    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: "gemini", reason: "bilinmeyen sebep 42" } })).toBeNull();
+    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: "claude", reason: "kota doldu" } }, NOW)).toBeNull();
+    expect(handoffText({ ...kayit({}), handoff: { from: "claude", to: "codex", reason: "kota doldu" } }, NOW)).toBeNull();
+    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: "gemini", reason: "kota doldu" } }, NOW)).toBe("Codex kotası doldu → Gemini devraldı");
+    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: null, reason: "hata verdi" } }, NOW)).toBe("Codex hata verdi → bekliyor");
+    expect(handoffText({ ...kayit({}), handoff: { from: "codex", to: "gemini", reason: "bilinmeyen sebep 42" } }, NOW)).toBeNull();
   });
 });
 

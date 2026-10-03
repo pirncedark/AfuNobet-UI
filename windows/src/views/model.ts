@@ -97,38 +97,60 @@ function reasonPhrase(reason: string | null | undefined): string | null {
   if (/durak|pause/.test(r)) return "duraklatıldı";
   return null;
 }
-/** "Codex kotası doldu → Gemini devraldı" ya da "→ bekliyor". Claude yalnız elle seçilmişse görünür. */
-export function handoffText(task: RichTask | undefined | null): string | null {
+/** Devir satırı bu kadar eski veriden üretilmez: bayat bilgi "şu an" gibi görünmesin. */
+export const DEVIR_BAYAT_MS = 30 * 60 * 1000;
+// Türkçe bulunma eki saatin okunuşundaki son kelimeye uyar: 14:55'te, 14:30'da, 15:00'te.
+const BIRLER_EK = ["", "de", "de", "te", "te", "te", "da", "de", "de", "da"];
+const ONLAR_EK = ["", "da", "de", "da", "ta", "de"];
+function saatEki(saat: number, dakika: number): string {
+  const sayi = dakika === 0 ? saat : dakika;
+  if (sayi === 0) return "da";
+  return sayi % 10 ? BIRLER_EK[sayi % 10] : ONLAR_EK[Math.floor(sayi / 10) % 10] || "da";
+}
+/** "14:55'te açılır". Geçmiş ya da okunamayan saat için boş metin: uydurma saat yok. */
+export function acilisSaati(resetAt: string | null | undefined, now = Date.now()): string {
+  if (typeof resetAt !== "string" || !resetAt) return "";
+  const d = new Date(resetAt);
+  if (!Number.isFinite(d.getTime()) || d.getTime() <= now) return "";
+  const hh = d.getHours(), mm = d.getMinutes();
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}'${saatEki(hh, mm)} açılır`;
+}
+type QuotaMap = Snapshot["quotas"];
+/**
+ * W3 ajan devri — tek satır: "Codex kotası doldu → Gemini devraldı" ya da
+ * "Codex kotası doldu · bekliyor (14:55'te açılır)".
+ * Kaynak yalnız state.json: görevin `handoff` alanı (AfuNöbet checkpoint'ten yazar)
+ * ve kota alanları (görevin `quota`'sı, yoksa kökteki `quotas`). Claude ne
+ * devreden ne devralan olarak gösterilir; 30 dk'dan eski kayıt devir göstermez.
+ */
+export function handoffText(task: RichTask | undefined | null, now = Date.now(), quotas?: QuotaMap): string | null {
   if (!task) return null;
+  if (typeof task.updatedAt === "number" && now - task.updatedAt > DEVIR_BAYAT_MS) return null;
   const h = task.handoff;
   if (h && typeof h === "object" && !Array.isArray(h)) {
+    const fromKey = typeof h.from === "string" ? h.from.toLowerCase() : "";
+    const toKey = typeof h.to === "string" ? h.to.toLowerCase() : "";
+    if (fromKey === "claude" || toKey === "claude") return null;
     const from = agentName(h.from);
-    if (from) {
-      const toKey = typeof h.to === "string" ? h.to.toLowerCase() : "";
-      if (from !== "Claude" && toKey !== "claude" && (h.to == null || agentName(h.to))) {
-        const to = agentName(h.to);
-        const reason = reasonPhrase(h.reason);
-        if (reason && to !== from) {
-          return `${from} ${reason} → ${to ? `${to} devraldı` : "bekliyor"}`;
-        }
+    if (from && (h.to == null || agentName(h.to))) {
+      const to = agentName(h.to);
+      const reason = reasonPhrase(h.reason);
+      if (reason && to !== from) {
+        return `${from} ${reason} → ${to ? `${to} devraldı` : "bekliyor"}`;
       }
     }
   }
-  
-  // E2: "devralan yoksa bekliyor" ve quota kaynaklı duraklama.
-  if (task.status === "Duraklatildi" && (task.quotaPaused || task.quota?.remaining_percent === 0)) {
-    const fromName = task.agent ? AGENT_TR[task.agent] : null;
-    if (fromName && fromName !== "Claude") {
-      const reset = task.quota?.reset_at;
-      let timeStr = "";
-      if (reset) {
-        const d = new Date(reset);
-        if (!isNaN(d.getTime())) timeStr = ` (yenilenme ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")})`;
-      }
-      return `${fromName} kotası doldu · bekliyor${timeStr}`;
+
+  // Devralan yok: kota yüzünden duraklayan görev bekler; açılış saati biliniyorsa yazılır.
+  if (task.status === "Duraklatildi" && task.agent && task.agent !== "claude") {
+    const shared = quotas?.[task.agent];
+    const remaining = task.quota?.remaining_percent ?? shared?.remaining_percent ?? null;
+    if (task.quotaPaused || remaining === 0) {
+      const saat = acilisSaati(task.quota?.reset_at ?? shared?.reset_at, now);
+      return `${AGENT_TR[task.agent]} kotası doldu · bekliyor${saat ? ` (${saat})` : ""}`;
     }
   }
-  
+
   return null;
 }
 

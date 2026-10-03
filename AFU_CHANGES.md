@@ -39,3 +39,7 @@ Uygulama kaydı, sınırlı taze durum okuma, dosya izleyicisi, dinamik tepsi me
 ## B4 tamamlanma denetimi sonrası
 
 Sohbet yanıtı TTS'si bildirim sesinden ayrı, Settings.tts varsayılanfalse ve tek düğmeyle yönetilir. Başarılı korelasyonlu yanıt tamamlanınca en fazla32000 Unicode karakter4000'lik ardışık parçalarda okunur; teknik yanıt metni etiket filtresiyle susturulmaz. İptal/görünümden çıkış/kapatma kalan parçaları durdurur; bas-konuş önce yanıt ve bildirim sesini susturur, mikrofon açılışında da yeni bildirim susturulur. listening/thinking/working/speaking/idle görsel zinciri bağlandı. Sohbet alanı kendi içinde kayar, alt düğmeler ve iki ses anahtarı erişilebilir kalır. Türkçe TTS yoksa Windows varsayılan sesi kullanılır. Son153 TS testi ve21 ses testi PASS; gerçek ses UNVERIFIED. WinRT dikte yedeğinin paket kimliği+çevrimiçi servis gereksinimi docs/SES_DERLEME.md içinde resmi Microsoft kaynağıyla kayıtlı; kullanıcı kararı bekliyor.
+
+## W3 ajan devri gösterimi
+
+Kart, ayrıntı ve pet balonu tek satır devir gösterir: "Codex kotası doldu → Gemini devraldı" ya da "Codex kotası doldu · bekliyor (14:55'te açılır)". Kaynak yalnız state.json: görevin `handoff` alanı (AfuNöbet ui_state.py checkpoint'ten yazar) ve kota alanları (görev `quota`, yoksa kök `quotas`). Ayrı provider geçmişi alanı yok; uydurulmadı. Claude devreden/devralan olarak gösterilmez; 30 dk'dan eski kayıt ve geçmiş açılış saati yazılmaz. Testler: tests/w3_devir.test.ts.

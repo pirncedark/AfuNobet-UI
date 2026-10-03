@@ -11,7 +11,7 @@ import { deriveEvents, EventDeduper } from "../core/events";
  import { AfuCharacter, characterExpression, getDurum } from "../afu/character";
 import { AfuPet } from "../afu/pet";
 import { T } from "../afu/timing";
-import { KonusanAfu, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
@@ -282,9 +282,10 @@ export class Island {
     const events = deriveEvents(previous, State.current).filter(event => this.events.accept(event, Date.now()));
     for (const event of events) void this.chat.notifications?.announce(event, State.shouldAnnounce() && !this.chat.responses?.speaking && !this.chat.voice?.active);
     for (const event of events) {
-      const mesaj = olayMesaji(event, State.snapshot.tasks, Date.now());
+      const mesaj = olayMesaji(event, State.snapshot.tasks, Date.now(), State.snapshot.quotas);
       if (mesaj && this.konusan) this.konusan.ekle(mesaj);
     }
+    for (const mesaj of devirMesajlari(previous, State.current, Date.now(), State.snapshot.quotas)) this.konusan?.ekle(mesaj);
     if (messageNotifications.isOpen) return;
     if (this.mode === "tray") return;
     if (this.mode === "pet") { for (const event of events) this.pet.onEvent(event); return; }
