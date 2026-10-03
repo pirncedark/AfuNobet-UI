@@ -65,6 +65,9 @@ jobs:
       LIBCLANG_PATH: C:\Program Files\LLVM\bin
       # whisper.cpp cmake derlemesi derin target yolunda MAX_PATH'e takiliyor.
       CARGO_TARGET_DIR: C:/t
+      # windows/.cargo/config.toml yerel BuildTools cmake yolunu verir (force=false);
+      # runner'da o yol yok, PATH'teki cmake kullanilir.
+      CMAKE: cmake
     defaults:
       run:
         working-directory: windows/src-tauri
