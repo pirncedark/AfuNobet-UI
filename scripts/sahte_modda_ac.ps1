@@ -81,7 +81,7 @@ if ($python) {
 
 # Oncelik: gelistirme derlemesi, sonra paketlenmis exe.
 $exe = ""
-foreach ($aday in @("windows/target/release/afunobet-ui.exe", "dist/afunobet-ui-coucou.exe")) {
+foreach ($aday in @("windows/target/release/afunobet-ui.exe", "dist/afunobet-ui.exe")) {
     $yol = Join-Path $kok $aday
     if (Test-Path $yol) { $exe = $yol; break }
 }

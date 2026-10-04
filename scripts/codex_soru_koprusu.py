@@ -26,7 +26,7 @@ import uuid
 from pathlib import Path
 from typing import Any, Callable, Iterable, TextIO
 
-SURE_MS = 110_000  # coucou ile aynı: hook 110 s bekler
+SURE_MS = 110_000  # upstream ile aynı: hook 110 s bekler
 MAX_METIN = 2000
 MAX_AYRINTI = 4000
 MASKE = "•••"

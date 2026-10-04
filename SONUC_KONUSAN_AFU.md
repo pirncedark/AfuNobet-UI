@@ -14,5 +14,5 @@ Konuşan Afu görevi başarıyla tamamlanmış ve teste tabi tutulmuştur.
 - **tsc:** Hata yok.
 
 ### Exe Çıktısı (npm run pack)
-- **Yeni Exe:** `dist/afunobet-ui-coucou.exe`
+- **Yeni Exe:** `dist/afunobet-ui.exe`
 - **SHA256:** `b1acdcefb2b8b8092c0dc17cb292eba168173fe5d2193dd489dc53f3f7b6abf7`

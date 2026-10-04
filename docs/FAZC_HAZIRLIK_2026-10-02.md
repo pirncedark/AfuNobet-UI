@@ -20,7 +20,7 @@ Aşağıdaki tabloda `afuproject` dizini altındaki çalıştırılabilir dosyal
 
 ### Masaüstü Kısayolları (.lnk)
 - `C:\Users\afuuu\Desktop\AfuDM.exe - Kısayol.lnk` -> Hedef: `C:\Users\afuuu\Desktop\afuproject\AfuDM\AfuDM.exe`
-- `C:\Users\afuuu\Desktop\AfuNobet UI.lnk` -> Hedef: `C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-coucou.exe`
+- `C:\Users\afuuu\Desktop\AfuNobet UI.lnk` -> Hedef: `C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui.exe`
 
 ### Diğer Ekosistem Bileşenleri ve "Kurulu Değil" Algılama Mantığı
 - **AfuTube**: `C:\Users\afuuu\Desktop\afuproject\AfuDM\AfuTube` dizini boştur; bağımsız çalıştırılabilir `.exe` dosyası bulunamamıştır.

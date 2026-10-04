@@ -1,5 +1,11 @@
 # AfuNöbet UI değişiklik kaydı
 
+## 2026-10-04 v1.0.2 — küçük ve sabit boy pet, portable / smaller same-size pet, portable
+
+EN: The mini pet is half the size (head ~72 px instead of ~145 px) and every animation is drawn at the same head size: frames get a measured head width (`PET_KAFA`, `petKafaOlcegi` in pet.ts) instead of being fitted to one visible height, which made the head vary ~35–220 px. Releases ship a setup installer and a portable zip. Leftover upstream names were removed (`GOREV_AFU_*`, `afunobet-ui.exe`, templates, docs, metadata); the MIT notice in LICENSE stays. Tests: Vitest 994+ PASS sequentially. `island.rs` not touched.
+
+TR: Mini pet yarı boyda (kafa ~145 px yerine ~72 px) ve tüm animasyonlar aynı kafa boyunda çizilir: kareler tek bir görünür yüksekliğe sığdırılmak yerine ölçülmüş kafa genişliğiyle (`PET_KAFA`, pet.ts içinde `petKafaOlcegi`) ölçeklenir; eskiden kafa ~35–220 px arasında değişiyordu. Sürümlerde kurulum dosyası ve portable zip var. Kalan upstream adları kaldırıldı (`GOREV_AFU_*`, `afunobet-ui.exe`, şablonlar, belgeler, paket bilgisi); LICENSE içindeki MIT bildirimi kalır. Test: Vitest 994+ PASS (sırayla). `island.rs` değişmedi.
+
 ## 2026-10-04 v1.0.1 — başka bilgisayarda çalışma / running on another PC
 
 EN: Default data folder is portable (existing `Desktop\afuproject\AfuNobet`, else `%LOCALAPPDATA%\AfuNobet`). Agent-pipe main sessions (Claude Code hooks) are listed read-only; Claude still gets no work. Voice cancel stops the whole Python launcher tree and clears a stale GPU lock. Folder timestamp events no longer wake the app-status watcher. The Claude health pill recognises afu_ajan_koprusu.py, and tool names no longer replace prompt titles. New `scripts/gorev-cubugu-guncelle.ps1` and README new-PC guide. Tests (merged with the 2026-10-04 upstream release): Vitest 891 PASS (screenshot files run sequentially), Cargo 287 PASS. `island.rs` not touched by this change.
@@ -16,7 +22,7 @@ Ortak FIFO mesaj/soru kuyruğu, oturum boyunca ID tekilleştirme, 8 saniyelik bi
 
 R1: pytest 297, Vitest 700, Cargo 247 test PASS; tsc hatasız. Cargo 4 mevcut testi ignored bırakır. Önceki kaynak özeti arşivlenip yetkili değişiklikler için yenilendi; test koşulları değiştirilmedi. `island.rs` SHA256 `5F2F4588F4F7231450FE583F4218BDE4C04DB4BFE4CDBD1389B4430945F71B57` korunur. Ayrıntı `SONUC_R1.md`, kanıtlar `_gorev/2026-10-03/log/` içindedir. Gerçek Windows always-on-top, odak çalmama, gizlenme, click-through, hover wake ve pet/tepsi smoke testi UNVERIFIED; görünür pencere açılmadı.
 
-Kaynak: Louis-CFM/coucou (MIT, Louis Raille). LICENSE korunur. Bu fork yalnız AfuNöbet durumunu salt okunur görüntüler; Mochi/Coucou ikon, ses ve medya derlemeye alınmaz.
+Kaynak: MIT lisanslı upstream kod; telif bildirimi LICENSE dosyasında korunur. Bu fork yalnız AfuNöbet durumunu salt okunur görüntüler; upstream ikon, ses ve medya derlemeye alınmaz.
 
 ## 2026-10-01 Faz A
 

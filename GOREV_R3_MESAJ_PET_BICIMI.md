@@ -1,6 +1,6 @@
 # GOREV R3: Terminal mesajları pete uygun biçimde, pet halindeyken görünsün ve cevap beklesin
 
-Önce CLAUDE.md, GOREV_COUCOU_AFU.md, AFU_CHANGES.md, docs/SORU_SOZLESMESI.md, SONUC_R1.md oku. R1 (mesajda öne gel) yeni bitti; üstüne kur, bozma.
+Önce CLAUDE.md, GOREV_AFU_TEMEL.md, AFU_CHANGES.md, docs/SORU_SOZLESMESI.md, SONUC_R1.md oku. R1 (mesajda öne gel) yeni bitti; üstüne kur, bozma.
 
 Kullanıcı isteği (3 Eki, ekran görüntüsüyle): "Mesajlar pete uygun hale dönüştürülsün, pet halindeyken görünsün ve sende cevap beklesin."
 

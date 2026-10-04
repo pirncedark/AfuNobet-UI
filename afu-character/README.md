@@ -28,4 +28,4 @@ success uses `happy.png` with separate effects.
 
 The official reference was user supplied; its upstream ownership/licensing was
 not independently documented. These assets are not asserted to inherit the
-Coucou source code MIT licence.
+upstream source code MIT licence.

@@ -1,10 +1,11 @@
 ﻿# Asset licensing and provenance
 
-The original MIT LICENSE and copyright notice for Louis Raillé remain unchanged.
-The code derives from Louis-CFM/coucou; attribution is also retained in README
+The original MIT LICENSE and its copyright notice remain unchanged, as the MIT
+license requires.
+The application code derives from an MIT-licensed upstream project.
 and AFU_CHANGES.md.
 
-All upstream Coucou and Mochi character assets, tray icons, audio, promotional
+All upstream character assets, tray icons, audio, promotional
 media, screenshots, design prototypes and NotchBuddy resources were removed.
 None are inputs to the AfuNobet-UI production build.
 

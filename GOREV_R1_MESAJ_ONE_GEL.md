@@ -1,6 +1,6 @@
 # GOREV R1: Terminalden mesaj gelince pencere öne gelsin, sonra arka plana dönsün
 
-Önce CLAUDE.md, GOREV_COUCOU_AFU.md, AFU_CHANGES.md, docs/SORU_SOZLESMESI.md oku.
+Önce CLAUDE.md, GOREV_AFU_TEMEL.md, AFU_CHANGES.md, docs/SORU_SOZLESMESI.md oku.
 
 Kullanıcı isteği (3 Eki): "Terminalden bir mesaj geldiğinde AfuNobet UI en üste gelsin, mesajı kişiye sorsun ya da bildirsin, sonra yine arka plana dönsün."
 

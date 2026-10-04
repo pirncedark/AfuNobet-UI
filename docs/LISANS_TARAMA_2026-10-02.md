@@ -82,7 +82,7 @@ Proje genelindeki script ve test dosyalarında (`windows/scripts/`, `ses_deneme/
 | `librosa` | 0.11.0 (deneme) | ISC | Ses denemeleri frekans/spektral merkez ölçümü |
 | `chatterbox` | yerel snapshot | MIT / Resemble AI | Yerel Türkçe TTS sentezleme denemeleri |
 
-*Not:* Python ortamı yalnızca çevrimdışı derleme, kesim ve araştırma süreçlerinde yardımcıdır; son derlenen `afunobet-ui-coucou.exe` ikili dosyasına gömülü Python kodu veya Python çalışma zamanı bulunmamaktadır.
+*Not:* Python ortamı yalnızca çevrimdışı derleme, kesim ve araştırma süreçlerinde yardımcıdır; son derlenen `afunobet-ui.exe` ikili dosyasına gömülü Python kodu veya Python çalışma zamanı bulunmamaktadır.
 
 ---
 
@@ -91,13 +91,13 @@ Proje genelindeki script ve test dosyalarında (`windows/scripts/`, `ses_deneme/
 - `afu-character/REFERANS.png`: Kullanıcı tarafından sağlanan resmi referans görseldir.
 - `afu-character/pet/`: Referans görselden ve ek konsept sayfalarından (`pet_durumlar_4x4.png`, `pet_gecis_3x3.png` vb.) otomatik/yarı-otomatik kesilen 50 durum karesi ve türevleri.
 - `afu-character/kart/`, `afu-character/efekt/`, `afu-character/simge/`: Kart durumları, durum simgeleri ve arayüz efektleri.
-- **Telif ve Lisans Durumu:** `LICENSE-ASSETS.md` dosyasında belirtildiği üzere, bu görseller Coucou MIT lisansı kapsamında telif devrine tabi değildir; kullanım hakkı sağlayıcıya/sahibine aittir.
+- **Telif ve Lisans Durumu:** `LICENSE-ASSETS.md` dosyasında belirtildiği üzere, bu görseller upstream MIT lisansı kapsamında telif devrine tabi değildir; kullanım hakkı sağlayıcıya/sahibine aittir.
 
 ---
 
 ## 6. Mevcut Belgelerle Karşılaştırma ve `THIRD_PARTY.md` Önerileri
 
-`THIRD_PARTY.md` dosyası şu anki haliyle yalnızca üst kaynak Coucou, MurMur, whisper-rs, cpal, hound ve Whisper modelini listelemektedir.
+`THIRD_PARTY.md` dosyası şu anki haliyle yalnızca üst kaynak upstream, MurMur, whisper-rs, cpal, hound ve Whisper modelini listelemektedir.
 
 ### `THIRD_PARTY.md` İçin Güncelleme Önerileri:
 1. **Tauri v2 ve İlgili Çekirdek Kütüphaneler Eklenmeli:**

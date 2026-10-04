@@ -51,7 +51,7 @@ def get_screenshot(name):
 results_kapi1 = []
 
 # 1. Start App
-exe_path = os.path.join(os.path.dirname(__file__), "dist", "afunobet-ui-coucou.exe")
+exe_path = os.path.join(os.path.dirname(__file__), "dist", "afunobet-ui.exe")
 log(f"AfuNobet baslatiliyor: {exe_path}")
 proc = subprocess.Popen([exe_path], creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
 time.sleep(4)
@@ -136,7 +136,7 @@ time.sleep(1)
 try:
     app_proc = None
     for p in psutil.process_iter(['name', 'pid']):
-        if p.info['name'] == 'afunobet-ui-coucou.exe':
+        if p.info['name'] == 'afunobet-ui.exe':
             try:
                 # try to get the one with the highest memory to ensure it's the main or webview
                 pass
@@ -148,7 +148,7 @@ try:
         app_proc = psutil.Process(proc.pid)
     except:
         for p in psutil.process_iter(['name', 'pid']):
-            if p.info['name'] == 'afunobet-ui-coucou.exe':
+            if p.info['name'] == 'afunobet-ui.exe':
                 app_proc = psutil.Process(p.pid)
                 break
 

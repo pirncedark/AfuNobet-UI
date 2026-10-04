@@ -13,7 +13,7 @@ Sonuç: SONUC_TASIMA.md (ilk satır `SONUC: TAMAM` veya `SONUC: YARIM - <neden>`
 2. Hiçbiri bulunamazsa uygulama ÇÖKMESİN: tek cümle Türkçe uyarı ("Afu sesi kurulu değil, yazıyla devam ediyorum.") ve metin cevabı sürsün.
 3. Yol çözümü için Rust birim testi ekle (geçici dizinle; gerçek ses modeli çalıştırma).
 4. Doğrula: `node node_modules/typescript/bin/tsc --noEmit`, `npm test`, `cargo test --offline` hepsi yeşil; sayıları SONUC'a yaz (önceki: 353 TS, 231 Rust).
-5. Exe: çalışan süreç yoksa `dist/afunobet-ui-coucou.exe` → `dist/onceki/` yedekle, `npm --offline run pack` (windows/), `powershell -NoProfile -File kisayol_guncelle.ps1`. Yeni exe tarih/boyut/SHA256 SONUC'a.
+5. Exe: çalışan süreç yoksa `dist/afunobet-ui.exe` → `dist/onceki/` yedekle, `npm --offline run pack` (windows/), `powershell -NoProfile -File kisayol_guncelle.ps1`. Yeni exe tarih/boyut/SHA256 SONUC'a.
 6. Exe'yi kısa süre başlat (yeni görünür pencere AÇMA kuralı: mümkünse yalnız süreç ayakta mı kontrol et, 5 sn sonra kapat) — açılış kanıtı SONUC'a.
 
 ## Yasak

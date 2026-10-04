@@ -16,7 +16,7 @@ BELGE_EKSIK_2026-10-02.md raporundaki 8 temel eksiklik ve tutarsizlik asagidaki 
    - docs/KULLANIM_REHBERI.html: Karakter kesimi bolumunde 50 sozlesme karesinin kayipsiz uretildigi ve sol/sag bakis dengesi yazildi.
 
 3. Teslim Yollari ve Geri Alma (Rollback):
-   - README.md: `dist/afunobet-ui-coucou.exe` (9.080.832 bayt, SHA256 dogrulanmis) teslim dosyasi, masaustundeki `AfuNobet UI.lnk` kisayolu ve `dist/onceki/GERI_AL.ps1` tek komutla geri alma yontemi aciklandi.
+   - README.md: `dist/afunobet-ui.exe` (9.080.832 bayt, SHA256 dogrulanmis) teslim dosyasi, masaustundeki `AfuNobet UI.lnk` kisayolu ve `dist/onceki/GERI_AL.ps1` tek komutla geri alma yontemi aciklandi.
    - docs/KULLANIM_REHBERI.html: 1. bolum ve 8. bolum altinda calistirma dosya yollari ve `dist/onceki/GERI_AL.ps1` ile aninda geri alma bilgisi verildi.
 
 4. Kota ve Saglayici Durumu:

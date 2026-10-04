@@ -1,6 +1,6 @@
 SONUC: YARIM
 
-2 Ekim 2026. A13/A14 otomatik doğrulaması tamamlandı. Masaüstü kısayolunu yeniden kaydetmek çalışma alanı dışına yazma kısıtı nedeniyle engellendi; mevcut kısayol zaten dist/afunobet-ui-coucou.exe hedefini gösteriyor. Kapı 1 gerçek Windows kabulü henüz yapılmadı.
+2 Ekim 2026. A13/A14 otomatik doğrulaması tamamlandı. Masaüstü kısayolunu yeniden kaydetmek çalışma alanı dışına yazma kısıtı nedeniyle engellendi; mevcut kısayol zaten dist/afunobet-ui.exe hedefini gösteriyor. Kapı 1 gerçek Windows kabulü henüz yapılmadı.
 
 ## Düzeltmeler
 
@@ -23,9 +23,9 @@ Rust özet grupları: lib65 PASS/2ignored; main0; apps29; runtime11; codex18/1ig
 
 ## Teslim
 
-`npm --offline run pack` Exit0; release derlemesi 1 dakika 58 saniye. Tam çıktı: windows/test-results/faz-a-son-build.log. Exe: dist/afunobet-ui-coucou.exe; 9.080.832 bayt; 2026-10-02 13:33:12 Türkiye. SHA256: `9828bd980efed101de39a8d80d28750d6fd85a60bbeb225e3ac9a7e2bfd3c246`. Teslim ve windows/target/release/afunobet-ui.exe hashleri eşit; windows/test-results/faz-a-son-delivery.json içinde doğrulandı.
+`npm --offline run pack` Exit0; release derlemesi 1 dakika 58 saniye. Tam çıktı: windows/test-results/faz-a-son-build.log. Exe: dist/afunobet-ui.exe; 9.080.832 bayt; 2026-10-02 13:33:12 Türkiye. SHA256: `9828bd980efed101de39a8d80d28750d6fd85a60bbeb225e3ac9a7e2bfd3c246`. Teslim ve windows/target/release/afunobet-ui.exe hashleri eşit; windows/test-results/faz-a-son-delivery.json içinde doğrulandı.
 
-Önceki exe dist/onceki/afunobet-ui-coucou.exe içinde korunuyor; SHA256 fd9ab5db9033ac838789515db00e5b660a930be7ac5a2383ad5467373067ab41. Tek komutla geri alma: powershell -NoProfile -File dist/onceki/GERI_AL.ps1 (uygulama kapalıyken). Geri alma betiği yeni teslimi değiştirmemek için çalıştırılmadı.
+Önceki exe dist/onceki/afunobet-ui.exe içinde korunuyor; SHA256 fd9ab5db9033ac838789515db00e5b660a930be7ac5a2383ad5467373067ab41. Tek komutla geri alma: powershell -NoProfile -File dist/onceki/GERI_AL.ps1 (uygulama kapalıyken). Geri alma betiği yeni teslimi değiştirmemek için çalıştırılmadı.
 
 Masaüstü kısayolunun TargetPath değeri yeni teslim yolu ile eşit; aynı yoldaki exe yenilendiği için mevcut kısayol yeni exe'yi hedefliyor. Ancak istenen betikle yeniden kaydetme adımı erişim reddi aldığı için yapılmış sayılmadı. İzinli bir terminalde kisayol_guncelle.ps1 çalıştırılarak bu adım tamamlanabilir.
 

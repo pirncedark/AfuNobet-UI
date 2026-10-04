@@ -1,6 +1,29 @@
 ﻿# Changes
 
 
+## 1.0.2 — 2026-10-04
+
+Smaller mini pet that keeps the same size in every animation, a portable download, and a clean-up of leftover upstream names.
+Daha küçük ve her animasyonda aynı boyda kalan mini pet, taşınabilir (portable) indirme ve eski upstream adlarının temizliği.
+
+### Added
+- **Portable download:** Each release now ships a setup installer and a portable `.zip` (no installation; unzip and run `afunobet-ui.exe`).
+- **Test:** `tests/mascot_size.test.ts` checks that every frame the pet can show has a measured head size, renders at that size and fits the window without shrinking.
+
+### Changed
+- **Mini pet is half the size:** Afu's head on the desktop is now about 72 px instead of about 145 px.
+- **Same size in every animation:** The source frames draw Afu at different scales (bust or full body). Each frame used to be fitted to the same visible height, so the head jumped between about 35 px and 220 px from one animation to the next. Every frame now has a measured head width (`PET_KAFA` in `windows/src/afu/pet.ts`) and is drawn at the same head size, including while dragging.
+- **No upstream names left:** The `GOREV_COUCOU_*` task files are now `GOREV_AFU_*` (`GOREV_AFU_TEMEL.md` holds the base rules), the build output is `afunobet-ui.exe`, and issue templates, docs and package metadata refer only to AfuNobet UI. The MIT copyright notice in `LICENSE` is kept, as the license requires.
+
+### Eklendi
+- **Taşınabilir indirme:** Her sürümde artık bir kurulum dosyası ve kurulum gerektirmeyen bir `.zip` var (zip'i aç, `afunobet-ui.exe`'yi çalıştır).
+- **Test:** `tests/mascot_size.test.ts`, petin gösterebileceği her karenin ölçülmüş bir kafa boyu olduğunu, o boyda çizildiğini ve küçülmeden pencereye sığdığını denetler.
+
+### Değişti
+- **Mini pet yarı boyda:** Afu'nun masaüstündeki kafası yaklaşık 145 px yerine yaklaşık 72 px.
+- **Her animasyonda aynı boy:** Kaynak karelerde Afu farklı ölçeklerde (büst ya da tam boy) çizilmiş. Önceden her kare aynı görünür yüksekliğe sığdırıldığı için kafa bir animasyondan ötekine yaklaşık 35 px ile 220 px arasında değişiyordu. Artık her karenin ölçülmüş kafa genişliği var (`windows/src/afu/pet.ts` içinde `PET_KAFA`) ve sürüklerken de dahil hepsi aynı kafa boyunda çizilir.
+- **Upstream adları kalmadı:** `GOREV_COUCOU_*` görev dosyaları artık `GOREV_AFU_*` (temel kurallar `GOREV_AFU_TEMEL.md` içinde), derleme çıktısı `afunobet-ui.exe`; hata şablonları, belgeler ve paket bilgileri yalnız AfuNobet UI'yi anar. MIT lisansının şartı olduğu için `LICENSE` içindeki telif bildirimi korunur.
+
 ## 1.0.1 — 2026-10-04
 
 Makes AfuNobet UI work on a computer other than the original developer's.

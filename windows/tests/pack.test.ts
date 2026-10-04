@@ -2,7 +2,7 @@ import { it, expect } from "vitest";
 import { copyExecutable } from "../scripts/pack-copy.mjs";
 it("çalışan dosyayı zorlamadan yeni paketi başka adla teslim eder", () => {
   const calls: string[] = [];
-  const output = copyExecutable("source.exe", "dist/afunobet-ui-coucou.exe", (_: string, dest: string) => {
+  const output = copyExecutable("source.exe", "dist/afunobet-ui.exe", (_: string, dest: string) => {
     calls.push(dest);
     if (calls.length === 1) throw Object.assign(new Error("locked"), { code: "EBUSY" });
   });

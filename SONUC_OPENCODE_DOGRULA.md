@@ -65,10 +65,10 @@ Atlanan testler (4 ignored): Gerçek ses, model, ortam fixture'ı gerektiren tes
 
 ## Exe Dosyası Doğrulaması
 
-### Mevcut exe: dist/afunobet-ui-coucou.exe
+### Mevcut exe: dist/afunobet-ui.exe
 
 ```
-Yol:           C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-coucou.exe
+Yol:           C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui.exe
 Boyut:         9.080.832 bayt
 Tarih:         2026-10-02 13:33 (Türkiye)
 SHA256:        9828bd980efed101de39a8d80d28750d6fd85a60bbeb225e3ac9a7e2bfd3c246
@@ -76,10 +76,10 @@ SHA256:        9828bd980efed101de39a8d80d28750d6fd85a60bbeb225e3ac9a7e2bfd3c246
 
 ✓ Doğrulama: Rapordaki tüm değerler (boyut, tarih, SHA256) ile tam uyumlu.
 
-### Önceki exe: dist/onceki/afunobet-ui-coucou.exe
+### Önceki exe: dist/onceki/afunobet-ui.exe
 
 ```
-Yol:           C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\onceki\afunobet-ui-coucou.exe
+Yol:           C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\onceki\afunobet-ui.exe
 Boyut:         9.034.240 bayt (mevcut exe'den 46.592 bayt daha küçük)
 Tarih:         2026-10-02 13:14 (mevcut exe'den 19 dakika daha eski)
 SHA256:        fd9ab5db9033ac838789515db00e5b660a930be7ac5a2383ad5467373067ab41
@@ -92,11 +92,11 @@ Geri alma:     dist/onceki/GERI_AL.ps1 mevcut
 
 ```
 Kısayol adı:   AfuNobet UI.lnk
-TargetPath:    C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-coucou.exe
+TargetPath:    C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui.exe
 WorkingDir:    C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist
 ```
 
-✓ Doğrulama: Kısayol mevcut exe'yi (dist/afunobet-ui-coucou.exe) doğru şekilde hedefliyor. Rapordaki "mevcut kısayol zaten dist/afunobet-ui-coucou.exe hedefini gösteriyor" ile uyumlu.
+✓ Doğrulama: Kısayol mevcut exe'yi (dist/afunobet-ui.exe) doğru şekilde hedefliyor. Rapordaki "mevcut kısayol zaten dist/afunobet-ui.exe hedefini gösteriyor" ile uyumlu.
 
 ## Sonuç
 

@@ -109,7 +109,7 @@ DOĞRULANDI kod/headless anlamındadır; gerçek Windows Kapı1 UNVERIFIED.
 
 Adım2 checkpoint: TS165, Python teslim17, kurulu üretici41, gerekli kare50, ekran105, pet ekran6 PASS. Filtreli Rust83 PASS Exit0 (voice/codex/apps/apps_state/runtime adları hariç; tüm suite diye sunulmaz). Tam Rust Exit101:64 PASS/1 FAIL/2 ignored; voice::tests::yerel_model_oncelikli_yoksa_windows_motoru_secilir → ModelMissing. Faz B koduna dokunulmadı. unittest0 test buldu; kanıt sayılmadı, pytest kullanıldı. Denetim temiz, MIT korunuyor. Offline npm run pack Exit0,11 Rust uyarısı.
 
-Exe dist/afunobet-ui-coucou.exe:2026-10-02 13:14:56 Türkiye,9034240 bayt. Kaynak/kopya SHA256 eşit:fd9ab5db9033ac838789515db00e5b660a930be7ac5a2383ad5467373067ab41. Önceden mevcut B/C kodları korunarak derlendi; bu tur eklenmedi.
+Exe dist/afunobet-ui.exe:2026-10-02 13:14:56 Türkiye,9034240 bayt. Kaynak/kopya SHA256 eşit:fd9ab5db9033ac838789515db00e5b660a930be7ac5a2383ad5467373067ab41. Önceden mevcut B/C kodları korunarak derlendi; bu tur eklenmedi.
 
 Kısayol C:/Users/afuuu/Desktop/AfuNobet UI.lnk zaten aynı teslim yolunu gösteriyor; yeni exe aynı yola kopyalandı, Save gerekmedi. Masaüstü yazılmadı; uygulama açılmadı.
 
@@ -151,10 +151,10 @@ A13: TS165/Python18/Rust147 PASS, 4 mevcut ignored, offline pack Exit0. A14: sol
 - **Backend Testleri (`cargo test --offline`):** 14 test paketi, 231 test başarılı (0 hata).
 
 ### 3. Exe ve Paket Bilgileri
-- **Dosya:** `dist/afunobet-ui-coucou.exe` (19:54 derlemesi)
+- **Dosya:** `dist/afunobet-ui.exe` (19:54 derlemesi)
 - **Dosya Boyutu:** 34,505,728 bayt (~32.9 MB, hedef < 40 MB sınırına uygun)
 - **SHA256:** `2C14A8F5BD3A2B2482ACD50DA6BC12BF560BB3C999502C900B1201A549E200D3`
-- **Yedek:** `dist/onceki/afunobet-ui-coucou.exe`
+- **Yedek:** `dist/onceki/afunobet-ui.exe`
 - **Kısayol:** Masaüstü kısayolu (`AfuNobet UI.lnk`) güncel teslimi işaret ediyor.
 
 ### 4. Sıradaki Adımlar

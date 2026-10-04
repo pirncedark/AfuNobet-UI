@@ -9,11 +9,11 @@ Bu belge, `README.md` ve `docs/KULLANIM_REHBERI.html` dosyalarının Faz A gerek
 ### A. `README.md` Analizi
 
 1. **A14–A19 Mini Pet ve Görev Çubuğu Özelliklerinin Eksikliği:**
-   - `README.md`, uygulamanın yalnızca "üstte duran küçük ada" (Coucou benzeri) görünümünü anlatmakta; Faz A'nın en kritik çıktısı olan **Mini Pet modu**, görev çubuğuna iniş/kayma (glide), uyanma döngüleri ve tepsi üzerinden pet açma/kapama özelliklerine yer vermemektedir.
+   - `README.md`, uygulamanın yalnızca "üstte duran küçük ada" (upstream benzeri) görünümünü anlatmakta; Faz A'nın en kritik çıktısı olan **Mini Pet modu**, görev çubuğuna iniş/kayma (glide), uyanma döngüleri ve tepsi üzerinden pet açma/kapama özelliklerine yer vermemektedir.
 2. **Karakter Kesim Bilgisi Güncel Değil:**
    - Satır 50'de *"Altı PNG bu resimdeki mevcut karelerden kesilir"* yazmaktadır. Oysa A14 sonrasında kesim sistemi 50 kareye (pet 34 durum karesi, kart 9 karesi, efekt 9 karesi ve durum simgeleri) çıkarılmıştır.
 3. **Teslim Dosya Yolları ve Kısayol:**
-   - `dist/afunobet-ui-coucou.exe` ve masaüstündeki `AfuNobet UI.lnk` kısayolundan bahsedilmemiştir.
+   - `dist/afunobet-ui.exe` ve masaüstündeki `AfuNobet UI.lnk` kısayolundan bahsedilmemiştir.
 4. **Kota ve Sağlayıcı Durumu Eksikliği:**
    - A9 kapsamında geliştirilen `.ajan_kota.cache` üzerinden kota paneli, Claude KORUNUYOR rozetinin yanı sıra kota gösterimi açıkça açıklanmamıştır.
 

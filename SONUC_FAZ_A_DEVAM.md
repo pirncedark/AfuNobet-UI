@@ -12,7 +12,7 @@ Yarım/kalan:
 - Kapı 1: gerçek Windows odak, click-through, DPI, görev çubuğu/tepsi tıklamaları, tam ekran, CPU/RAM ve canlı kullanım testi kullanıcıya ait; UNVERIFIED.
 - YOK Faz A görevi yok; genel tamamlanma koşulları sağlanmadı.
 
-Exe: C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/dist/afunobet-ui-coucou.exe
+Exe: C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/dist/afunobet-ui.exe
 Tarih: 2026-10-02 13:14:56 Türkiye; 9034240 bayt. Önceki tur offline pack Exit0 ile derlendi; 1 Ekim 14:35'ten yeni. Bu tur kaynak değişmediğinden tekrar derlenmedi. Kaynak windows/target/release/afunobet-ui.exe ile güncel SHA256 eşit:
 fd9ab5db9033ac838789515db00e5b660a930be7ac5a2383ad5467373067ab41
 Önceden mevcut B/C kodları teslim içinde korunuyor; Windows davranışı henüz kabul edilmedi.

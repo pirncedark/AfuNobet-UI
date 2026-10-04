@@ -3,7 +3,7 @@ import brotli, json, hashlib, subprocess
 
 root = Path(__file__).resolve().parents[3]
 out = Path(__file__).resolve().parent
-exe = root / 'dist/onceki/afunobet-ui-coucou-20261002-233831.exe'
+exe = root / 'dist/onceki/afunobet-ui-20261002-233831.exe'
 data = exe.read_bytes()
 found = []
 # Tauri's release assets use Brotli with a 22-bit window (header 0x1b).

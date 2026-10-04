@@ -1,6 +1,6 @@
 # AfuNobet UI V1 implementation
 
-Specification: GOREV_COUCOU_AFU.md and AfuNobet/docs/UI_SOZLESME.md.
+Specification: GOREV_AFU_TEMEL.md and AfuNobet/docs/UI_SOZLESME.md.
 The user requested implementation of this supplied design, without commits.
 
 - [ ] Preserve src-tauri/src/island.rs byte for byte and the upstream spring/close animation primitives.
