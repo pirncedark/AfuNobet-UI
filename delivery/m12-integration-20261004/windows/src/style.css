@@ -1,0 +1,333 @@
+﻿:root{color-scheme:dark;font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:#f3f5fb;font-synthesis:none;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{width:100%;height:100%;overflow:hidden;background:transparent;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0}
+button:focus-visible{outline:2px solid #f5b949;outline-offset:3px}
+button:disabled{cursor:default}
+#root{position:fixed;inset:0}
+#wake-strip{position:fixed;top:0;left:50%;transform:translateX(-50%);width:240px;height:6px}
+/* The island is a rounded shape: every corner is cut away so the desktop shows
+   through, and the clip keeps nothing from spilling onto it as a rectangle.
+   Depth comes from an inset shadow — an outside drop shadow would tint the
+   rounded corners and read as a smudge on a light desktop.
+   --fit is the CSS-pixel ratio measured against the real viewport; scaling
+   about the top centre keeps the island hanging from the top of the screen and
+   keeps it centred when the window and the webview disagree about DPI. */
+#island{position:absolute;top:0;left:50%;transform:translateX(-50%) scale(var(--fit,1));transform-origin:50% 0;background:#080e1b;border:1px solid #7ea3d52a;overflow:hidden;zoom:var(--kart-olcek,1)}
+#island-clip{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:radial-gradient(ellipse at 10% 68%,#16375a70,transparent 40%);box-shadow:inset 0 -14px 22px #02091680}
+/* Fixed character column on the left, content column on the right. The two can
+   never overlap: they are grid columns, not absolutely positioned boxes.
+   Both items are placed explicitly in row 1 — an implicit second row would push
+   the character below the panel and cut it off at the bottom. */
+#island[data-mode=expanded] #island-clip{display:grid;grid-template-columns:164px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+#content{grid-column:2;grid-row:1;min-height:0;position:relative;min-width:0;min-height:0;padding:13px 14px 12px;display:flex;flex-direction:column;overflow:hidden}
+header{display:flex;align-items:center;gap:9px;height:23px;flex-shrink:0;white-space:nowrap;overflow:hidden}
+.brand{font-size:13px;font-weight:700;letter-spacing:.03em;color:#e6edf8;flex-shrink:0}
+.summary{font-size:10px;color:#8797b0;margin-right:auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.claude-lock{display:inline-flex;align-items:center;height:28px;font-size:11px;letter-spacing:.02em;color:#a8b2c6;background:#050810;border:1px solid #d6a84f55;border-radius:8px;padding:0 8px;flex-shrink:0;white-space:nowrap;margin-left:-3px;transition:border-color .2s}
+.claude-lock:hover{border-color:#d6a84f99}
+.search-button{width:28px;height:28px;border-radius:8px;}
+.agent-pills{display:flex;gap:6px;margin-top:8px;flex-shrink:0;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.agent-pills::-webkit-scrollbar{display:none}
+/* An agent with nothing to do stays plainly grey and readable; the one being
+   followed is the only highlighted tab. */
+.agent-pill{min-height:28px;flex-shrink:0;white-space:nowrap;font-size:9px;letter-spacing:.07em;font-weight:650;border:1px solid #ffffff1f;border-radius:12px;background:#ffffff08;color:#9fb0c8;padding:5px 12px;transition:background .22s,border-color .22s,transform .22s}
+.agent-pill:hover:not(:disabled){background:#ffffff12;color:#dce7f6}
+.agent-pill.selected{color:#eaf4ff;background:#23456b;border-color:#7fb6e4a8;font-weight:700;transform:scale(1.04);transform-origin:center;border-radius:12px}
+.agent-pill:disabled{opacity:.55}
+.agent-pill[data-expression=working]:not(:disabled)::before{content:"";display:inline-block;width:4px;height:4px;margin-right:5px;border-radius:50%;background:#63d4ff;animation:pill-pulse 2s ease-in-out infinite}
+.agent-pill[data-expression=alert]{border-color:#dda95299}
+.agent-pill[data-expression=happy]{border-color:#7dd9ae77}
+.main-task{height:auto;min-height:96px;flex-shrink:0;position:relative;margin-top:7px;padding:10px 12px 12px;background:linear-gradient(110deg,#172233,#121a2b);border:1px solid #b7cef01c;border-radius:12px;overflow:hidden}
+.task-eyebrow{font-size:9px;font-weight:600;letter-spacing:.08em;color:#91b7df;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:4px}
+h1{font-size:16px;line-height:1.25;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:-.015em}
+.task-message{font-size:10px;line-height:15px;max-height:45px;color:#a7b4c9;margin-top:4px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+.task-meta{display:flex;gap:8px;font-size:9px;line-height:13px;height:13px;color:#7794ba;margin-top:4px;overflow:hidden}
+.active-file{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0}
+.task-meta span:last-child{margin-left:auto;flex-shrink:0}
+.progress-track{position:absolute;bottom:0;left:12px;right:12px;height:2px;background:#ffffff0b;overflow:hidden}
+.progress-fill{height:100%;background:#69c8f5;transition:width .4s ease-out}
+.main-task[data-expression=happy]{border-color:#51b89566}
+.main-task[data-expression=happy] .progress-fill{background:#79d8b0}
+.main-task[data-expression=alert]{border-color:#cc9b4555}
+.main-task[data-expression=error]{border-color:#e2777155}
+.main-task[data-expression=error] .task-message{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block;max-height:15px}
+.other-tasks{margin-top:6px;display:flex;flex-direction:column;gap:4px;flex-shrink:0;overflow:hidden}
+.task-row{height:28px;min-height:28px;display:flex;align-items:center;gap:7px;width:100%;text-align:left;background:transparent;color:#a6b4cb;font-size:11px;border-radius:5px;padding:0 3px}
+.task-row:hover{background:#ffffff0a}
+.row-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row-status{width:74px;flex-shrink:0;text-align:right;color:#7f95b5;font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.status-dot{width:4px;height:4px;border-radius:50%;background:#5b7395;flex-shrink:0}
+.status-dot.working{background:#60c5f2}.status-dot.alert{background:#e3b164}.status-dot.happy{background:#63cd9f}.status-dot.error{background:#e78982}.status-dot.thinking{background:#b9a7e8}
+footer{margin-top:auto;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-shrink:0;height:29px}
+.text-button{font-size:10px;background:transparent;color:#92a7c6;padding:6px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.primary-button{font-size:11px;font-weight:600;border-radius:8px;padding:7px 25px;background:#d8ae66;color:#142137;flex-shrink:0;white-space:nowrap}
+.primary-button:hover{background:#efc986}
+.compact-content{position:absolute;top:0;bottom:0;left:46px;right:10px;display:flex;align-items:center;gap:8px;min-width:0;overflow:hidden}
+.compact-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#c3d2e9;font-size:10px;line-height:32px}
+.compact-count{font-size:9px;color:#8a9ebb;flex-shrink:0;white-space:nowrap}
+/* Row 1, column 1: the character owns the left column outright. Centred in its
+   own column rather than offset with `top`, so it stays inside the panel at any
+   panel height. */
+#afu-character{grid-column:1;grid-row:1;position:relative;left:10px;top:0;align-self:center;width:145px;height:184px;pointer-events:auto;--look-x:0px;--look-y:0px}
+.afu-image, .afu-anim {position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;object-position:center bottom;transform-origin:50% 90%;}
+.afu-image {animation:afu-breathe 4.8s ease-in-out infinite}
+/* The "!" and "?" badges live inside the character column: kept far enough left
+   that they can never land on the card heading. */
+#island[data-mode=hidden] #afu-character{position:absolute}
+#island[data-mode=compact] #afu-character{position:absolute}
+.afu-effect{position:absolute;right:6px;top:2px;width:24px;height:30px;animation:effect-float 2.8s ease-in-out infinite}
+#afu-character.compact{left:9px;top:3px;width:26px;height:26px}
+#afu-character.compact .afu-image, #afu-character.compact .afu-anim {object-position:center}
+/* greeting view handled below */
+#afu-character[data-expression=thinking] .afu-image{animation:afu-think 6s ease-in-out infinite}
+#afu-character[data-expression=happy] .afu-image{animation:afu-celebrate .7s cubic-bezier(.2,.8,.3,1) both}
+#afu-character[data-expression=happy] .afu-effect{width:32px;animation:sparkle-pop .8s ease-out both}
+#afu-character[data-expression=error] .afu-image{animation:afu-shake .3s ease-out both}
+#afu-character[data-expression=alert] .afu-image{animation:afu-breathe 6s ease-in-out infinite}
+#island[data-view=greeting] #afu-character{height:132px;width:112px;left:26px}
+.greeting-view{display:flex;flex-direction:column;justify-content:center;flex:1;min-height:0;overflow:hidden}
+.greeting-view h1{font-size:23px;margin-bottom:9px}
+.greeting-view p{font-size:13px;line-height:20px;color:#a1b4d0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.greeting-view .hint{font-size:10px;line-height:16px;margin-top:16px;color:#788dac}
+.quota-view{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden}
+.quota-view h1{margin-bottom:9px;flex-shrink:0}
+.quota-row{display:grid;grid-template-columns:92px 92px 1fr;align-items:center;min-height:30px;flex-shrink:0;border-bottom:1px solid #ffffff0a;font-size:11px;color:#a7bbd5;overflow:hidden}
+.quota-row strong{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quota-row span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quota-row small{min-width:0;font-size:9px;line-height:13px;color:#7a93b5;white-space:normal;overflow-wrap:anywhere;padding:4px 0}
+.quota-note{font-size:10px;line-height:16px;color:#7890b1;margin-top:10px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#island[data-mode=hidden] *{animation-play-state:paused!important}
+@keyframes afu-breathe{0%,100%{transform:translate(var(--look-x),var(--look-y)) scale(1)}50%{transform:translate(var(--look-x),calc(var(--look-y) - 2px)) scale(1.015,1.025)}}
+@keyframes afu-think{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-2px) rotate(1deg)}}
+@keyframes afu-celebrate{0%{transform:scale(.9,1.04)}45%{transform:translateY(-9px) scale(1.05,.96) rotate(-3deg)}75%{transform:scale(.98,1.02) rotate(2deg)}100%{transform:none}}
+@keyframes afu-shake{0%,100%{transform:none}20%,60%{transform:translateX(-3px) rotate(-2deg)}40%,80%{transform:translateX(3px) rotate(2deg)}}
+@keyframes pill-pulse{50%{opacity:.35}}
+@keyframes effect-float{50%{transform:translateY(-3px) rotate(5deg)}}
+@keyframes sparkle-pop{0%{opacity:0;transform:scale(.3)}45%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
+@keyframes focus-pulse{50%{opacity:.35;transform:scale(1.04)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+ .agent-pill[data-state="active"] { opacity: 1; box-shadow: inset 0 0 0 1px #6ddbfa; }
+ .agent-pill[data-state="idle"] { opacity: .65; }
+ .agent-pill[data-state="disabled"] { opacity: .28; cursor: default; }
+ #afu-character[data-expression=paused] .afu-image { animation:afu-breathe 7s ease-in-out infinite; }
+ #afu-character[data-expression=waiting] .afu-image { animation:afu-breathe 6s ease-in-out infinite; }
+ #afu-character[data-expression=success] .afu-image { animation:afu-celebrate .7s ease-out both; }
+ #island[data-mode=hidden] .afu-image, #island[data-mode=hidden] .afu-effect { animation:none; }
+#afu-pet { position:absolute; top:0; left:0; width:100%; height:100%; padding:0; background:transparent; overflow:hidden; }
+ .pet-image { position:absolute; width:100%; height:100%; left:0; top:0; object-fit:contain; object-position:center bottom; pointer-events:none; }
+ .pet-previous { opacity:0; }
+ .pet-balloon { position:absolute; right:8px; top:4px; color:#ffcd6e; font-size:20px; font-weight:bold; pointer-events:none; }
+ #afu-pet[data-pose=bekleme] .pet-image { animation:pet-breathe 2.8s ease-in-out infinite; transform-origin:center bottom; }
+ #afu-pet[data-pose=yuzme] .pet-image { transform:translateY(-4px); transition:transform .16s; }
+ #afu-pet[data-pose=basari] .pet-image { animation:pet-jump .3s ease-out; }
+ #afu-pet[data-pose=hata] .pet-image { animation:afu-shake .22s ease-out; }
+ @keyframes pet-breathe { 50% { transform:translateY(-1px) scaleY(1.015); } }
+ @keyframes pet-jump { 50% { transform:translateY(-9px); } }
+ #afu-pet .pet-image { animation-play-state:var(--pet-play,running); }
+ 
+ /* Premium Gorunum Degiskenleri */
+ :root {
+   --pet-brightness: 1.03;
+   --pet-filtre-calisiyor: drop-shadow(0 0 3px #63d4ff90) drop-shadow(0 0 7px #63d4ff60);
+   --pet-arka-calisiyor: radial-gradient(ellipse at center, #63d4ff1a 0%, transparent 70%);
+   --pet-kenar-calisiyor: #63d4ff99;
+ 
+   --pet-filtre-dusunuyor: drop-shadow(0 0 3px #b9a7e890) drop-shadow(0 0 7px #b9a7e860);
+   --pet-arka-dusunuyor: radial-gradient(ellipse at center, #b9a7e81a 0%, transparent 70%);
+   --pet-kenar-dusunuyor: #b9a7e899;
+ 
+   --pet-filtre-hata: drop-shadow(0 0 3px #e2777190) drop-shadow(0 0 7px #e2777160);
+   --pet-arka-hata: radial-gradient(ellipse at center, #e277711a 0%, transparent 70%);
+   --pet-kenar-hata: #e2777199;
+ 
+   --pet-filtre-basari: drop-shadow(0 0 3px #79d8b090) drop-shadow(0 0 7px #79d8b060);
+   --pet-arka-basari: radial-gradient(ellipse at center, #79d8b01a 0%, transparent 70%);
+   --pet-kenar-basari: #79d8b099;
+ 
+   --pet-filtre-onay: drop-shadow(0 0 3px #e3b16490) drop-shadow(0 0 7px #e3b16460);
+   --pet-arka-onay: radial-gradient(ellipse at center, #e3b1641a 0%, transparent 70%);
+   --pet-kenar-onay: #e3b16499;
+ 
+  --pet-filtre-bosta: drop-shadow(0 0 0 transparent);
+   --pet-arka-bosta: transparent;
+   --pet-kenar-bosta: transparent;
+
+   --pet-filtre-uyku: drop-shadow(0 0 4px #7ea3d540);
+   --pet-arka-uyku: transparent;
+   --pet-kenar-uyku: #7ea3d566;
+ }
+ 
+ [data-durum="calisiyor"] { --pet-filtre: var(--pet-filtre-calisiyor); --pet-arka: var(--pet-arka-calisiyor); --pet-kenar: var(--pet-kenar-calisiyor); }
+ [data-durum="dusunuyor"] { --pet-filtre: var(--pet-filtre-dusunuyor); --pet-arka: var(--pet-arka-dusunuyor); --pet-kenar: var(--pet-kenar-dusunuyor); }
+ [data-durum="hata"] { --pet-filtre: var(--pet-filtre-hata); --pet-arka: var(--pet-arka-hata); --pet-kenar: var(--pet-kenar-hata); }
+ [data-durum="basari"] { --pet-filtre: var(--pet-filtre-basari); --pet-arka: var(--pet-arka-basari); --pet-kenar: var(--pet-kenar-basari); }
+ [data-durum="onay-bekliyor"] { --pet-filtre: var(--pet-filtre-onay); --pet-arka: var(--pet-arka-onay); --pet-kenar: var(--pet-kenar-onay); }
+ [data-durum="bosta"] { --pet-filtre: var(--pet-filtre-bosta); --pet-arka: var(--pet-arka-bosta); --pet-kenar: var(--pet-kenar-bosta); }
+ [data-durum="uyku"] { --pet-filtre: var(--pet-filtre-uyku); --pet-arka: var(--pet-arka-uyku); --pet-kenar: var(--pet-kenar-uyku); --pet-brightness: .94; }
+ 
+ /* Işıklı arka plan karakterin ve petin arkasında; kenar rengi kartın çerçevesinde
+    (pet şeffaf pencerede durduğu için ona köşeli çerçeve çizilmez). */
+ #afu-character, #afu-pet {
+   background: var(--pet-arka, transparent);
+   transition: background 0.3s ease;
+ }
+ #island { transition: border-color 0.3s ease; }
+ #island[data-durum]:not([data-durum="bosta"]) { border-color: var(--pet-kenar); }
+ 
+#afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image {
+  filter: brightness(var(--pet-brightness, 1)) var(--pet-filtre, drop-shadow(0 0 0 transparent));
+   transition: filter 0.3s ease;
+ }
+ 
+ @media(prefers-reduced-motion: reduce) {
+  #island, #afu-character, #afu-pet, #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image { transition: none !important; }
+ }
+ 
+/* Proje eylemi sabit kartın üst satırında kalır; uzun açıklama altında kırpılmaz. */
+.main-task .task-project{min-height:28px;position:absolute;top:3px;right:8px;font-size:9px;padding:5px 2px;max-width:70px;}
+.main-task:has(.task-project:not([hidden])) .task-eyebrow{padding-right:72px;}
+/* Tık geri bildirimi (2026-10-02): her düğmede üzerine gelme, basılı, odak ve seçili hâli görünür. */
+.text-button{border-radius:7px;padding:6px 6px;transition:background .15s,color .15s,transform .12s,box-shadow .15s}
+.text-button:hover:not(:disabled){background:#ffffff14;color:#e6eefa}
+.text-button:active:not(:disabled){transform:scale(.93);background:#ffffff26;color:#fff}
+.text-button[aria-pressed="true"]{background:#d8ae6629;color:#f5d495;box-shadow:inset 0 0 0 1px #d8ae6699;font-weight:600}
+.text-button[aria-pressed="true"]:hover{background:#d8ae6640}
+.primary-button{transition:background .15s,transform .12s,box-shadow .15s}
+.primary-button:active:not(:disabled){transform:scale(.94);background:#c99a4f}
+.agent-pill{cursor:pointer}
+.agent-pill:hover{background:#ffffff16;color:#dce7f6}
+.agent-pill:active{transform:scale(.93)}
+.agent-pill[data-state="disabled"]{cursor:pointer}
+.agent-pill[data-state="disabled"]:hover{opacity:.55}
+.task-row:active,.app-open:active:not(:disabled){transform:scale(.97)}
+button.tiklandi{animation:tik-nabiz .32s ease-out}
+@keyframes tik-nabiz{0%{box-shadow:0 0 0 0 #f5b949b3}100%{box-shadow:0 0 0 9px #f5b94900}}
+/* W2: kısa bildirim kendi satırında durur: alt düğme satırının hemen üstünde,
+   akış içinde (position:static). Hiçbir düğmenin üstüne binmez; tek satır,
+   sığmazsa "…" ile kısalır. Görünümler küçülür (flex:1;min-height:0), bildirim
+   ve alt satır küçülmez; %150 ölçekte ve dar kartta da aynı kural geçerli. */
+.tik-bildirim{position:static;align-self:center;margin:auto auto 5px auto;flex:0 0 auto;box-sizing:border-box;max-width:100%;min-width:0;height:22px;padding:0 12px;border-radius:9px;background:#1d3150f2;border:1px solid #7fb6e466;color:#e6f1ff;font-size:10px;line-height:20px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;box-shadow:0 2px 8px #0006}
+.tik-bildirim:not([hidden])~footer{margin-top:0}
+.sor-view{flex:1 1 auto;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.apps-view{flex:1 1 auto;min-height:0}
+.tik-bildirim[hidden]{display:none}
+.overview{display:flex;flex-direction:column;flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin}
+.overview .main-task{flex-shrink:1;min-height:28px;overflow-y:auto;scrollbar-width:thin}
+/* Orkestra görünümü kartın içinde kalır, alt düğme satırını (Görevlere dön) itip gizlemez. */
+.orkestra-view{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;padding:2px 4px 6px 0;font-size:10px;color:#c9d6e8}
+.orkestra-view h1{font-size:15px;margin:2px 0 6px}
+.orkestra-view h2{font-size:11px;margin:8px 0 4px;color:#9fb0c8;font-weight:650;letter-spacing:.04em}
+.orkestra-agents{display:flex;gap:6px;flex-wrap:wrap}
+.orkestra-agent-row{display:flex;gap:6px;align-items:center;padding:4px 9px;border:1px solid #ffffff1f;border-radius:10px;background:#ffffff08}
+.orkestra-agent-row strong{font-size:9px;letter-spacing:.07em;color:#dce7f6}
+.orkestra-form{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.orkestra-select,.orkestra-input{font:inherit;font-size:10px;color:#e6eefa;background:#0f1c30;border:1px solid #ffffff26;border-radius:7px;padding:5px 7px;min-width:0}
+.orkestra-input{grid-column:1 / -1}
+.orkestra-actions{grid-column:1 / -1;display:flex;gap:8px;align-items:center}
+.orkestra-actions .primary-button{padding:5px 18px;font-size:10px}
+.orkestra-task-row{display:flex;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid #ffffff10}
+.orkestra-task-row strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:#dce7f6}
+.orkestra-task-row .log-link{color:#7fb6e4}
+footer{gap:6px}
+footer .text-button{padding:6px 5px}
+
+.more-menu .menu-item{font-size:10px}
+footer .page-button{font-size:10px}
+.health-strip{display:flex;flex-shrink:0;gap:4px;margin-top:6px;justify-content:center}
+.stage-bar{display:flex;flex-wrap:wrap;gap:4px;list-style:none;margin:5px 0 0;padding:0;font-size:12px;line-height:1.4}
+.stage-bar .stage{min-width:0;max-width:100%;overflow-wrap:anywhere;padding:2px 5px;border-radius:5px;background:#ffffff09;color:#a1b4d0}
+.stage-bar .current{background:#26405e;color:#edf5ff;font-weight:600}
+.stage-bar .done{color:#7dd9ae}
+.main-task:has(.stage-bar){height:auto;min-height:96px;padding-bottom:8px}
+.health-pill{font-size:9px;padding:2px 6px;border-radius:4px;background:#ffffff11;color:#a1b4d0}
+.health-pill.ok{background:#1a4d2e;color:#7dd9ae}
+.health-pill.kapali{background:#4d1a1a;color:#d97d7d}
+
+/* W4 E2 ajan pill: mevcut ajan sekmesinin görünümü. Kısa ad + ajan rengi +
+   durum noktası. Boşta ajan soluk. Tek satır, şerit taşarsa kendi içinde kayar. */
+.agent-pills{max-width:100%;min-width:0;align-items:center}
+.agent-pill{display:inline-flex;align-items:center;gap:5px;padding:4px 9px;max-width:9em;overflow:hidden;
+  border-color:var(--pill-bg,#ffffff1f);border-color:color-mix(in srgb,var(--pill-color,#9fb0c8) 55%,transparent);
+  background:var(--pill-bg,#ffffff08);color:#dce7f6}
+.agent-pill .pill-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.agent-pill .pill-dot{flex:none;width:6px;height:6px;border-radius:50%;background:#8a97a8}
+.agent-pill[data-state=aktif] .pill-dot{background:#4fd18b;box-shadow:0 0 4px #4fd18b99;animation:pill-pulse 2s ease-in-out infinite}
+.agent-pill[data-state=bekliyor] .pill-dot{background:#e7c35a}
+.agent-pill[data-state=kota] .pill-dot{background:#e56b6b}
+.agent-pill[data-expression=working]:not(:disabled)::before{content:none;display:none}
+.agent-pill.soluk{opacity:.5}
+.agent-pill.soluk[data-state=kapali]{opacity:.38}
+.agent-pill.soluk:hover{opacity:.8}
+.agent-pill.selected{background:var(--pill-bg,#23456b);border-color:var(--pill-color,#7fb6e4a8);opacity:1}
+
+/* M2: düğmeler doğal genişlikte; dar kartta sayfaları Daha fazla taşır. */
+#content{container-type:inline-size}
+footer{gap:4px;justify-content:flex-start}
+footer button{flex:0 0 auto;overflow:visible;text-overflow:clip}
+footer .text-button{display:inline-flex;align-items:center;gap:4px;padding:6px 3px}
+footer .sor-button{padding:7px 10px;margin-left:auto}
+footer .sor-button::before{content:"✦";margin-right:4px}
+.more-menu{position:absolute;right:14px;bottom:48px;z-index:20;display:flex;flex-direction:column;gap:4px;width:190px;max-width:calc(100% - 28px);max-height:calc(100% - 60px);overflow-y:auto;padding:6px;border:1px solid #7ea3d54a;border-radius:10px;background:#121a2b;box-shadow:0 8px 20px #02091680}
+.more-menu .menu-item{text-align:left;flex:none;min-height:28px;padding:5px 8px;overflow:visible;text-overflow:clip}
+.tik-bildirim:not([hidden])+.more-menu{bottom:76px;max-height:calc(100% - 88px)}
+.btn-icon{flex:none;font-size:12px}
+.page-button{display:flex;align-items:center;gap:5px}
+.page-button[data-page=quota] .btn-icon::before{content:"◔"}
+.page-button[data-page=apps] .btn-icon::before{content:"▦"}
+.page-button[data-page=orkestra] .btn-icon::before{content:"♬"}
+.page-button[data-page=chat] .btn-icon::before{content:"☏"}
+.collapse-button::before{content:"−";margin-right:3px}
+@container (max-width:360px){
+  footer .back-button .btn-label{display:none}
+  footer .collapse-button{font-size:0;width:28px;height:28px;justify-content:center;padding:5px 3px;line-height:16px}
+  footer .collapse-button::before{font-size:16px;margin:0}
+}
+/* Kart içi arama katmanı: aynı renk, yükseklik ve odak halkası. */
+.modal-backdrop{position:absolute;inset:0;z-index:30;display:flex;padding:8px;background:#080e1bee}
+.modal-dialog{display:flex;flex-direction:column;min-width:0;width:100%;min-height:0;border:1px solid #b7cef02a;border-radius:12px;background:#121a2b;padding:10px}
+.modal-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex:none}
+.modal-title{font-size:16px;line-height:1.25;font-weight:650;flex:1;min-width:0}
+.icon-button{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;flex:none;border:1px solid #ffffff1f;border-radius:7px;background:#ffffff08;color:#a7bbd5;font-size:14px}
+.icon-button:hover{background:#ffffff14;color:#e6eefa}
+.modal-body{min-height:0;overflow:auto;scrollbar-width:thin}
+.search-bar{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px}
+.search-input,.search-select{width:100%;min-width:0;height:30px;padding:0 8px;border:1px solid #7ea3d54a;border-radius:7px;background:#080e1b;color:#e6edf8;font:inherit;font-size:11px;color-scheme:dark}
+.search-input{grid-column:1 / -1;user-select:text}
+.search-input:focus-visible,.search-select:focus-visible{outline:2px solid #f5b949;outline-offset:1px;border-color:#f5b949}
+.search-results{display:flex;flex-direction:column;gap:4px}
+.search-results .search-row{height:auto;min-height:30px;padding:6px;border:1px solid #b7cef01c;border-radius:7px;background:#172233}
+.search-results .search-row:hover{background:#23456b}
+.search-empty{font-size:11px;color:#a7b4c9;padding:8px 0}
+
+/* M3: standart kartta dört sayfa; dar pencerede okunabilir yerleşim. */
+footer .page-button .btn-icon{display:none}
+footer .page-button,footer .more-button,footer .collapse-button,footer .sor-button{min-height:28px;min-width:28px}
+footer{height:auto;min-height:32px;padding-top:4px}
+.overview{padding-bottom:5px}
+.task-insight{font-size:9px;line-height:14px;color:#a7bbd5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu-heading{font-size:11px;padding:4px 8px;color:#e6edf8}
+.menu-description{font-size:9px;padding:0 8px;color:#a7bbd5}
+.more-menu .menu-item small{display:block;font-size:9px;color:#a7bbd5;white-space:normal;line-height:13px}
+.more-menu .menu-item[aria-checked=true]::before{content:"✓ ";color:#79d8b0}
+.menu-advanced summary{font-size:10px;padding:7px 8px;cursor:pointer}
+@media(max-width:719px){
+ #island[data-mode=expanded]{zoom:1!important;transform:translateX(-50%);width:100%!important;height:100%!important}
+ #island[data-mode=expanded] #island-clip{grid-template-columns:minmax(0,1fr)}
+ #island[data-mode=expanded] #afu-character{display:none}
+ #island[data-mode=expanded] #content{grid-column:1;padding-top:8px;padding-bottom:8px}
+ footer .collapse-button{min-height:28px}
+}
+
+/* M11: consistent hit areas, including secondary controls inside panels. */
+#content :is(button, summary, input, select, a[href]),
+#afu-pet-balon :is(button, summary, a[href]){min-width:28px;min-height:28px}
+#content header{height:28px}
+#content .log-link{display:inline-flex;align-items:center;justify-content:center}
+#content .menu-advanced[open] summary{margin-bottom:4px}
+#content .menu-advanced .menu-item{width:100%}
+#content .chat-actions{flex-wrap:wrap;gap:4px}
+#content .orkestra-actions{flex-wrap:wrap}
+
+#afu-pet-balon .afu-balon-kapat{min-width:28px;min-height:28px}

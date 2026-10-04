@@ -1,0 +1,184 @@
+/* M10: tepsi "Durum" paneli ana kartla aynı dili konuşur.
+   Panel içeriğe göre yükselir; boş alan bırakmaz, taşarsa kaydırır. */
+
+/* Panel: üstte sabit, yükseklik içerikten gelir. */
+.sistem-panel {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  z-index: 80;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: auto;
+  max-height: calc(100% - 20px);
+  container-type: inline-size;
+  padding: 12px 12px 14px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  border: 1px solid #7ea3d54a;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #16202f, #101827);
+  color: #e6edf8;
+  font: 13px/1.4 "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  box-shadow: 0 10px 28px #02091699;
+  animation: sistem-ac 0.14s ease-out;
+}
+.sistem-panel[hidden] { display: none; }
+@keyframes sistem-ac { from { opacity: 0; transform: translateY(-4px); } }
+
+/* Başlık satırı: ad + ✕ ikon düğmesi. */
+.sistem-head { display: flex; align-items: center; gap: 8px; flex: none; }
+.sistem-title { margin: 0; font-size: 16px; line-height: 1.25; font-weight: 600; color: #f3f5fb; }
+.sistem-kapat {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: none;
+  padding: 0;
+  border: 1px solid #ffffff1f;
+  border-radius: 8px;
+  background: #ffffff08;
+  color: #a7bbd5;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.sistem-kapat:hover { background: #ffffff14; color: #e6eefa; }
+.sistem-kapat:focus-visible { outline: 2px solid #f5b949; outline-offset: 1px; }
+
+/* Tek cümlelik durum metni. */
+.sistem-durum { margin: 0; flex: none; font-size: 12px; line-height: 1.35; color: #a7bbd5; }
+
+/* Ayar satırları: solda ad + açıklama, sağda gerçek anahtar. */
+.sistem-ayarlar { display: flex; flex-direction: column; gap: 8px; flex: none; }
+.sistem-ayar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 36px;
+  padding: 6px 9px;
+  border: 1px solid #ffffff1f;
+  border-radius: 8px;
+  background: #ffffff08;
+  color: #e6edf8;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.sistem-ayar:hover:not(:disabled) { background: #ffffff12; border-color: #ffffff33; }
+.sistem-ayar:focus-visible { outline: 2px solid #f5b949; outline-offset: 1px; }
+.sistem-ayar:disabled { opacity: 0.55; cursor: default; }
+.sistem-ayar-metin { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.sistem-ayar-ad { font-size: 12px; font-weight: 600; color: #e6edf8; }
+.sistem-ayar-not { font-size: 11px; line-height: 1.3; color: #a7bbd5; }
+
+/* Anahtar: açık = yeşil, kapalı = gri. */
+.sistem-anahtar {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 19px;
+  border: 1px solid #ffffff26;
+  border-radius: 10px;
+  background: #1a2436;
+  transition: background 0.15s, border-color 0.15s;
+}
+.sistem-anahtar::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: #8a97a8;
+  transition: transform 0.15s, background 0.15s;
+}
+.sistem-ayar[aria-checked="true"] .sistem-anahtar { background: #1a4d2e; border-color: #4fd18b80; }
+.sistem-ayar[aria-checked="true"] .sistem-anahtar::after { transform: translateX(15px); background: #7dd9ae; }
+
+/* "Gelişmiş" ve GitHub satırı: aynı satır dili, stilsiz ok işareti yok. */
+.sistem-ozet,
+.sistem-servis > summary {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 28px;
+  padding: 5px 9px;
+  border: 1px solid #ffffff1f;
+  border-radius: 8px;
+  background: #ffffff08;
+  color: #c9d6e8;
+  font-size: 12px;
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+.sistem-ozet::-webkit-details-marker,
+.sistem-servis > summary::-webkit-details-marker { display: none; }
+.sistem-ozet:hover,
+.sistem-servis > summary:hover { background: #ffffff12; border-color: #ffffff33; }
+.sistem-ozet:focus-visible,
+.sistem-servis > summary:focus-visible { outline: 2px solid #f5b949; outline-offset: 1px; }
+.sistem-ok {
+  flex: none;
+  width: 13px;
+  font-size: 13px;
+  line-height: 1;
+  text-align: center;
+  color: #a7bbd5;
+  transition: transform 0.15s;
+}
+.sistem-gelisimis[open] > .sistem-ozet .sistem-ok,
+.sistem-servis[open] > .sistem-ozet .sistem-ok { transform: rotate(90deg); }
+
+/* GitHub: durum rozeti + açılır satır. */
+.sistem-servis { margin-top: 8px; }
+.sistem-servis > .sistem-ozet { width: 100%; }
+.sistem-servis[open] { display: flex; flex-direction: column; gap: 6px; }
+.service-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 4px 9px;
+  border: 1px solid #ffffff1f;
+  border-radius: 8px;
+  background: #0f1c30;
+  color: #c9d6e8;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.service-pill::before {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #8a97a8;
+}
+.service-pill[data-status="success"] { color: #7dd9ae; border-color: #4fd18b59; }
+.service-pill[data-status="success"]::before { background: #4fd18b; }
+.service-pill[data-status="running"] { color: #f5d495; border-color: #d8ae6659; }
+.service-pill[data-status="running"]::before { background: #e3b164; }
+.service-pill[data-status="failure"] { color: #e59a9a; border-color: #e56b6b59; }
+.service-pill[data-status="failure"]::before { background: #e56b6b; }
+
+/* Dar panelde metin sıkışmaz, anahtar yerinde durur. */
+@container (max-width: 320px) {
+  .sistem-ayar { gap: 8px; padding: 6px 7px; }
+  .sistem-ayar-not { font-size: 10px; }
+}

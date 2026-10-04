@@ -1,0 +1,2029 @@
+{
+  "toplam": 131,
+  "tablo": [
+    {
+      "ekran": "genel-bakis",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "genel-bakis-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 13,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "genel-bakis-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 13,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "genel-bakis-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "genel-bakis-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.overview",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.overview",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 13,
+          "genislik": 420
+        }
+      ],
+      "toplam": 6
+    },
+    {
+      "ekran": "gorev-karti",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "gorev-karti-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "gorev-karti-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "gorev-karti-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "gorev-karti-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.overview",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.overview",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 9,
+          "genislik": 420
+        }
+      ],
+      "toplam": 6
+    },
+    {
+      "ekran": "kota",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "kota-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "kota-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "kota-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "kota-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol -64 sağ 450 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.brand",
+              "olcu": "sol -43 sağ 88 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.icon-button.search-button",
+              "olcu": "sol 387 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.quota-view",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "h1",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.quota-row",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "strong",
+              "olcu": "sol -43 sağ 95 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "small",
+              "olcu": "sol 233 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.quota-row",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "strong",
+              "olcu": "sol -43 sağ 95 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "small",
+              "olcu": "sol 233 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.quota-row",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "strong",
+              "olcu": "sol -43 sağ 95 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "small",
+              "olcu": "sol 233 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.quota-row",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "strong",
+              "olcu": "sol -43 sağ 95 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "small",
+              "olcu": "sol 233 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "p.quota-note",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 316 sağ 429 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol -64 sağ 450 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.brand",
+                "olcu": "sol -43 sağ 88 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.icon-button.search-button",
+                "olcu": "sol 387 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.quota-view",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "h1",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.quota-row",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "strong",
+                "olcu": "sol -43 sağ 95 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "small",
+                "olcu": "sol 233 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.quota-row",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "strong",
+                "olcu": "sol -43 sağ 95 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "small",
+                "olcu": "sol 233 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.quota-row",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "strong",
+                "olcu": "sol -43 sağ 95 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "small",
+                "olcu": "sol 233 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.quota-row",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "strong",
+                "olcu": "sol -43 sağ 95 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "small",
+                "olcu": "sol 233 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "p.quota-note",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 316 sağ 429 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 4,
+          "genislik": 420
+        }
+      ],
+      "toplam": 22
+    },
+    {
+      "ekran": "uygulamalar",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "uygulamalar-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "uygulamalar-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "uygulamalar-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "uygulamalar-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol -64 sağ 450 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.brand",
+              "olcu": "sol -43 sağ 88 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.icon-button.search-button",
+              "olcu": "sol 387 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.apps-view",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 316 sağ 429 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol -64 sağ 450 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.brand",
+                "olcu": "sol -43 sağ 88 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.icon-button.search-button",
+                "olcu": "sol 387 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.apps-view",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 316 sağ 429 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 420
+        }
+      ],
+      "toplam": 8
+    },
+    {
+      "ekran": "orkestra",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "orkestra-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 15,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "orkestra-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "orkestra-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 15,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "orkestra-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol -64 sağ 450 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.brand",
+              "olcu": "sol -43 sağ 88 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.icon-button.search-button",
+              "olcu": "sol 387 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.orkestra-view",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 316 sağ 429 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol -64 sağ 450 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.brand",
+                "olcu": "sol -43 sağ 88 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.icon-button.search-button",
+                "olcu": "sol 387 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.orkestra-view",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 316 sağ 429 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 420
+        }
+      ],
+      "toplam": 8
+    },
+    {
+      "ekran": "sohbet",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "sohbet-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "sohbet-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "sohbet-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "sohbet-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.claude-lock",
+              "olcu": "sol 286 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span",
+              "olcu": "sol 379 sağ 481 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.chat-view",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.chat-panel.m12-chat",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.claude-lock",
+                "olcu": "sol 286 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span",
+                "olcu": "sol 379 sağ 481 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.chat-view",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.chat-panel.m12-chat",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 420
+        }
+      ],
+      "toplam": 9
+    },
+    {
+      "ekran": "sohbet-acik",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "sohbet-acik-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "sohbet-acik-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "sohbet-acik-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 12,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "sohbet-acik-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.claude-lock",
+              "olcu": "sol 286 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span",
+              "olcu": "sol 379 sağ 481 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.chat-view",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.chat-panel.m12-chat",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.claude-lock",
+                "olcu": "sol 286 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span",
+                "olcu": "sol 379 sağ 481 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.chat-view",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.chat-panel.m12-chat",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 9,
+          "genislik": 420
+        }
+      ],
+      "toplam": 9
+    },
+    {
+      "ekran": "sesli-sohbet",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "sesli-sohbet-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "sesli-sohbet-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "sesli-sohbet-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "sesli-sohbet-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.chat-view",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.chat-panel.m12-chat",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.chat-view",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.chat-panel.m12-chat",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 420
+        }
+      ],
+      "toplam": 7
+    },
+    {
+      "ekran": "daha-fazla",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "daha-fazla-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 22,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "daha-fazla-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 21,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "daha-fazla-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "daha-fazla-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.overview",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.more-menu",
+              "olcu": "sol 209 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.overview",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.more-menu",
+                "olcu": "sol 209 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 22,
+          "genislik": 420
+        }
+      ],
+      "toplam": 7
+    },
+    {
+      "ekran": "ayarlar",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "ayarlar-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "ayarlar-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 19,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "ayarlar-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 24,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "ayarlar-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol -64 sağ 450 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.brand",
+              "olcu": "sol -43 sağ 88 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.icon-button.search-button",
+              "olcu": "sol 387 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.overview",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.more-menu",
+              "olcu": "sol 144 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol -43 sağ 429 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.text-button.more-button",
+              "olcu": "sol -43 sağ 46 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.btn-label",
+              "olcu": "sol -19 sağ 43 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 316 sağ 429 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol -64 sağ 450 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.brand",
+                "olcu": "sol -43 sağ 88 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.icon-button.search-button",
+                "olcu": "sol 387 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.overview",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.more-menu",
+                "olcu": "sol 144 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol -43 sağ 429 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.text-button.more-button",
+                "olcu": "sol -43 sağ 46 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.btn-label",
+                "olcu": "sol -19 sağ 43 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 316 sağ 429 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 24,
+          "genislik": 420
+        }
+      ],
+      "toplam": 11
+    },
+    {
+      "ekran": "gorev-ara",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "gorev-ara-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 19,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "gorev-ara-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "gorev-ara-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "gorev-ara-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol -48 sağ 466 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-backdrop",
+              "olcu": "sol -48 sağ 466 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-dialog",
+              "olcu": "sol -36 sağ 454 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-head",
+              "olcu": "sol -20 sağ 438 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "h2.modal-title",
+              "olcu": "sol -20 sağ 384 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.modal-close.icon-button",
+              "olcu": "sol 396 sağ 438 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-body",
+              "olcu": "sol -20 sağ 438 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol -48 sağ 466 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-backdrop",
+                "olcu": "sol -48 sağ 466 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-dialog",
+                "olcu": "sol -36 sağ 454 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-head",
+                "olcu": "sol -20 sağ 438 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "h2.modal-title",
+                "olcu": "sol -20 sağ 384 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.modal-close.icon-button",
+                "olcu": "sol 396 sağ 438 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-body",
+                "olcu": "sol -20 sağ 438 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 17,
+          "genislik": 420
+        }
+      ],
+      "toplam": 8
+    },
+    {
+      "ekran": "soru-karti",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "soru-karti-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "soru-karti-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "soru-karti-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "soru-karti-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span.claude-lock",
+              "olcu": "sol 286 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "span",
+              "olcu": "sol 379 sağ 481 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.overview",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.soru-kap",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "section.soru-karti.soru-soru",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "p.soru-kimden",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "h2.soru-baslik",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.soru-govde",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "p.soru-metin",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.soru-secenekler",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.soru-dugme",
+              "olcu": "sol 338 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.soru-dugme",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.soru-yazi",
+              "olcu": "sol 38 sağ 478 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.soru-dugme",
+              "olcu": "sol 393 sağ 478 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span.claude-lock",
+                "olcu": "sol 286 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "span",
+                "olcu": "sol 379 sağ 481 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.overview",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.soru-kap",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "section.soru-karti.soru-soru",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "p.soru-kimden",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "h2.soru-baslik",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.soru-govde",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "p.soru-metin",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.soru-secenekler",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.soru-dugme",
+                "olcu": "sol 338 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.soru-dugme",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.soru-yazi",
+                "olcu": "sol 38 sağ 478 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.soru-dugme",
+                "olcu": "sol 393 sağ 478 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 420
+        }
+      ],
+      "toplam": 17
+    },
+    {
+      "ekran": "mesaj-ayrintisi",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "mesaj-ayrintisi-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "mesaj-ayrintisi-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "mesaj-ayrintisi-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "mesaj-ayrintisi-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol -95 sağ 419 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-backdrop",
+              "olcu": "sol -95 sağ 419 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-dialog",
+              "olcu": "sol -83 sağ 407 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-head",
+              "olcu": "sol -67 sağ 391 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "h2.modal-title",
+              "olcu": "sol -67 sağ 337 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.modal-body",
+              "olcu": "sol -67 sağ 391 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol -95 sağ 419 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-backdrop",
+                "olcu": "sol -95 sağ 419 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-dialog",
+                "olcu": "sol -83 sağ 407 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-head",
+                "olcu": "sol -67 sağ 391 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "h2.modal-title",
+                "olcu": "sol -67 sağ 337 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.modal-body",
+                "olcu": "sol -67 sağ 391 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 420
+        }
+      ],
+      "toplam": 7
+    },
+    {
+      "ekran": "pet-balon",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "pet-balon-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "pet-balon-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "pet-balon-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "pet-balon-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "tepsi-durum",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "tepsi-durum-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "tepsi-durum-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "tepsi-durum-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "tepsi-durum-150-420.png",
+          "sorunlar": [
+            {
+              "tip": "yatay-tasma",
+              "nerede": "#content",
+              "olcu": "sol 1 sağ 515 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "header",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "div.overview",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "footer",
+              "olcu": "sol 22 sağ 494 pencere 420"
+            },
+            {
+              "tip": "yatay-tasma",
+              "nerede": "button.primary-button.sor-button",
+              "olcu": "sol 381 sağ 494 pencere 420"
+            },
+            {
+              "tip": "kesik-metin",
+              "nerede": "#island-clip",
+              "olcu": "scrollWidth 343 > clientWidth 279"
+            }
+          ],
+          "ozet": {
+            "yatay-tasma": [
+              {
+                "tip": "yatay-tasma",
+                "nerede": "#content",
+                "olcu": "sol 1 sağ 515 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "header",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "div.overview",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "footer",
+                "olcu": "sol 22 sağ 494 pencere 420"
+              },
+              {
+                "tip": "yatay-tasma",
+                "nerede": "button.primary-button.sor-button",
+                "olcu": "sol 381 sağ 494 pencere 420"
+              }
+            ],
+            "kesik-metin": [
+              {
+                "tip": "kesik-metin",
+                "nerede": "#island-clip",
+                "olcu": "scrollWidth 343 > clientWidth 279"
+              }
+            ]
+          },
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 420
+        }
+      ],
+      "toplam": 6
+    }
+  ]
+}
