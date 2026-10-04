@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="230" viewBox="0 0 1000 230" role="img" aria-label="How it works: agent hook, relay, local pipe, island, your click">
+  <style>
+    text { font-family: -apple-system, "Segoe UI", system-ui, Roboto, Helvetica, Arial, sans-serif; }
+    .box { fill: #15142b; stroke: #3b3870; stroke-width: 1.5; }
+    .hl  { stroke: #8b86ff; }
+    .h { font-size: 16px; font-weight: 700; fill: #f2f2ff; }
+    .s { font-size: 12.5px; fill: #9a97c4; }
+    .line { stroke: #3b3870; stroke-width: 2; stroke-dasharray: 6 6; animation: dash 1s linear infinite; }
+    .back { stroke: #2fbf71; opacity: .7; }
+    @keyframes dash { to { stroke-dashoffset: -12; } }
+    .pulse { animation: pulse 2.4s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+    @keyframes pulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .line, .pulse { animation: none; } .mover { display: none; } }
+  </style>
+  <rect width="1000" height="230" rx="18" fill="#0d0d1a"/>
+
+  <line class="line" x1="200" y1="90" x2="262" y2="90"/>
+  <line class="line" x1="452" y1="90" x2="514" y2="90"/>
+  <line class="line" x1="704" y1="90" x2="766" y2="90"/>
+  <path class="line back" d="M860 130 V 190 H 105 V 130" fill="none"/>
+
+  <g>
+    <rect class="box" x="20" y="50" width="180" height="80" rx="14"/>
+    <text class="h" x="110" y="84" text-anchor="middle">AI agent</text>
+    <text class="s" x="110" y="106" text-anchor="middle">Claude Code · Codex · Gemini</text>
+  </g>
+  <g>
+    <rect class="box" x="262" y="50" width="190" height="80" rx="14"/>
+    <text class="h" x="357" y="84" text-anchor="middle">Hook relay</text>
+    <text class="s" x="357" y="106" text-anchor="middle">300 ms, never blocks</text>
+  </g>
+  <g>
+    <rect class="box" x="514" y="50" width="190" height="80" rx="14"/>
+    <text class="h" x="609" y="84" text-anchor="middle">Local pipe</text>
+    <text class="s" x="609" y="106" text-anchor="middle">named pipe · Unix socket</text>
+  </g>
+  <g class="pulse">
+    <rect class="box hl" x="766" y="50" width="214" height="80" rx="14"/>
+    <text class="h" x="873" y="84" text-anchor="middle">The island</text>
+    <text class="s" x="873" y="106" text-anchor="middle">status · Deny / Allow · chat</text>
+  </g>
+  <text class="s" x="480" y="182" text-anchor="middle" style="fill:#7fd6a5">your answer goes straight back to the agent</text>
+
+  <circle class="mover" r="6" fill="#8b86ff">
+    <animateMotion dur="3.2s" repeatCount="indefinite" path="M200 90 H 766"/>
+  </circle>
+  <circle class="mover" r="6" fill="#2fbf71">
+    <animateMotion dur="3.2s" begin="1.6s" repeatCount="indefinite" path="M860 130 V 190 H 105 V 130"/>
+  </circle>
+</svg>
