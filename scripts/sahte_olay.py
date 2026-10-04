@@ -29,7 +29,11 @@ def get_target_dir(args):
         return Path(args.hedef).resolve()
     
     if args.gercek:
-        return Path("C:/Users/afuuu/Desktop/afuproject/AfuNobet")
+        # Mevcut AfuNobet kurulumu korunur; yoksa kullanici veri klasoru.
+        eski = Path.home() / 'Desktop' / 'afuproject' / 'AfuNobet'
+        if eski.is_dir():
+            return eski
+        return Path(os.environ.get('LOCALAPPDATA') or Path.home() / 'AppData' / 'Local') / 'AfuNobet'
     
     # Varsayilan test klasoru (AFUNOBET_UI_STATE icin)
     base_dir = Path(__file__).parent.parent

@@ -13,9 +13,30 @@ pub fn resolve_path() -> PathBuf {
                 .filter(|value| !value.is_empty())
                 .map(|db| PathBuf::from(db).with_file_name("state.json"))
         })
-        .unwrap_or_else(|| PathBuf::from("C:/Users/afuuu/Desktop/afuproject/AfuNobet/state.json"));
+        .unwrap_or_else(|| varsayilan_kok().join("state.json"));
     // Do not canonicalize: missing sources are expected at startup.
     std::path::absolute(&path).unwrap_or(path)
+}
+
+/// Kullanıcıya özel veri kökü. Mevcut AfuNöbet kurulumu (%USERPROFILE%\Desktop\afuproject\AfuNobet)
+/// varsa o korunur; yoksa %LOCALAPPDATA%\AfuNobet kullanılır.
+pub fn varsayilan_kok() -> PathBuf {
+    let eski = std::env::var_os("USERPROFILE")
+        .filter(|value| !value.is_empty())
+        .map(|home| PathBuf::from(home).join("Desktop").join("afuproject").join("AfuNobet"));
+    if let Some(eski) = eski.filter(|path| path.is_dir()) {
+        return eski;
+    }
+    std::env::var_os("LOCALAPPDATA")
+        .filter(|value| !value.is_empty())
+        .map(PathBuf::from)
+        .or_else(|| {
+            std::env::var_os("USERPROFILE")
+                .filter(|value| !value.is_empty())
+                .map(|home| PathBuf::from(home).join("AppData").join("Local"))
+        })
+        .unwrap_or_else(|| PathBuf::from("."))
+        .join("AfuNobet")
 }
 
 pub fn unavailable() -> Value {

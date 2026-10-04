@@ -273,7 +273,11 @@ def varsayilan_kok() -> Path:
         return Path(os.environ["AFUNOBET_UI_STATE"]).parent
     if os.environ.get("AFUNOBET_DB"):
         return Path(os.environ["AFUNOBET_DB"]).parent
-    return Path(r"C:\Users\afuuu\Desktop\afuproject\AfuNobet")
+    # Mevcut AfuNobet kurulumu korunur; yoksa kullanici veri klasoru.
+    eski = Path.home() / 'Desktop' / 'afuproject' / 'AfuNobet'
+    if eski.is_dir():
+        return eski
+    return Path(os.environ.get('LOCALAPPDATA') or Path.home() / 'AppData' / 'Local') / 'AfuNobet'
 
 
 def main(argv: list[str] | None = None) -> int:

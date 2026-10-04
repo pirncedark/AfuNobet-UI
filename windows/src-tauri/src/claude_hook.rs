@@ -1,6 +1,6 @@
 /// Claude köprüsü hook kurulu mu kontrol et
 pub fn is_installed() -> bool {
-    // ~/.claude/settings.json dosyasında claude_kopru/afu_hook.py var mı?
+    // ~/.claude/settings.json dosyasında claude_kopru/afu_hook.py ya da afu_ajan_koprusu.py var mı?
     let home = match std::env::var("USERPROFILE") {
         Ok(h) => h,
         Err(_) => return false,
@@ -13,7 +13,7 @@ pub fn is_installed() -> bool {
     }
 
     match std::fs::read_to_string(&settings_path) {
-        Ok(content) => content.contains("afu_hook") || content.contains("claude_kopru"),
+        Ok(content) => content.contains("afu_hook") || content.contains("claude_kopru") || content.contains("afu_ajan_koprusu"),
         Err(_) => false,
     }
 }

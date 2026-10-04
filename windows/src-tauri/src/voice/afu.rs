@@ -94,6 +94,38 @@ fn release_exited_lock(root: &Path, pid: u32) {
     let path = root.join(".gpu.lock");
     if fs::read_to_string(&path).ok().and_then(|s| s.trim().parse::<u32>().ok()) == Some(pid) { let _ = fs::remove_file(path); }
 }
+// Launchers (Windows Store / install-manager python.exe, venv redirectors) run the real
+// interpreter as a child, so the lock may name a grandchild; remove it only once that owner exited.
+#[cfg(windows)]
+fn release_dead_lock(root: &Path) {
+    use windows::Win32::Foundation::{CloseHandle, STILL_ACTIVE};
+    use windows::Win32::System::Threading::{GetExitCodeProcess, OpenProcess, PROCESS_QUERY_LIMITED_INFORMATION};
+    let path = root.join(".gpu.lock");
+    let Some(pid) = fs::read_to_string(&path).ok().and_then(|s| s.trim().parse::<u32>().ok()) else { return; };
+    let alive = unsafe {
+        match OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, false, pid) {
+            Ok(handle) => {
+                let mut code = 0u32;
+                let known = GetExitCodeProcess(handle, &mut code).is_ok();
+                let _ = CloseHandle(handle);
+                !known || code == STILL_ACTIVE.0 as u32
+            }
+            // A missing process cannot be opened; any other failure keeps the lock.
+            Err(error) => error.code() != windows::Win32::Foundation::E_INVALIDARG,
+        }
+    };
+    if !alive { let _ = fs::remove_file(path); }
+}
+// Stop the whole worker tree, not only a launcher that would leave the interpreter running.
+fn kill_worker(child: &mut std::process::Child) {
+    #[cfg(windows)] {
+        use std::os::windows::process::CommandExt;
+        let _ = Command::new("taskkill").args(["/PID", &child.id().to_string(), "/T", "/F"])
+            .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null())
+            .creation_flags(0x08000000).status();
+    }
+    let _ = child.kill();
+}
 pub fn speak(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64) -> Answer {
     let python = root.and_then(interpreter);
     speak_with_interpreter(root, directory, choice, text, generation, ticket, python.as_deref())
@@ -130,8 +162,11 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
             Ok(None) if Instant::now() < deadline && cancel_deadline.map(|d| Instant::now() < d).unwrap_or(true) => std::thread::sleep(Duration::from_millis(50)),
             _ => {
                 cancel(directory);
-                let _ = child.kill();
-                if child.wait().is_ok() { release_exited_lock(root, child.id()); }
+                kill_worker(&mut child);
+                if child.wait().is_ok() {
+                    release_exited_lock(root, child.id());
+                    #[cfg(windows)] release_dead_lock(root);
+                }
                 break;
             }
         }
@@ -265,6 +300,10 @@ mod tests {
         fs::write(dir.join(".gpu.lock"), "123").unwrap();
         release_exited_lock(&dir, 124); assert!(dir.join(".gpu.lock").exists());
         release_exited_lock(&dir, 123); assert!(!dir.join(".gpu.lock").exists());
+        #[cfg(windows)] {
+            fs::write(dir.join(".gpu.lock"), std::process::id().to_string()).unwrap();
+            release_dead_lock(&dir); assert!(dir.join(".gpu.lock").exists(), "live owner keeps its lock");
+        }
         fs::remove_dir_all(dir).unwrap();
     }
 }

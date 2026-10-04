@@ -238,7 +238,8 @@ impl Kayitlar {
                 k.durum = durum;
                 k.guncelleme = zaman.max(k.guncelleme);
                 k.bitti = durum == Durum::Finished;
-                if gorev.is_some() {
+                // Araç adı (working) işin başlığını ezmez; yalnız boşsa doldurur.
+                if gorev.is_some() && (k.gorev.is_none() || durum != Durum::Working) {
                     k.gorev = gorev;
                 }
                 // Ana oturum bittiyse açık kalan alt ajanlar da biter.
@@ -436,6 +437,18 @@ mod tests {
         assert!(alt.bitti);
         assert_eq!(alt.durum, Durum::Finished);
         assert!(!k.liste()[0].bitti, "ana oturum sürüyor");
+    }
+
+    #[test]
+    fn arac_adi_is_basligini_ezmez() {
+        let mut k = Kayitlar::default();
+        k.uygula(coz(r#"{"ajan":"claude","olay":"PreToolUse","oturum":"c-1","gorev":"Read","zaman":1790000000000}"#, T).unwrap());
+        assert_eq!(k.liste()[0].gorev.as_deref(), Some("Read"), "başlık yoksa araç adı doldurur");
+        k.uygula(coz(r#"{"ajan":"claude","olay":"UserPromptSubmit","oturum":"c-1","gorev":"Planı uygula","zaman":1790000001000}"#, T).unwrap());
+        k.uygula(coz(r#"{"ajan":"claude","olay":"PreToolUse","oturum":"c-1","gorev":"Edit","zaman":1790000002000}"#, T).unwrap());
+        assert_eq!(k.liste()[0].gorev.as_deref(), Some("Planı uygula"));
+        k.uygula(coz(r#"{"ajan":"claude","olay":"UserPromptSubmit","oturum":"c-1","gorev":"Testleri yaz","zaman":1790000003000}"#, T).unwrap());
+        assert_eq!(k.liste()[0].gorev.as_deref(), Some("Testleri yaz"), "yeni istem başlığı yeniler");
     }
 
     #[test]
