@@ -66,7 +66,7 @@ export class ChatModel {
 export class ChatView {
   readonly mainVoiceBtn=h("button",{class:"primary-button",text:"🎙 AFU'YA SOR"});
   readonly endVoiceBtn=h("button",{class:"text-button",text:"Bitir",hidden:true});
- readonly conversationStatus=h("p",{class:"chat-status","aria-live":"polite"});
+ readonly conversationStatus=h("p",{class:"chat-status chat-state","aria-live":"polite"});
  readonly conversationList=h("div",{class:"chat-history","aria-live":"polite",style:"white-space:pre-wrap"});
  readonly conversation?:SurekliSohbet;
  private voiceLogin=false;private voiceStopping=false;private voiceOrientationShown=false;
@@ -76,7 +76,7 @@ export class ChatView {
  readonly accountStatus=h("p",{class:"chat-status"});private accountId:string|null=null;
  readonly model=new ChatModel();readonly element:HTMLElement;
  readonly input=h("textarea",{class:"chat-input","aria-label":"Mesaj",placeholder:"Nasıl yardımcı olayım?",rows:3,maxlength:8000});
- readonly answer=h("p",{class:"chat-answer","aria-live":"polite"});readonly message=h("p",{class:"chat-status","aria-live":"polite"});
+ readonly fallback=h("p",{class:"chat-answer",text:"Nasıl yardımcı olayım?"});readonly answer=h("p",{class:"chat-answer","aria-live":"polite"});readonly message=h("p",{class:"chat-status","aria-live":"polite"});
   readonly sendButton=h("button",{class:"primary-button",text:"Gönder"});readonly loginButton=h("button",{class:"primary-button",text:"Codex ile giriş yap"});
  readonly logoutButton=h("button",{class:"text-button",text:"Çıkış yap"});
 /** Q2: sohbetin "Daha fazla" katmanı kapatma yolu. */
@@ -89,18 +89,40 @@ export class ChatView {
  readonly voiceHelpButton=h("button",{class:"text-button",hidden:true});private canOpenVoiceSettings=false;
  readonly micButton?:HTMLButtonElement;readonly voiceHint=h("p",{class:"chat-status",hidden:true});
  readonly voice?:VoiceController;readonly notifications?:VoiceService;private statusTicket=0;private ready=false;private loginPending=false;private active=true;
+ readonly details=h("div",{class:"chat-details"});
+ readonly detailsToggle=h("button",{class:"text-button chat-details-toggle","aria-label":"Ayrıntıları göster","aria-expanded":"false",text:"˅"});
+ readonly modelStatus=h("p",{class:"chat-status chat-model-status",text:"GPT-5.6 Sol · Hazır değil"});
+ readonly healthCards=h("div",{class:"chat-health",role:"group","aria-label":"Durum"});
+ private detailsOpen=false;
+ private syncDetails(){
+  this.details.hidden=!this.detailsOpen;
+  this.detailsToggle.textContent=this.detailsOpen?"˄":"˅";
+  this.detailsToggle.setAttribute("aria-label",this.detailsOpen?"Ayrıntıları gizle":"Ayrıntıları göster");
+  this.detailsToggle.setAttribute("aria-expanded",String(this.detailsOpen));
+ }
  private blur=()=>{if(this.voiceLogin&&this.loginPending)return;void this.suspend();};
   constructor(private actions:ChatActions,legacyContextOrVoice?:VoiceActions|(()=>string),suppliedVoice?:VoiceActions){
    // Legacy callers may still supply context; it is never executed or sent.
    const voiceActions=typeof legacyContextOrVoice==="function"?suppliedVoice:legacyContextOrVoice;
-   this.element=h("div",{class:"chat-panel"},h("h1",{text:"🧠 GPT-5.6 Sol"}),this.accountStatus,this.message,this.answer,this.attachments,this.input,h("div",{class:"chat-actions"},this.loginButton,this.cancelButton,this.sendButton),this.advancedMenu);
+   try{this.detailsOpen=localStorage.getItem("afu-chat-details-v1")==="open";}catch{}
+   const attach=h("button",{class:"text-button chat-attach","aria-label":"Dosya ekle"},m12svg("M21 11l-9 9a6 6 0 0 1-9-9l10-10a4 4 0 0 1 6 6L9 17a2 2 0 0 1-3-3l9-9",18,{stroke:2}));
+   attach.addEventListener("click",()=>{this.message.textContent="Dosyanı Afu kartına sürükleyerek ekle.";});
+   const mic=h("button",{class:"text-button","aria-label":"Sesli sohbeti başlat"},m12svg("M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8",18,{stroke:2}));
+   mic.addEventListener("click",()=>this.mainVoiceBtn.click());
+   this.loginButton.textContent="Codex'e giriş yap";
+   this.cancelButton.prepend?.(m12svg("M5 5h14v14H5z"));
+   this.sendButton.prepend?.(m12svg("M22 2L9 15M22 2l-7 20-6-7-7-6z",18,{stroke:2}));
+   this.details.append(this.message,this.attachments,h("div",{class:"chat-compose"},this.input,h("div",{class:"chat-input-icons"},attach,mic)),h("div",{class:"chat-actions"},this.loginButton,this.cancelButton,this.sendButton),this.healthCards,this.modelStatus,this.advancedMenu,this.conversationList);
+   this.element=h("div",{class:"chat-panel m12-chat"},h("div",{class:"chat-intro"},h("div",{class:"chat-mascot"},h("img",{src:"/afu/front.png",alt:"Afu"}),this.conversationStatus),h("div",{class:"chat-assistant"},h("h1",{text:"Asistan"}),this.answer,this.fallback,this.mainVoiceBtn,this.endVoiceBtn)),this.details,this.detailsToggle);
+   this.detailsToggle.addEventListener("click",()=>{this.detailsOpen=!this.detailsOpen;try{localStorage.setItem("afu-chat-details-v1",this.detailsOpen?"open":"closed");}catch{}this.syncDetails();});
+   this.syncDetails();
    this.sendButton.addEventListener("click",()=>{void this.send();});this.input.addEventListener("input",()=>this.render());
    this.input.addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey&&!e.isComposing){e.preventDefault();if(!this.sendButton.disabled)void this.send();}});
    this.loginButton.addEventListener("click",()=>{void this.login();});this.cancelButton.addEventListener("click",()=>{void this.cancel();});
    this.logoutButton.addEventListener("click",()=>{void this.logout();});
    this.advancedKatmani=new Katman(this.advancedMenu,()=>this.closeAdvanced());
    this.advancedMenu.addEventListener("toggle",()=>this.syncAdvanced());
-   this.element.append(this.conversationList,this.mainVoiceBtn,this.endVoiceBtn,this.conversationStatus);
+
    this.mainVoiceBtn.addEventListener("click",()=>{void this.toggleConversation().catch(()=>{this.message.textContent="Sesli sohbet başlatılamadı; yeniden dene.";this.render();});});
    this.endVoiceBtn.addEventListener("click",()=>{void this.stopConversation();});
   if(voiceActions?.voiceListenTurn){
@@ -109,7 +131,7 @@ export class ChatView {
     this.render();
    });
   }
-  if(voiceActions){this.canOpenVoiceSettings=!!voiceActions.voiceOpenSettings;this.voiceHelpButton.addEventListener("click",()=>{const help=this.conversation?.help??this.voice?.help;if(!help||!this.active||!voiceActions.voiceOpenSettings)return;void voiceActions.voiceOpenSettings(help.kind).catch(()=>{if(this.active&&(this.conversation?.help??this.voice?.help)===help)this.message.textContent="Ayarlar açılamadı; yeniden dene.";});});this.element.append(this.voiceHelpButton);this.voice=new VoiceController(voiceActions,()=>{if(this.voice?.transcript)this.input.value=this.voice.transcript;if(this.voice?.message)this.message.textContent=this.voice.message;if(this.voice?.state!=="listening")this.voiceHint.hidden=true;this.render();},async()=>{
+  if(voiceActions){this.canOpenVoiceSettings=!!voiceActions.voiceOpenSettings;this.voiceHelpButton.addEventListener("click",()=>{const help=this.conversation?.help??this.voice?.help;if(!help||!this.active||!voiceActions.voiceOpenSettings)return;void voiceActions.voiceOpenSettings(help.kind).catch(()=>{if(this.active&&(this.conversation?.help??this.voice?.help)===help)this.message.textContent="Ayarlar açılamadı; yeniden dene.";});});this.details.append(this.voiceHelpButton);this.voice=new VoiceController(voiceActions,()=>{if(this.voice?.transcript)this.input.value=this.voice.transcript;if(this.voice?.message)this.message.textContent=this.voice.message;if(this.voice?.state!=="listening")this.voiceHint.hidden=true;this.render();},async()=>{
     this.voiceHint.hidden=true;const speech=this.responses?.cancel(false);const silence=voiceActions.voiceSilence();await speech;await silence;
     if(this.model.busy){await this.actions.codexCancel();this.model.cancelled();}
    });
@@ -121,7 +143,7 @@ export class ChatView {
    mic.addEventListener("pointerup",()=>{void this.voice?.release();});
    mic.addEventListener("keydown",e=>{if((e.key===" "||e.key==="Enter")&&!e.repeat){e.preventDefault();if(canRecord())void this.voice?.press();}});
    mic.addEventListener("keyup",()=>{void this.voice?.release();});
-   this.element.append(this.voiceHint);
+   this.details.append(this.voiceHint);
    this.responseButton=h("button",{class:"text-button",text:"Sesli yanıt kapalı",role:"switch","aria-checked":"false"});
    this.responseButton.addEventListener("click",()=>{
     const r=this.responses!;
@@ -219,13 +241,14 @@ export class ChatView {
  closeAdvanced(){this.advancedMenu.open=false;this.advancedKatmani.kapandı();}
  private render(){
   const live=this.conversation?.active??false;
+  this.modelStatus.textContent=`GPT-5.6 Sol · ${this.ready?"Hazır":"Hazır değil"}`;
   const help=this.conversation?.help??this.voice?.help;
   this.voiceHelpButton.hidden=!this.active||!help||!this.canOpenVoiceSettings;this.voiceHelpButton.textContent=help?.label??"";
   if(this.responseButton&&this.responses){this.responseButton.textContent=`Sesli yanıt ${this.responses.enabled?"açık":"kapalı"}`;this.responseButton.setAttribute("aria-checked",String(this.responses.enabled));}
   this.onVoiceState?.(live?this.conversation!.state:this.voice?.state!==undefined&&this.voice.state!=="idle"?this.voice.state:this.responses?.speaking?"speaking":this.model.busy?"working":"idle");
-  this.answer.textContent=this.model.text;this.answer.title="";
+  this.answer.textContent=this.model.text;this.fallback.hidden=!!this.model.text;this.answer.hidden=!this.model.text;this.answer.title="";
   if(this.model.error)this.message.textContent=this.model.error;
-  this.sendButton.className=this.conversation?"text-button":"primary-button";
+  this.sendButton.className="primary-button";
   this.sendButton.disabled=live||!this.ready||this.model.busy||(!this.input.value?.trim()&&!this.model.attachments.length);
   this.loginButton.hidden=this.ready || this.message.textContent?.includes("doldu")===true;
   this.advancedMenu.hidden=false;
@@ -233,9 +256,10 @@ export class ChatView {
   if(this.micButton) this.micButton.hidden=true;
   if(this.voicePicker) this.voicePicker.element.hidden=true;
   this.input.hidden = live;
-  this.mainVoiceBtn.hidden = !this.ready;
+  this.mainVoiceBtn.hidden = live;
   this.endVoiceBtn.hidden = !live;
-  this.conversationStatus.textContent=live?({listening:"Dinliyor",thinking:"GPT-5.6 Sol düşünüyor",speaking:"Afu konuşuyor",idle:"Bekliyor",working:"Yazıya çeviriyor"}[this.conversation!.state]||""):"";
+  this.conversationStatus.textContent=live?({listening:"Dinliyor",thinking:"GPT-5.6 Sol düşünüyor",speaking:"Afu konuşuyor",idle:"Bekliyor",working:"Yazıya çeviriyor"}[this.conversation!.state]||"Bekliyor"):this.model.busy?"GPT-5.6 Sol düşünüyor":this.responses?.speaking?"Afu konuşuyor":"Bekliyor";
+  this.conversationStatus.prepend?.(m12svg("M3 10v4M7 6v12M12 2v20M17 6v12M21 10v4",14,{stroke:2}));
  }
  async suspend(){this.voiceLogin=false;const conversation=this.stopConversation();this.closeAdvanced();this.responseAllowed=false;this.voicePicker?.hide();const speech=this.responses?.cancel().catch(()=>{this.message.textContent="Ses durdurulamadı; yeniden dene.";});await this.voice?.cancel();await speech;await conversation;}
  private clearLoginPoll(){if(this.loginPoll!==null){clearInterval(this.loginPoll);this.loginPoll=null;}}
@@ -249,3 +273,5 @@ export class ChatView {
 
 
 
+
+function m12svg(path:string,size=18,opts:{stroke?:number}={}){return h("span",{class:"m12-icon","aria-hidden":"true",html:`<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${opts.stroke?"none":"currentColor"}" stroke="currentColor" stroke-width="${opts.stroke??0}"><path d="${path}"/></svg>`});}

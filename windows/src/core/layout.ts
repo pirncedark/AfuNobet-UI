@@ -19,6 +19,11 @@ export const NOTCH_W = 184, NOTCH_H = 32, COMPACT_W = 288, EXPANDED_W = 640;
 export const ROUNDED_CORNER = 14, EXPANDED_CORNER = 22;
 /** Dar pencerede görünürlük CSS yerleşimiyle korunur; ölçek alt sınırı yoktur. */
 export const PET_PENCERE = 256;
+/** Design CSS width, bounded by the actual CSS viewport after zoom/fit. */
+export function contentWidth(textWidth: number, viewportW: number, _viewportH: number): number {
+  const limit = viewportW / (panelScale(viewportW) * KART_OLCEK);
+  return Math.min(limit, Math.max(EXPANDED_W, Math.ceil(textWidth + 216)));
+}
 /**
  * P10 — mini pet modundayken görev/ajan mesajı balonu karakterin BAŞININ
  * ÜSTÜNDE, çizgi-roman balonu olarak durur. Balon, 256 px'lik pet kutusundan
@@ -81,4 +86,24 @@ export function islandSize(mode: IslandMode, view: IslandViewName): { w: number;
 export function fitScale(viewportW: number, viewportH: number): number {
   if (!(viewportW > 0) || !(viewportH > 0)) return 1;
   return Math.min(1, viewportW / PANEL_W, viewportH / PANEL_H);
+}
+
+export const MASCOT_VISIBLE_H = 170;
+/** Expanded cards fit horizontally; height is independently bounded by the client. */
+export function panelScale(viewportW: number): number { return Math.min(1, Math.max(1, viewportW) / PANEL_W); }
+export function panelHeight(contentH: number, viewportW: number, viewportH: number, screenH: number) {
+  const k = panelScale(viewportW) * KART_OLCEK;
+  const desired = Math.min(Math.max(320 * k, contentH * k), Math.max(1, screenH) * PANEL_MAX_H_RATIO);
+  return { nativeCss: desired, design: Math.min(desired, viewportH) / k };
+}
+/** Alpha bounds of a square sprite, fitted to a shared visible height. */
+export function mascotScale(bounds: [number, number, number, number], frame: number, target = MASCOT_VISIBLE_H) {
+  const width = (bounds[2] - bounds[0]) * frame, height = (bounds[3] - bounds[1]) * frame;
+  return Math.min(target / Math.max(1, height), (frame - 12) / Math.max(1, width));
+}
+
+/** The small-screen CSS mode removes panel zoom and its fit transform. */
+export function mascotDesignHeight(viewportW: number, logicalPerCss: number, bodyZoom = 1): number {
+  const cardScale = viewportW <= 719 ? 1 : panelScale(viewportW) * KART_OLCEK;
+  return MASCOT_VISIBLE_H / (cardScale * logicalPerCss * bodyZoom);
 }

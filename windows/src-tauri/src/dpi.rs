@@ -180,47 +180,38 @@ fn recentre(app: &AppHandle, pref: &str) {
     let _ = win.set_always_on_top(true);
 }
 
-#[tauri::command]
 pub fn kart_yukseklik(app: AppHandle, h: f64) {
+    if !h.is_finite() || h <= 0.0 { return; }
     let Some(win) = crate::island::window(&app) else {
         return;
     };
     let scale = win.scale_factor().ok().and_then(usable_scale).unwrap_or(1.0);
     
     // Get the monitor it currently lives on.
-    let (screen_y, screen_h) = match target_monitor(&app, "") {
-        Some(m) => (m.position().y, m.size().height),
+    let (screen_x, screen_y, screen_w, screen_h) = match win.current_monitor().ok().flatten().or_else(|| target_monitor(&app, "")) {
+        Some(m) => (m.position().x, m.position().y, m.size().width, m.size().height),
         None => {
-            let (_, y, _) = fallback_bounds();
+            let (x, y, w) = fallback_bounds();
             // Guessing 1080 for fallback height
-            (y, 1080)
+            (x, y, w as u32, 1080)
         }
     };
 
     let max_h_logical = (screen_h as f64 / scale) * 0.85;
-    let clamped_h = h.max(PANEL_H).min(max_h_logical);
+    let clamped_h = h.min(max_h_logical).max(1.0);
     let new_physical_h = physical_for(clamped_h, scale);
+    let new_physical_w = physical_for(PANEL_W, scale).min(screen_w);
     
     if let Ok(inner) = win.inner_size() {
-        if inner.height != new_physical_h {
-            let _ = win.set_size(PhysicalSize::new(physical_for(PANEL_W, scale), new_physical_h));
+        if inner.height != new_physical_h || inner.width != new_physical_w {
+            let _ = win.set_size(PhysicalSize::new(new_physical_w, new_physical_h));
         }
     }
 
-    // Check if it fits on the screen.
-    if let Ok(pos) = win.outer_position() {
-        let bottom = pos.y + new_physical_h as i32;
-        let screen_bottom = screen_y + screen_h as i32;
-        if bottom > screen_bottom {
-            let mut new_y = screen_bottom - new_physical_h as i32;
-            if new_y < screen_y {
-                new_y = screen_y;
-            }
-            if new_y != pos.y {
-                let _ = win.set_position(PhysicalPosition::new(pos.x, new_y));
-            }
-        }
-    }
+    // Expanded cards always hang from the current display's top centre.
+    let target = PhysicalPosition::new(centred_x(screen_x, screen_w as i32, new_physical_w), screen_y);
+    if win.outer_position().ok().as_ref() != Some(&target) { let _ = win.set_position(target); }
+
 }
 
 #[cfg(test)]

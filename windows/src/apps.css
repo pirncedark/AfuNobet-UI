@@ -1,5 +1,5 @@
 
-.apps-view { padding: 14px 18px; max-height: 330px; overflow-y: auto; }
+.apps-view { padding: 14px 18px; flex: 1 1 0; min-height: 0; max-height: none; overflow-y: auto; }
 .apps-view h1 { font-size: 18px; margin: 0 0 12px; }
 .app-row, .pet-app-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
 .app-row + .app-row { border-top: 1px solid #ffffff12; }

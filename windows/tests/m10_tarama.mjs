@@ -28,7 +28,8 @@ const ekranlar = [
   { ad: "uygulamalar", case: "working", adimlar: [p => sayfaAc(p, "Uygulamalar"), p => p.waitForTimeout(400)] },
   { ad: "orkestra", case: "working", adimlar: [p => sayfaAc(p, "Orkestra"), p => p.locator(".orkestra-input").waitFor(), p => p.locator(".orkestra-input").fill("M10 ekran taramasi")] },
   { ad: "sohbet", case: "sohbet" },
-  { ad: "sesli-sohbet", case: "working", hazirla: async () => { window.afuTest.island.setView("chat"); await window.afuTest.island.chat.refresh(); }, adimlar: [p => p.getByRole("button", { name: "Sesli sohbeti başlat" }).click(), p => p.getByText("Dinliyor…", { exact: true }).waitFor()] },
+  { ad: "sohbet-acik", case: "sohbet", adimlar:[p=>p.getByRole("button",{name:"Ayrıntıları göster"}).click()] },
+  { ad: "sesli-sohbet", case: "working", hazirla: async () => { window.afuTest.island.setView("chat"); await window.afuTest.island.chat.refresh(); }, adimlar: [p => p.getByRole("button", { name: "🎙 AFU'YA SOR" }).click(), p => p.getByText("Dinliyor", { exact: true }).waitFor()] },
   { ad: "daha-fazla", case: "working", adimlar: [p => p.locator(".more-button").click()] },
   { ad: "ayarlar", case: "working", adimlar: [p => p.locator(".more-button").click(), p => p.locator(".menu-advanced summary").click()] },
   { ad: "gorev-ara", case: "busy", adimlar: [p => p.locator(".search-button").click(), p => p.locator(".search-input").fill("a"), p => p.waitForTimeout(250)] },
@@ -166,6 +167,8 @@ const DENETIM = giris => {
   for (let i = 0; i < kutular.length; i++) for (let j = i + 1; j < kutular.length; j++) {
     const a = kutular[i], b = kutular[j];
     if (a.el.contains(b.el) || b.el.contains(a.el)) continue;
+    // Composer icons intentionally occupy the reserved, padded area inside the input border.
+    if (a.el.closest(".chat-compose") && a.el.closest(".chat-compose") === b.el.closest(".chat-compose") && (a.el.matches("textarea") || b.el.matches("textarea"))) continue;
     // A foreground menu/modal intentionally overlays the underlying page.
     const layer = el => el.closest(".modal-backdrop, .more-menu, .soru-kap, .afu-mesaj-detayi, .sistem-panel");
     if (layer(a.el) !== layer(b.el)) continue;
@@ -216,6 +219,7 @@ try {
         await page.goto(`${origin}/tests/preview.html?case=${ekran.case}`, { waitUntil: "networkidle" });
         await page.waitForFunction(() => document.documentElement.dataset.ready === "true");
         await page.evaluate(ORTAK);
+        await page.evaluate(async()=>{await window.afuTest.island.chat.refresh();await window.afuTest.island.views?.updateHealth?.();});
         if (olcu.zoom !== 1) await page.evaluate(z => { document.body.style.zoom = String(z); }, olcu.zoom);
         if (ekran.hazirla) await page.evaluate(ekran.hazirla);
         await page.waitForTimeout(250);

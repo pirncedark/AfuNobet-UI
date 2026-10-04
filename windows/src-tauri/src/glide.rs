@@ -252,6 +252,11 @@ fn move_segment(win: &tauri::WebviewWindow, runtime: &PetRuntime, generation: u6
     }
     true
 }
+/// Wait, first movement and settling times for each direction (milliseconds).
+fn transition_timing(on: bool) -> (u32, u32, u32) {
+    if on { (180, 250, 200) } else { (100, 80, 60) }
+}
+
 pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::island::PollGate>, on: bool) {
     let generation = runtime.begin();
     std::thread::spawn(move || {
@@ -260,7 +265,8 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
         let size = crate::dpi::physical_for(PET_PENCERE, scale) as i32;
         let Ok(origin) = win.outer_position() else { return };
         let Ok(old_size) = win.inner_size() else { return };
-        std::thread::sleep(Duration::from_millis(if on { 180 } else { 320 }));
+        let (wait_ms, move_ms, settle_ms) = transition_timing(on);
+        std::thread::sleep(Duration::from_millis(wait_ms as u64));
         if runtime.generation.load(Ordering::Acquire) != generation { return; }
         let start = (origin.x + (old_size.width as i32 - size) / 2, origin.y);
         // P11: Bekleyen onay/soru varsa gizleme yapma
@@ -277,9 +283,9 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
         let bounds = screen(&win);
         let end = if on { destination(&win, size) } else { ((bounds.0 + bounds.2 - size) / 2, bounds.1) };
         let approach = if on { (end.0, end.1 - crate::dpi::physical_for(6.0, scale) as i32) } else { end };
-        if !move_segment(&win, &runtime, generation, start, approach, 250) { return; }
+        if !move_segment(&win, &runtime, generation, start, approach, move_ms) { return; }
         if on {
-            std::thread::sleep(Duration::from_millis(200));
+            std::thread::sleep(Duration::from_millis(settle_ms as u64));
             if !move_segment(&win, &runtime, generation, approach, end, 120) { return; }
             runtime.with_current(generation, || {
                 runtime.set_active(true); runtime.busy.store(false, Ordering::Release);
@@ -288,7 +294,7 @@ pub fn transition(app: AppHandle, runtime: Arc<PetRuntime>, gate: Arc<crate::isl
                 let _ = app.emit("pet", true);
             });
         } else {
-            std::thread::sleep(Duration::from_millis(180));
+            std::thread::sleep(Duration::from_millis(settle_ms as u64));
             runtime.with_current(generation, || { crate::dpi::place(&app, "primary", false); runtime.busy.store(false, Ordering::Release); let _ = app.emit("pet", false); });
         }
     });
@@ -511,5 +517,19 @@ mod tests {
         assert_eq!(adimlar(250, 60), 15);
         assert_eq!(adimlar(120, 60), 7);
         assert_eq!(yol((0, 0), (100, 100), f64::NAN), (0, 0));
+    }
+}
+
+#[cfg(test)]
+mod open_speed_tests {
+    use super::*;
+
+    #[test]
+    fn pet_return_timing_is_three_times_faster_and_descent_unchanged() {
+        let (wait, movement, settle) = transition_timing(false);
+        assert_eq!((wait, movement, settle), (100, 80, 60));
+        assert!(wait + movement + settle <= 750 / 3);
+        assert!(adimlar(movement, 60) >= 1);
+        assert_eq!(transition_timing(true), (180, 250, 200));
     }
 }

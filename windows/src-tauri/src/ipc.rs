@@ -521,19 +521,25 @@ mod tests {
         let (isle, gelen) = toplayici();
         let s = baslat(ad.clone(), Sinirlar { satir_sayisi: 3, ..sinir(2_000) }, isle);
         hazir_bekle(&s);
-        let mut f = baglan(&ad);
-        for i in 0..5 {
-            let _ = writeln!(f, r#"{{"ajan":"codex","olay":"working","oturum":"o{i}"}}"#);
+        let mut okuyucu = BufReader::new(baglan(&ad));
+        // Read every successful reply before exceeding the limit. The server
+        // deliberately closes without flushing at the limit, so queued success
+        // replies must not be left in the pipe when we trigger that close.
+        for i in 0..3 {
+            writeln!(okuyucu.get_mut(), r#"{{"ajan":"codex","olay":"working","oturum":"o{i}"}}"#).unwrap();
+            let mut cevap = String::new();
+            assert!(okuyucu.read_line(&mut cevap).unwrap() > 0, "request {i}: missing success reply");
+            assert_eq!(cevap.trim(), r#"{"ok":true}"#);
+        }
+        for i in 3..5 {
+            let _ = writeln!(okuyucu.get_mut(), r#"{{"ajan":"codex","olay":"working","oturum":"o{i}"}}"#);
         }
         let mut cevaplar = String::new();
-        let mut okuyucu = BufReader::new(f);
         while okuyucu.read_line(&mut cevaplar).unwrap_or(0) > 0 {}
         let satirlar: Vec<_> = cevaplar.lines().collect();
-        // Sınır aşılınca bağlantı FlushFileBuffers'sız kapanır (istemci okumazsa
-        // sunucu takılmasın); bu yüzden "sinir" bildirimi yavaş makinede okunmadan
-        // düşebilir. Güvenlik özelliği: yalnız 3 satır işlenir.
-        assert_eq!(&satirlar[..3], [r#"{"ok":true}"#, r#"{"ok":true}"#, r#"{"ok":true}"#]);
-        assert!(satirlar.len() == 3 || satirlar[3..] == [r#"{"ok":false,"neden":"sinir"}"#], "{satirlar:?}");
+        // Limit notification may be lost because closing never waits for a
+        // non-reading client. Exactly three requests must still be processed.
+        assert!(satirlar.is_empty() || satirlar == [r#"{"ok":false,"neden":"sinir"}"#], "{satirlar:?}");
         assert_eq!(gelen.lock().unwrap().len(), 3);
         s.durdur();
     }

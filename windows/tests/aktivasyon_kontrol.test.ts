@@ -300,9 +300,9 @@ describe("codex giriş satırı", () => {
     const v = new ChatView(actions({ status: "hazir" }) as never); await v.refresh();
     expect(el(v.message).textContent).toBe("GPT-5.6 Sol: hazır");
   });
-  it("giriş düğmesi 'Codex ile giriş yap' der", () => {
+  it("giriş düğmesi 'Codex'e giriş yap' der", () => {
     const v = new ChatView(actions("oturum_yok") as never);
-    expect(el(v.loginButton).textContent).toBe("Codex ile giriş yap");
+    expect(el(v.loginButton).textContent).toBe("Codex'e giriş yap");
   });
   it("Codex kurulu değilse tek dokunuşla kurma yolu açar", async () => {
     const a = actions("hazir"); a.codexStatus.mockRejectedValue(new Error("Codex kurulu değil."));

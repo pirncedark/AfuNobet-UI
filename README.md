@@ -1,19 +1,19 @@
 # AfuNobet-UI
 
-AfuNobet gorevlerini ekranin ustunde ve gorev cubugunda salt okunur izleyen Windows durum adasi ve mini pet uygulamasi.
+AfuNobet gorevlerini ekranin ustunde ve gorev cubugunda izleyen, sohbet ve sesli yardim sunan Windows durum adasi ve mini pet uygulamasi.
 
 Kaynak: [Louis-CFM/coucou](https://github.com/Louis-CFM/coucou), MIT.
 Fork: pirncedark/AfuNobet-UI. Upstream LICENSE korunur.
 
-Afu uzerine gelin, kucuk adaya dokunun ve gorevleri izleyin. Yeni is gelince ada gorunur. CODEX, GLM, GEMINI ve OPENCODE kayitlari gosterilir. Claude KORUNUYOR yalniz kilitli bir rozettir. Uygulama ajan calistirmaz veya durdurmaz.
+Fareyi ekranin ust kenarina getirin; panel otomatik acilir. Fare panelden ayrilinca mini pete doner. Gorevleri izleyin veya Afu'ya sor dugmesiyle sohbet edin. CODEX, GLM, GEMINI ve OPENCODE kayitlari gosterilir; Claude korunur. Sohbet istegi Codex koprusuyle gonderilir ve kullanici tarafindan iptal edilebilir.
 
-## Ozellikler (Faz A — Dogrulandi)
+## Ozellikler
 
 - **Masaustu Durum Adasi (Ada Modu):** Ekranin ust ortasinda asili durur. En ustte kalir (`always-on-top`), baska pencereye odak kaybetmeden yazi yazilabilir, seffaf alanlar arkasindaki uygulamaya tiklama gecirir (`click-through`) ve Alt-Tab listesinde yer kaplamaz. Ekran olcegi (%100, %125, %150) degisse de kirpilmadan calisir.
 - **Gorev Cubugu Mini Peti (A14–A19):** Kucult dugmesi veya Esc ile Afu karakteri ekranin ustunden suzulerek gorev cubuguna (Baslat yani) iner. Mini pete tiklayinca ana kart geri acilir. Fare yaklasinca selam verir, 5-10 dakika bosta uykuya gecer, 3 hizli tiklamada bas donmesi tepkisi gosterir.
 - **Canli Durum ve Kota Takibi (A1–A10):** Ajan sekmeleri ve kotalar salt okunur `.ajan_kota.cache` uzerinden okunur. Guncel veri yoksa veya son kontrol belirsizse `-` gosterilir, sahte deger uretilmez. Claude icin kota okunmaz (kilitli rozet korunur).
 - **Sistem Tepsisi Entegrasyonu (A18):** Sag alttaki Afu simgesine sag tiklayarak mini peti gizleyip gosterebilir, bildirimleri duraklatabilir veya uygulamadan cikabilirsiniz.
-- **Faz B ve C Ozellikleri (Sohbet ve Ses):** Henuz yok / gelistirme asamasinda (Faz A kapsaminda aktif degildir).
+- **Sohbet ve Ses:** Afu'ya sor ile sohbet, yanit ayrintilari ve desteklenen sesli giris kullanilabilir. Baglanti ve gerekli bilesenlerin durumu uygulamada gosterilir.
 
 ## Veri
 
@@ -24,8 +24,8 @@ Uzman baslatma secenekleri: `AFUNOBET_UI_STATE` dogrudan kaynak dosyayi secer. `
 
 ## Teslim ve Geri Alma
 
-- **Teslim Calistirilabilir Dosyasi:** `dist/afunobet-ui-coucou.exe` (9.080.832 bayt, SHA256: `9828bd980efed101de39a8d80d28750d6fd85a60bbeb225e3ac9a7e2bfd3c246`).
-- **Masaustu Kisayolu:** `C:/Users/afuuu/Desktop/AfuNobet UI.lnk` dogrudan bu teslim dosyasini hedefler.
+- **Guncel yerel teslim:** Tarihli EXE ve SHA256 kaydi `dist/uiux-build-manifest.json` icindedir; teslim sonucu `SONUC_UIUX_FIX.md` dosyasinda tutulur. EXE derleme ciktisi kaynak depoya eklenmez.
+- **Masaustu Kisayolu:** `AfuNobet UI.lnk` son dogrulanan tarihli EXE hedefini kullanir; onceki kisayol teslim yedeginde korunur.
 - **Geri Alma (Rollback):** Onceki kar kararli surum `dist/onceki/afunobet-ui-coucou.exe` altinda korunur. Uygulama kapaliyken tek komutla geri alinabilir:
   ```powershell
   powershell -NoProfile -File dist/onceki/GERI_AL.ps1

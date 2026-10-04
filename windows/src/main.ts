@@ -27,6 +27,7 @@ async function main() {
   await onEvent<null>("afu-apps-changed", () => void island.refreshApps());
   await onEvent<string>("apps-error", () => island.appsError("Uygulama açılamadı; yeniden dene."));
   await onEvent<{ x: number; y: number }>("cursor", point => island.onCursor(point.x, point.y));
+  await onEvent<null>("edge-wake", () => island.onEdgeWake());
   await onEvent<string>("tray", action => {
     if (action === "open") island.fsm.trayClick();
     if (action === "pause" || action === "resume") { State.setPaused(action === "pause"); if (action === "pause") { void island.chat.suspend(); void Bridge.voiceSilence(); } }

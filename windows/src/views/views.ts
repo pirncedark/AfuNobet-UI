@@ -34,7 +34,7 @@ export class AfuViews {
   /** M3: en az bir görev varsa arama düğmesi görünür. */
   /** M3: en az bir görev varsa arama düğmesi görünür. M6: SVG ikon. */
   readonly searchButton = h("button", { class: "icon-button search-button", type: "button", "aria-label": UI_TR.search, title: UI_TR.search, hidden: true, onclick: () => this.openSearch(), html: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>` });
-  readonly header = h("header", {}, h("span", { class: "brand", text: UI_TR.brand }), this.summary, this.searchButton,
+  readonly header = h("header", {}, h("span", { class: "brand" },m12svg("M2 12h3l3-8 4 16 4-12 3 4h3",20,{stroke:2})," AfuNöbet"), this.summary, this.searchButton,
     h("span", { class: "claude-lock", title: UI_TR.claudeProtection, "aria-label": UI_TR.claudeProtection, html: `<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: -1.5px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Claude&nbsp;<span style="font-weight: 600">KORUNUYOR</span>` }));
   readonly pills = h("nav", { class: "agent-pills", "aria-label": "Ajanlar" });
   readonly card = h("section", { class: "main-task", "aria-live": "polite", tabindex: "0", role: "button", "aria-label": UI_TR.detail });
@@ -96,7 +96,7 @@ export class AfuViews {
     const item = (cls: string, label: string, run: () => void) => h("button", { class: `text-button menu-item ${cls}`.trim(), type: "button", role: "menuitem", text: label, title: label,
       onclick: () => { this.closeMenu(false); run(); } });
     const page = (label: string, run: () => void) => h("button", { class: "text-button page-button", type: "button", title: label, "aria-label": label,
-      onclick: () => { this.closeMenu(false); run(); } }, h("span", { class: "btn-icon", "aria-hidden": "true" }), h("span", { class: "btn-label", text: label }));
+      onclick: () => { this.closeMenu(false); run(); } }, h("span", { class: "btn-icon", "aria-hidden": "true" },m12svg(label===UI_TR.quota?"M5 20V10h3v10M11 20V4h3v16M17 20v-8h3v8":label===UI_TR.apps?"M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z":label===UI_TR.chat?"M3 3h18v14H9l-6 4z":"M12 3v6M5 18l7-9 7 9M2 18h6v4H2zM16 18h6v4h-6z",18,{stroke:2})), h("span", { class: "btn-label", text: label }));
     this.quotaButton = page(UI_TR.quota, () => actions.quota());
     this.appsButton = page(UI_TR.apps, () => actions.apps?.());
     this.orkestraButton = page(UI_TR.orkestra, () => actions.orkestra?.());
@@ -116,9 +116,9 @@ export class AfuViews {
     this.menu.addEventListener("keydown", (e: Event) => this.onMenuKey(e as KeyboardEvent));
     this.menuKatmani = new Katman(this.menu, () => this.closeMenu(true));
     this.moreButton = h("button", { class: "text-button more-button", type: "button", "aria-haspopup": "menu", "aria-expanded": "false", title: UI_TR.more, "aria-label": UI_TR.more,
-      onclick: () => this.toggleMenu() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "⋯" }), h("span", { class: "btn-label", text: UI_TR.more }));
+      onclick: () => this.toggleMenu() }, h("span", { class: "btn-icon", "aria-hidden": "true" },m12svg("M4 12h2m5 0h2m5 0h2",18,{stroke:3})), h("span", { class: "btn-label", text: UI_TR.more }));
     this.backButton = h("button", { class: "text-button back-button", type: "button", hidden: true, title: UI_TR.back,
-      onclick: () => this.goBack() }, h("span", { class: "btn-icon", "aria-hidden": "true", text: "←" }), h("span", { class: "btn-label", text: UI_TR.back }));
+      onclick: () => this.goBack() }, h("span", { class: "btn-icon", "aria-hidden": "true" },m12svg("M4 3h16v18H4zM8 8h8M8 12h8M8 16h5",18,{stroke:2})), h("span", { class: "btn-label", text: UI_TR.back }));
     this.primary = h("button", { class: "text-button collapse-button", type: "button", text: UI_TR.collapse, title: UI_TR.collapse, onclick: () => this.kucult() });
     this.sorButton = h("button", { class: "primary-button sor-button", type: "button", text: UI_TR.ask, onclick: () => actions.sor?.() });
     this.footer = h("footer", {}, this.backButton, this.quotaButton, this.appsButton, this.orkestraButton, this.chatButton, this.moreButton, this.primary, h("span", { class: "footer-gap" }), this.sorButton);
@@ -269,6 +269,8 @@ export class AfuViews {
       return p;
     };
 
+    const cards=this.chat.querySelector?.(".chat-health");
+    cards?.replaceChildren(...[["AfuNöbet",afuOk,"Çalışıyor"],["GPT",codexOk,"Hazır"],["Ses",sesOk,"Hazır"],["Claude",claudeOk,"Korunuyor"]].map(([ad,ok,label])=>h("div",{class:`chat-health-card ${ok?"ok":"kapali"}`},m12svg("M2 12h3l3-8 4 16 4-12 3 4h3",18,{stroke:2}),h("span",{text:`${ad} ${ad==="Claude"?(ok?"Korunuyor":"Korunuyor · Bağlantı yok"):(ok?label:"Hazır değil")}`}))));
     this.healthStrip.replaceChildren(
       pill("AfuNöbet", afuOk),
       pill("GPT", codexOk),
@@ -295,7 +297,7 @@ export class AfuViews {
   private syncFooter(view: ViewName) {
     const inSub = view === "quota" || view === "apps" || view === "orkestra" || view === "chat";
     this.backButton.hidden = !inSub;
-    (this.backButton.lastChild as HTMLElement | null)?.replaceChildren?.(ui("back"));
+    (this.backButton.lastChild as HTMLElement | null)?.replaceChildren?.("Görevler");
     this.backButton.setAttribute("title", ui("back"));
     this.backButton.setAttribute("aria-label", ui("back"));
     this.moreButton.setAttribute("title", ui("more"));
@@ -305,12 +307,12 @@ export class AfuViews {
     (this.moreButton.lastChild as HTMLElement | null)?.replaceChildren?.(ui("more"));
     const labels: [HTMLButtonElement, MenuView, string][] = [[this.quotaButton, "quota", ui("quota")], [this.appsButton, "apps", ui("apps")], [this.orkestraButton, "orkestra", ui("orkestra")], [this.chatButton, "chat", ui("chat")]];
     for (const [button, name, label] of labels) {
-      (button.lastChild as HTMLElement).replaceChildren(name === "quota" ? ui("quotaShort") : label);
+      (button.lastChild as HTMLElement).replaceChildren(name === "quota" ? "Kota durumu" : label);
       button.setAttribute("title", label); button.setAttribute("aria-label", label);
       button.dataset.page = name;
       button.setAttribute("aria-pressed", String(view === name));
     }
-    this.sorButton.textContent = view === "sor" ? ui("askBack") : ui("ask");
+    this.sorButton.replaceChildren(m12svg("M3 3h18v14H9l-6 4z",18,{stroke:2}),view === "sor" ? ui("askBack") : ui("ask"));
     this.sorButton.setAttribute("aria-pressed", String(view === "sor"));
     this.sorButton.setAttribute("title", this.sorButton.textContent ?? "");
     this.sorButton.setAttribute("aria-label", this.sorButton.textContent ?? "");
@@ -650,3 +652,5 @@ export class AfuViews {
     }
   }
 }
+
+function m12svg(path:string,size=18,opts:{stroke?:number}={}){return h("span",{class:"m12-icon","aria-hidden":"true",html:`<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="${opts.stroke?"none":"currentColor"}" stroke="currentColor" stroke-width="${opts.stroke??0}"><path d="${path}"/></svg>`});}

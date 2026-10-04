@@ -97,11 +97,28 @@ def test_task_scope_exactly_matches_requested_feature_union():
     assert len(inventory) == len(names)
 
 
-def test_island_rs_is_byte_identical_to_recovery_baseline():
-    # CLAUDE.md: island.rs stays byte-for-byte unchanged. Other sources evolve with
-    # new features; kurtarma_source_hashes.json remains coverage evidence only.
-    # Line endings are normalised so a CRLF checkout (core.autocrlf) does not fail.
+def test_island_rs_matches_recovery_baseline_or_authorized_edge_wake_patch():
+    # Preserve the historical recovery hash. The user's 2026-10-04 edge-wake
+    # bugfix authorization permits only this audited, exact island.rs revision.
+    source = "windows/src-tauri/src/island.rs"
     hashes = json.loads((ROOT / "docs/kanit/kurtarma_source_hashes.json").read_text(encoding="utf-8"))
-    data = (ROOT / "windows/src-tauri/src/island.rs").read_bytes().replace(b"\r\n", b"\n")
-    assert hashlib.sha256(data).hexdigest() == hashes["windows/src-tauri/src/island.rs"]
-
+    authorization = json.loads((ROOT / "docs/kanit/edge_wake_authorized_patch.json").read_text(encoding="utf-8"))
+    assert set(authorization) == {
+        "historicalBaselineHash", "authorizedHash", "approvalReason", "scope",
+        "approvedOn", "hashNormalization",
+    }
+    historical = "23a1430f865ae86139dac3b3b68dc6ca6cdb1acb5e8a7392749617a2e7b79791"
+    assert hashes[source] == historical
+    assert authorization["historicalBaselineHash"] == hashes[source]
+    assert authorization["scope"] == [source]
+    assert authorization["approvedOn"] == "2026-10-04"
+    assert authorization["hashNormalization"] == "CRLF-to-LF"
+    assert authorization["approvalReason"] == (
+        "Kullanıcı 2026-10-04 tarihinde üst kenardan geri açılma hatasını düzeltmeyi açıkça istedi."
+    )
+    assert isinstance(authorization["authorizedHash"], str)
+    assert re.fullmatch(r"[0-9a-f]{64}", authorization["authorizedHash"])
+    assert authorization["authorizedHash"] != historical
+    # Normalise line endings only; arbitrary source edits still fail this gate.
+    data = (ROOT / source).read_bytes().replace(b"\r\n", b"\n")
+    assert hashlib.sha256(data).hexdigest() in {historical, authorization["authorizedHash"]}

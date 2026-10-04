@@ -6,6 +6,7 @@ import tempfile
 import threading
 import time
 import unittest
+from unittest.mock import Mock
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
@@ -23,6 +24,36 @@ class SahteSaat:
         self.t += s
 
 
+def soru_oku_yeniden(yol, dur, sinir=0.5):
+    """Retry only transient publication/Windows sharing races, with a hard deadline."""
+    son = time.monotonic() + sinir
+    while not dur.is_set():
+        try:
+            return json.loads(yol.read_text(encoding="utf-8"))
+        except (PermissionError, FileNotFoundError, json.JSONDecodeError):
+            if time.monotonic() >= son:
+                raise
+            dur.wait(0.005)
+    return None
+
+
+class SahteOkumaYarisi(unittest.TestCase):
+    def test_gecici_yayin_hatalari_sonrasi_soru_okunur(self):
+        yol = Mock()
+        yol.read_text.side_effect = [PermissionError(), FileNotFoundError(), "{", '{"id":"s1"}']
+        self.assertEqual(soru_oku_yeniden(yol, threading.Event()), {"id": "s1"})
+        self.assertEqual(yol.read_text.call_count, 4)
+
+    def test_kalici_hata_sure_sinirinda_saklanmadan_yukselir(self):
+        yol = Mock()
+        yol.read_text.side_effect = PermissionError("kalici")
+        with self.assertRaises(PermissionError):
+            soru_oku_yeniden(yol, threading.Event(), sinir=0.01)
+        yol.read_text.side_effect = ValueError("baska hata")
+        with self.assertRaises(ValueError):
+            soru_oku_yeniden(yol, threading.Event())
+
+
 def adaci(depo, cevap_fn, bekleme=0.02):
     """Ada gibi davranır: soru dosyası görünce cevap dosyası yazar."""
     dur = threading.Event()
@@ -32,7 +63,12 @@ def adaci(depo, cevap_fn, bekleme=0.02):
         while not dur.is_set():
             if depo.sorular.exists():
                 for yol in depo.sorular.glob("*.json"):
-                    soru = json.loads(yol.read_text(encoding="utf-8"))
+                    # Do not reopen an answered question while the client deletes it.
+                    if yol.stem in goruldu:
+                        continue
+                    soru = soru_oku_yeniden(yol, dur)
+                    if soru is None:
+                        return
                     if soru["id"] in goruldu:
                         continue
                     goruldu.add(soru["id"])

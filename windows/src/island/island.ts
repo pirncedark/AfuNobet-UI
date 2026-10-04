@@ -2,7 +2,7 @@
 import { nextDiscoveryHint } from "../core/settings";
 import { Tracked } from "../core/anim";
 import { Bridge, IS_TAURI } from "../core/bridge";
-import { EXPANDED_CORNER, KART_OLCEK, NOTCH_W, PANEL_H, PANEL_W, PET_PENCERE, ROUNDED_CORNER, fitScale, islandSize, petBalonKutusu, petBalonUst, petPencereYuksekligi, PANEL_MAX_H_RATIO, type IslandMode, type IslandViewName } from "../core/layout";
+import { EXPANDED_CORNER, KART_OLCEK, NOTCH_W, PANEL_H, PANEL_W, PET_PENCERE, ROUNDED_CORNER, fitScale, panelScale, panelHeight, mascotDesignHeight, contentWidth, islandSize, petBalonKutusu, petBalonUst, petPencereYuksekligi, PANEL_MAX_H_RATIO, type IslandMode, type IslandViewName } from "../core/layout";
 import { State, type Expression } from "../core/state";
 import { ChatView } from "../chat/chat";
 import { SorView } from "../sor/sor";
@@ -115,7 +115,7 @@ export class Island {
     this.bindQuestions();
     void this.konusan.bagla().then(dispose => window.addEventListener("pagehide", dispose, { once: true }));
     this.syncDom();
-    window.addEventListener("resize", () => { this.applyGeometry(); this.pet.positionApps(); void Bridge.scaleFactor().then(s => { if (s) this.setNativeScale(s); }); });
+    window.addEventListener("resize", () => { if (this.mode === "expanded") this.animateGeometry(false); this.applyGeometry(); this.pet.positionApps(); void Bridge.scaleFactor().then(s => { if (s) this.setNativeScale(s); }); });
     this.applyGeometry();
 
     // Follow pose changes and queued messages even while the island is settled.
@@ -248,7 +248,7 @@ export class Island {
       if (from === "pet" && to === "home") {
         this.pet.transition(true);
         void Bridge.petMode(false);
-        if (!IS_TAURI) this.returnTimer = window.setTimeout(() => { this.returnTimer = null; this.onPet(false); }, T.shrink + T.floatDown + T.reveal + T.grab);
+        if (!IS_TAURI) this.returnTimer = window.setTimeout(() => { this.returnTimer = null; this.onPet(false); }, T.petReturn);
         return;
       }
       this.pet.setActive(false);
@@ -340,6 +340,7 @@ export class Island {
   private setMode(next: IslandMode) {
     const previous = this.mode;
     this.mode = next;
+    if (previous !== next) this.lastSentHeight = -1;
     // Mod değişince tıklama kutusu her durumda yeniden gönderilir: Rust tarafı
     // (glide.rs) pet geçişinde kutuyu kendisi değiştirir, eski önbellek yanıltır.
     this.pushedRect = { x: -1, y: -1, w: -1, h: -1 };
@@ -353,8 +354,8 @@ export class Island {
   onPet(on: boolean) {
     if (!on && this.fsm.state === "home") {
       this.pet.setActive(false);
-      this.view = "overview"; this.collapsed = false; this.wasInIsland = false;
-      this.setMode("expanded"); this.fsm.mouseLeft();
+      this.view = "overview"; this.collapsed = false;
+      this.setMode("expanded"); if (!this.wasInIsland) this.fsm.mouseLeft();
     }
   }
   setView(view: IslandViewName) {
@@ -374,12 +375,46 @@ export class Island {
   reveal() { this.fsm.reveal(); }
   private animateGeometry(shrinking: boolean) {
     let { w, h: height } = islandSize(this.mode, this.view);
+    if (this.mode === "expanded") {
+      const context = document.createElement("canvas").getContext("2d");
+      let textWidth = 0;
+      if (context) {
+        const walker = document.createTreeWalker(this.views.el, NodeFilter.SHOW_TEXT);
+        while (walker.nextNode()) {
+          const node = walker.currentNode, parent = node.parentElement;
+          if (!parent || parent.closest("[hidden]")) continue;
+          let visible = true;
+          for (let ancestor: HTMLElement | null = parent; ancestor; ancestor = ancestor.parentElement) {
+            const computed = getComputedStyle(ancestor);
+            if (computed.display === "none" || computed.visibility === "hidden" || (ancestor.tagName === "DETAILS" && !ancestor.hasAttribute("open") && !parent.closest("summary"))) { visible = false; break; }
+          }
+          if (!visible) continue;
+          const style = getComputedStyle(parent);
+          if (style.display === "none" || style.visibility === "hidden") continue;
+          context.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`;
+          for (const line of (node.textContent ?? "").split(/\n/)) textWidth = Math.max(textWidth, context.measureText(line.trim()).width);
+        }
+      }
+      w = contentWidth(textWidth, window.innerWidth || PANEL_W, window.innerHeight || PANEL_H);
+    }
     // Kepenk yalnız gerçek pencerede: önizlemede pencere büyüyemez, kart sabit kalır.
     if (this.mode === "expanded" && "__TAURI_INTERNALS__" in window) {
       const activeView = Array.from(this.views.el.children).find(el => !el.hasAttribute("hidden") && el.tagName !== "HEADER") as HTMLElement;
       if (activeView) {
         const computed = getComputedStyle(this.views.el);
-        let contentHeight = this.views.header.offsetHeight + activeView.scrollHeight + this.views.footer.offsetHeight + parseFloat(computed.paddingTop || "0") + parseFloat(computed.paddingBottom || "0");
+        // scrollHeight on a flex-filled body includes its current allocation.
+        // Measure an auto-height copy at the same content width so native resize
+        // converges in one step instead of shrinking the allocated box repeatedly.
+        const measureHost = this.views.el.cloneNode(false) as HTMLElement;
+        measureHost.style.cssText = `position:fixed;left:-10000px;top:0;visibility:hidden;pointer-events:none;width:${this.views.el.clientWidth}px;height:auto;min-height:0;max-height:none;display:block;overflow:visible;`;
+        measureHost.style.setProperty("--mascot-design-h", this.islandEl.style.getPropertyValue("--mascot-design-h"));
+        const measureBody = activeView.cloneNode(true) as HTMLElement;
+        measureBody.style.height = "auto"; measureBody.style.minHeight = "0";
+        measureBody.style.maxHeight = "none"; measureBody.style.flex = "none";
+        measureHost.append(measureBody); document.body.append(measureHost);
+        const intrinsicHeight = measureBody.scrollHeight;
+        measureHost.remove();
+        let contentHeight = this.views.header.offsetHeight + intrinsicHeight + this.views.footer.offsetHeight + parseFloat(computed.paddingTop || "0") + parseFloat(computed.paddingBottom || "0");
         if (!this.views.bildirim.hidden) {
           contentHeight += this.views.bildirim.offsetHeight + 5;
         }
@@ -403,9 +438,18 @@ export class Island {
           }
         }
         const screenAvail = window.screen.availHeight || 1080;
-        const maxH = (screenAvail / (this.nativeScale || 1)) * PANEL_MAX_H_RATIO;
+        const maxH = screenAvail * PANEL_MAX_H_RATIO / (panelScale(window.innerWidth || PANEL_W) * KART_OLCEK);
         // Kepenk yalnız UZATIR: kart hiçbir zaman sabit kart yüksekliğinden kısa olmaz.
         height = Math.max(height, Math.min(contentHeight, maxH));
+      }
+    }
+    if (this.mode === "expanded") {
+      const geometry = panelHeight(height, window.innerWidth || PANEL_W, window.innerHeight || PANEL_H, window.screen.availHeight || 1080);
+      height = geometry.design;
+      const nativeH = Math.ceil(geometry.nativeCss * this.hitK());
+      if (IS_TAURI && Math.abs(this.lastSentHeight - nativeH) > 0.5) {
+        this.lastSentHeight = nativeH;
+        void Bridge.kartYukseklik(nativeH);
       }
     }
     const r = this.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
@@ -415,13 +459,14 @@ export class Island {
     } else if (shrinking) {
       this.width.curveTowards(w); this.height.curveTowards(height, 200); this.radius.curveTowards(r);
     } else {
-      this.width.springTo(w); this.height.curveTowards(height, 200); this.radius.springTo(r);
+      this.width.curveTowards(w, T.panelOpen); this.height.curveTowards(height, T.panelOpen); this.radius.curveTowards(r, T.panelOpen);
     }
     this.ensureRunning();
   }
   private applyGeometry() {
     if (this.mode === "tray") { this.islandEl.hidden = true; this.wakeStrip.hidden = true; return; }
     if (this.mode === "pet") {
+      this.pet.setDisplayScale(this.hitK());
       this.islandEl.hidden = true; this.wakeStrip.hidden = true;
       const width = window.innerWidth > 0 ? window.innerWidth : PET_PENCERE;
       const height = window.innerHeight > 0 ? window.innerHeight : petPencereYuksekligi(this.petBalon);
@@ -455,14 +500,15 @@ export class Island {
     // viewport that actually exists instead of overflowing it.
     const width = window.innerWidth > 0 ? window.innerWidth : PANEL_W;
     const height = window.innerHeight > 0 ? window.innerHeight : PANEL_H;
-    this.fit = fitScale(width, height);
+    this.fit = this.mode === "expanded" ? panelScale(width) : fitScale(width, height);
     this.viewport = width;
+    const characterScale = this.fit * this.kartOlcek() * this.hitK();
+    this.character.setDisplayScale(characterScale);
+    this.clip.style.setProperty("--character-column", `${200 / characterScale}px`);
+    const bodyZoom = Number(getComputedStyle(document.body).zoom) || 1;
+    this.islandEl.style.setProperty("--mascot-design-h", `${mascotDesignHeight(width, this.hitK(), bodyZoom)}px`);
     this.wakeStrip.style.width = `${Math.round(Math.min(width, NOTCH_W * 4 * KART_OLCEK) * 100) / 100}px`;
-    const w = this.width.value, height_ = this.height.value, r = this.radius.value;
-    if (this.mode === "expanded" && Math.abs(this.lastSentHeight - height_) > 0.5) {
-      this.lastSentHeight = height_;
-      void Bridge.kartYukseklik(height_);
-    }
+    const w = this.width.value, height_ = this.mode === "expanded" ? Math.min(this.height.value, Math.max(0, height - 2) / (this.fit * KART_OLCEK)) : this.height.value, r = this.radius.value;
     const fit = this.fit;
     this.islandEl.style.width = `${w}px`;
     this.islandEl.style.height = `${height_}px`;
@@ -513,10 +559,10 @@ export class Island {
     } else if (this.collapsed) { this.collapsed = false; void Bridge.setCollapsed(false); }
   }
   private wireInput() {
-    this.wakeStrip.addEventListener("mouseenter", () => { if (this.mode === "hidden") this.fsm.mouseEntered(); });
+    this.wakeStrip.addEventListener("mouseenter", () => this.onEdgeWake());
     this.islandEl.addEventListener("mousedown", () => { if (this.mode === "compact") this.fsm.click(); });
-    this.islandEl.addEventListener("mouseenter", () => this.fsm.mouseEntered());
-    this.islandEl.addEventListener("mouseleave", () => this.fsm.mouseLeft());
+    this.islandEl.addEventListener("mouseenter", () => { this.wasInIsland = true; if (this.mode === "compact" || this.mode === "hidden") this.onEdgeWake(); else this.fsm.mouseEntered(); });
+    this.islandEl.addEventListener("mouseleave", () => { this.wasInIsland = false; this.fsm.mouseLeft(); });
     window.addEventListener("keydown", event => {
       if (event.key !== "Escape") return;
       // P11: Esc önce balonu kapatır; balon yoksa kart kapanır.
@@ -539,13 +585,22 @@ export class Island {
     // alır ve kart, dosya bırakılmadan pete inerdi (canlı ölçüm 2026-10-02).
     if (!IS_TAURI) window.addEventListener("mousemove", event => this.onCursor(event.clientX, event.clientY));
   }
+  /** Edge wake keeps the existing native pet return animation. */
+  onEdgeWake() {
+    this.wasInIsland = true;
+    if (this.fsm.state === "home") { this.fsm.mouseEntered(); return; }
+    if (this.fsm.state === "greeting") return;
+    if (this.fsm.state === "pet") this.fsm.fromPet();
+    else if (this.fsm.state === "tray") this.fsm.trayClick();
+    else this.fsm.forceHome();
+  }
   onCursor(wx: number, wy: number) {
     if (this.mode === "pet" || this.mode === "tray") return;
     // island.rs pencere-mantıksal birim gönderir; çizim CSS biriminde.
     const { x, y } = IS_TAURI ? cursorToCss({ x: wx, y: wy }, this.hitK()) : { x: wx, y: wy };
     const rect = this.drawnRect();
     const inside = x >= rect.x - HIT_MARGIN && x <= rect.x + rect.w + HIT_MARGIN && y >= -HIT_MARGIN && y <= rect.h + HIT_MARGIN;
-    if (inside && !this.wasInIsland) this.fsm.mouseEntered();
+    if (inside && !this.wasInIsland) { this.wasInIsland = true; if (this.mode === "compact" || this.mode === "hidden") this.onEdgeWake(); else this.fsm.mouseEntered(); }
     if (!inside && this.wasInIsland) this.fsm.mouseLeft();
     this.wasInIsland = inside;
     if (this.mode === "expanded") { const k = this.kartOlcek(); this.character.look((x - rect.x) / k - 80, y / k - 140); }

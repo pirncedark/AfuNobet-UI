@@ -1,4 +1,4 @@
-import { PET_PENCERE } from "../core/layout";
+import { PET_PENCERE, MASCOT_VISIBLE_H, mascotScale } from "../core/layout";
 
 import { h } from "../views/dom";
 import "../apps.css";
@@ -1086,6 +1086,12 @@ export class AfuPet {
   private lastPhysicsAt = 0;
   private dragRaf: number | null = null;
   private lastWinX = 0;
+  private displayScale = 1;
+  setDisplayScale(scale: number) {
+    if (!(scale > 0) || scale === this.displayScale) return;
+    this.displayScale = scale;
+    this.paint();
+  }
   private frame = "idle_normal";
   private dragPending: Promise<boolean> | null = null;
   private reduced = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1316,9 +1322,9 @@ export class AfuPet {
       const olculu = PET_BOYUT[kare];
       const n = PET_NORMALIZE.includes(this.model.pose) ? (olculu || { olcek: 1, x: 0, y: 0 }) : { olcek: 1, x: 0, y: 0 };
       const isDraggingNow = this.dragRaf !== null || isDragging;
-      const rawScale = n.olcek * ayar.olcek / 100;
-      const rawTx = ayar.x + n.x * PET_PENCERE * ayar.olcek / 100;
-      const rawTy = ayar.y + n.y * PET_PENCERE * ayar.olcek / 100;
+      const rawScale = (isDraggingNow ? n.olcek : mascotScale(olculu?.kutu ?? [0, 0, 1, 1], PET_PENCERE, MASCOT_VISIBLE_H / this.displayScale)) * ayar.olcek / 100;
+      const rawTx = ayar.x + (isDraggingNow ? n.x * PET_PENCERE * ayar.olcek / 100 : (0.5 - ((olculu?.kutu[0] ?? 0) + (olculu?.kutu[2] ?? 1)) / 2) * PET_PENCERE * rawScale);
+      const rawTy = ayar.y + (isDraggingNow ? n.y * PET_PENCERE * ayar.olcek / 100 : (1 - (olculu?.kutu[3] ?? 1)) * PET_PENCERE * rawScale);
       // Ölçülmüş alfa kutusu her kare için geçerli; kare yoksa tüm çerçeve sayılır.
       const kutu = olculu?.kutu ?? ([0, 0, 1, 1] as [number, number, number, number]);
       

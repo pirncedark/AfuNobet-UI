@@ -1,1 +1,1 @@
-export const T = { shrink: 180, floatDown: 250, reveal: 200, grab: 120, breathe: 2800, blink: 90, hoverRise: 160, clickHappy: 300, successJump: 300, errorShake: 220, squash: 100, squashBack: 160 } as const;
+export const T = { panelOpen: 70, petReturn: 240, shrink: 180, floatDown: 250, reveal: 200, grab: 120, breathe: 2800, blink: 90, hoverRise: 160, clickHappy: 300, successJump: 300, errorShake: 220, squash: 100, squashBack: 160 } as const;

@@ -5,7 +5,10 @@ class FakeElement {
   src = "";
   className = "";
   hidden = false;
-  style: Record<string, unknown> = { setProperty: vi.fn() };
+  style: Record<string, unknown> = {
+    setProperty: (name: string, value: string) => { this.style[name.replace(/-([a-z])/g, (_, c) => c.toUpperCase())] = value; },
+    removeProperty: (name: string) => { const key = name.replace(/-([a-z])/g, (_, c) => c.toUpperCase()); const previous = this.style[key] ?? ""; this.style[key] = ""; return previous; },
+  };
   dataset: Record<string, string> = {};
   attrs = new Map<string, string>();
   classes = new Set<string>();
@@ -104,5 +107,7 @@ describe("AfuCharacter animasyon eşleme ve statik yedek", () => {
     // compact + success -> gulumseme.webp
     character.sync("success", true, false, true);
     expect(character.animImage.src).toMatch(/gulumseme\.webp$/);
+    expect(character.animImage.style.scale).toBe("");
+    expect(character.animImage.style.transformOrigin).toBe("");
   });
 });

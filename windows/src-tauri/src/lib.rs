@@ -320,6 +320,14 @@ fn set_collapsed(app: AppHandle, shared: State<Shared>, collapsed: bool) {
     shared.gate.set_active(!collapsed);
 }
 
+/// Ignore late panel measurements while the pet/native transition owns the client.
+#[tauri::command]
+fn kart_yukseklik(app: AppHandle, shared: State<Shared>, h: f64) {
+    if !h.is_finite() || h <= 0.0 || shared.pet_runtime.is_pet_or_tray()
+        || shared.gate.collapsed.load(Ordering::Acquire) { return; }
+    dpi::kart_yukseklik(app, h);
+}
+
 #[tauri::command]
 fn set_island_rect(shared: State<Shared>, x: f64, y: f64, width: f64, height: f64) {
     shared.gate.set_rect(island::IslandRect {
@@ -401,7 +409,7 @@ pub fn run() {
             kimlik::anahtar_var,
             kimlik::anahtar_sil,
             set_collapsed,
-            dpi::kart_yukseklik,
+            kart_yukseklik,
             set_island_rect,
             set_card_open,
             focus_window,

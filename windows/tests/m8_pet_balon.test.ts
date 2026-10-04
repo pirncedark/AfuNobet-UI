@@ -96,7 +96,12 @@ for(const scale of [1,1.25,1.5]) for(const [name,text] of [
 });
 async function expectPixelsInside(page: any, balloon: any, name:string) {
  const rect=await balloon.boundingBox();
- const shot=await page.screenshot({path:`${output}/${name}.png`,omitBackground:true});
+ const proofShot=await page.screenshot({path:`${output}/${name}.png`,omitBackground:true});
+ // A decoded WebP can repaint between captures even with CSS motion reduced.
+ // Hide only the separate mascot sibling in both glyph comparison images;
+ // balloon glyphs outside their box remain visible and must still fail.
+ await page.addStyleTag({content:'#afu-pet{visibility:hidden!important}'});
+ const shot=await page.screenshot({omitBackground:true});
  // Hide glyphs without changing layout, then compare actual raster pixels.
  await page.addStyleTag({content:'.afu-balon-metin,.afu-balon-etiket,.afu-balon-kapat{color:transparent!important;text-shadow:none!important}'});
  const blank=await page.screenshot({omitBackground:true});
@@ -110,7 +115,7 @@ async function expectPixelsInside(page: any, balloon: any, name:string) {
   }
  }
  expect(glyphs).toBeGreaterThan(0);expect(outside).toBe(0);
- const proof={name,rect,glyphs,outside,md5:createHash('md5').update(shot).digest('hex')};
+ const proof={name,rect,glyphs,outside,md5:createHash('md5').update(proofShot).digest('hex')};
  writeFileSync(`${output}/${name}.json`,JSON.stringify(proof,null,2));
  console.log(JSON.stringify(proof));
 }

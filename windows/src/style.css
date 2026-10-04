@@ -1,4 +1,4 @@
-﻿:root{color-scheme:dark;font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:#f3f5fb;font-synthesis:none;-webkit-font-smoothing:antialiased}
+:root{color-scheme:dark;font-family:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;color:#f3f5fb;font-synthesis:none;-webkit-font-smoothing:antialiased}
 *{box-sizing:border-box;margin:0;padding:0}
 [hidden]{display:none!important}
 html,body{width:100%;height:100%;overflow:hidden;background:transparent;user-select:none}
@@ -20,7 +20,7 @@ button:disabled{cursor:default}
    never overlap: they are grid columns, not absolutely positioned boxes.
    Both items are placed explicitly in row 1 — an implicit second row would push
    the character below the panel and cut it off at the bottom. */
-#island[data-mode=expanded] #island-clip{display:grid;grid-template-columns:164px minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
+#island[data-mode=expanded] #island-clip{display:grid;grid-template-columns:var(--character-column,164px) minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 #content{grid-column:2;grid-row:1;min-height:0;position:relative;min-width:0;min-height:0;padding:13px 14px 12px;display:flex;flex-direction:column;overflow:hidden}
 header{display:flex;align-items:center;gap:9px;height:23px;flex-shrink:0;white-space:nowrap;overflow:hidden}
 .brand{font-size:13px;font-weight:700;letter-spacing:.03em;color:#e6edf8;flex-shrink:0}
@@ -331,3 +331,95 @@ footer{height:auto;min-height:32px;padding-top:4px}
 #content .orkestra-actions{flex-wrap:wrap}
 
 #afu-pet-balon .afu-balon-kapat{min-width:28px;min-height:28px}
+
+/* M12: maskot ve yanıt; ayrıntılar tek kepenkte. */
+#content .m12-chat{min-width:0;padding:12px;box-sizing:border-box}
+#content .chat-intro{display:grid;grid-template-columns:minmax(80px,26%) minmax(0,1fr);gap:16px;align-items:center}
+#content .chat-mascot img{width:auto;max-width:100%;height:var(--mascot-design-h,113.333px);max-height:var(--mascot-design-h,113.333px);object-fit:contain}
+#content .chat-assistant{min-width:0}
+#content .chat-assistant h1{font-size:24px;margin:0 0 10px}
+#content .chat-answer{font-size:16px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 16px;max-height:none}
+#content .chat-state{font-size:12px;border:1px solid #344658;border-radius:24px;padding:6px;white-space:normal;text-align:center}
+#content .chat-state:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#31d992;margin-right:6px}
+#content .chat-details{animation:m12-open 200ms ease-out;min-width:0}
+#content .chat-details[hidden]{display:none}
+@keyframes m12-open{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+#content .chat-details-toggle{display:block;margin:8px auto 0;min-width:44px;min-height:28px}
+#content .chat-compose{position:relative;min-width:0}
+#content .chat-compose textarea{width:100%;box-sizing:border-box;padding-bottom:36px;font-size:16px}
+#content .chat-input-icons{display:flex;position:absolute;right:6px;bottom:6px;gap:6px}
+#content .chat-actions{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+#content .chat-actions button{min-height:32px;white-space:normal}
+#content .chat-actions svg{vertical-align:middle;margin-right:5px}
+#content .chat-actions .primary-button{background:linear-gradient(135deg,#ffe29a,#e6b95f);color:#151b27}
+#content .chat-actions .text-button svg{color:#fa6373}
+#content .chat-health{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#content .chat-health-card{border:1px solid #344658;border-radius:10px;padding:8px;font-size:12px;overflow-wrap:anywhere}
+#content .chat-health-card>span:last-child:before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#fa6373;margin:0 4px}
+#content .chat-health-card.ok span:before{background:#31d992}
+#content footer .page-button[aria-pressed="true"]{color:#f2cc78;border-bottom:2px solid #f2cc78}
+#content .brand svg,#content .sor-button svg{vertical-align:middle;flex-shrink:0}
+@media(max-width:480px){#content .chat-intro{gap:8px}#content .chat-health{grid-template-columns:repeat(2,minmax(0,1fr))}#content .chat-assistant h1{font-size:20px}}
+
+#content header{flex-wrap:wrap;gap:6px;min-width:0}
+#content .claude-lock{max-width:100%;box-sizing:border-box;white-space:normal}
+#content footer .sor-button{display:flex;align-items:center;gap:4px;min-width:0;flex-shrink:1}
+#content footer{gap:4px}
+#content footer .m12-icon{display:inline-flex}
+#content footer .page-button .m12-icon{display:inline}
+#content footer .page-button{min-width:0}
+
+#content .chat-compose textarea,#content .chat-details .chat-actions{position:static}
+#content .chat-input-icons{z-index:3}
+#content .chat-input-icons button{min-width:30px;min-height:28px;padding:4px}
+#content .chat-health-card.kapali span:before{background:#fa6373}
+#content footer .btn-icon{display:inline-flex!important}
+#content footer .page-button{display:flex;flex-direction:row;gap:4px}
+#content footer .page-button[aria-pressed="true"]{border-radius:0}
+#content .chat-details .chat-actions button:first-child{background:transparent;color:inherit;border:1px solid #344658}
+
+
+
+#content footer .btn-icon::before{content:none}
+#content footer .page-button .m12-icon svg{width:12px;height:12px}
+
+#content footer .page-button{font-size:9px;gap:2px;padding-left:2px;padding-right:2px}
+
+#content footer .sor-button::before{content:none}
+#content .chat-actions button{display:inline-flex;align-items:center;justify-content:center;gap:5px}
+#content .chat-state{display:flex;align-items:center;justify-content:center;gap:4px}
+#content .chat-state:before{flex-shrink:0;margin:0}
+#content .chat-health-card{display:flex;align-items:center;gap:4px}
+#content .chat-health-card>.m12-icon{flex-shrink:0}
+#content .chat-details .chat-status:empty{display:none}
+
+#content footer .sor-button{flex-shrink:0;padding:7px 6px;font-size:10px}
+#content footer .sor-button svg{width:14px;height:14px}
+
+#content footer{gap:3px}
+#content footer .more-button{font-size:9px;padding:6px 2px;gap:2px}
+#content footer .more-button svg{width:12px;height:12px}
+#content footer .page-button{padding-left:1px;padding-right:1px}
+
+#content header{height:auto;min-height:28px;overflow:visible}
+#content .claude-lock{color:#f2cc78}
+#content .chat-details{flex-shrink:0}
+#content .m12-chat{height:auto;min-height:100%}
+#content .chat-view{overflow-y:auto}
+
+#content header{height:28px;overflow:hidden}
+#content:has(.chat-view:not([hidden])) header{height:auto;overflow:visible}
+
+#content footer{gap:4px}
+
+/* The body scrolls inside its flex slot; persistent controls never join the scroll. */
+#content > :not(header):not(footer):not([hidden]) { min-height:0; flex-shrink:1; }
+#content > .overview { overflow-y:auto; }
+#content header, #content footer { flex-shrink:0; }
+#content .chat-view { min-height:0; flex:1 1 0; overflow-y:auto; }
+#afu-character { height:184px; }
+#afu-character:not(.compact) .afu-image { height:113.333px; top:auto; bottom:0; }
+
+/* Keep the main action visible when footer tabs exhaust one row. */
+#content footer { flex-wrap:wrap; height:auto; min-height:29px; row-gap:4px; }
+#content footer > * { max-width:100%; }

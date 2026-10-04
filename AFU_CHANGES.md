@@ -47,3 +47,11 @@ Sohbet yanıtı TTS'si bildirim sesinden ayrı, Settings.tts varsayılanfalse ve
 ## W3 ajan devri gösterimi
 
 Kart, ayrıntı ve pet balonu tek satır devir gösterir: "Codex kotası doldu → Gemini devraldı" ya da "Codex kotası doldu · bekliyor (14:55'te açılır)". Kaynak yalnız state.json: görevin `handoff` alanı (AfuNöbet ui_state.py checkpoint'ten yazar) ve kota alanları (görev `quota`, yoksa kök `quotas`). Ayrı provider geçmişi alanı yok; uydurulmadı. Claude devreden/devralan olarak gösterilmez; 30 dk'dan eski kayıt ve geçmiş açılış saati yazılmaz. Testler: tests/w3_devir.test.ts.
+
+## 2026-10-04 — M12 sohbet tasarımı
+Maskot ve yanıt odaklı açılış, okla açılan kalıcı ayrıntılar, SVG menü ve gerçek sağlık kartları ana uygulamaya aktarıldı. Claude kartı koruma durumunu ve eksik bağlantıyı ayrı metinle gösteriyor. Ses/Codex köprüsü ve island.rs değiştirilmedi.
+
+## 2026-10-04 — Üst kenardan geri açılma ve metin genişliği
+Kullanıcının ilk açılıştan sonra kaybolma bildirimine göre island.rs native poll değiştirildi: gizli/pet/tray durumlarında sonsuz park yerine düşük sıklıklı monitör üst kenar algısı var; sürükleme ve tekrar olaylar engelleniyor. Frontend edge-wake ve kompakt hover tam panel açıyor, fare içerdeyken kapanma erteleniyor; ayrılınca mini pete dönme korunuyor. Panel genişliği görünür metne göre mevcut ekran/pencere sınırında büyüyor. Kullanıcı bu düzeltmeyi açıkça istediğinden island.rs koruma kuralına gerekli minimal istisna uygulandı.
+## 2026-10-04 — UI/UX hız, panel ve maskot düzeltmeleri
+Petten dönüş750ms yerine240ms; kart genişleme70ms. Native pencere doğal içerik yüksekliği ve gerçek zoom/DPI dönüşümüyle boyutlanır; yüksekliği monitörün%85'ini aşmaz. Header/footer sabit, kaydırma yalnız iç gövdede. Footer ana düğmesi taşmak yerine yeni satıra geçer. Dar ekranın tek kolon media kuralı korunur. Pet, panel ve sohbet maskotları ortak170native mantıksal px hedefini kullanır. GerçekChromium native branch testleri kısa/uzun içerik veDPI farkını kapsar; tam sonuç SONUC_UIUX_FIX.md içinde.

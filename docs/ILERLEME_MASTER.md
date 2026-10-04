@@ -161,3 +161,27 @@ A13: TS165/Python18/Rust147 PASS, 4 mevcut ignored, offline pack Exit0. A14: sol
 1. **Ses Taşınabilirliği (Portability):** Python/venv mutlak yol bağımlılıklarının tespiti yapıldı (`SONUC_EXE_BOYUT_TASIMA.md`); yerel model eksikliğinde Windows TTS yedeğine güvenli düşüş mekanizması üzerinde çalışılıyor.
 2. **Kullanıcı Toplu Testi (Kabul):** Kullanıcının gerçek masaüstünde 15–20 dakikalık uçtan uca kabul testini gerçekleştirmesi (`docs/TOPLU_TEST.md` üzerinden).
 3. **Sürüm ve Dağıtım:** Kullanıcı kabulünün ardından git commit + push ve GitHub Release / sürüm yayınlama adımları.
+
+## Devam — 2026-10-04
+Kullanıcı talebiyle son entegrasyon checkpointinden devam edildi. Frontend test/build ve offline Rust testleri çalıştırıldı; kanıtlar windows/test-results/devam-20261004-*.log. Gerçek Windows kabulü UNVERIFIED; commit/push yok.
+Frontend: 75 test dosyası / 919 test PASS, npm --offline run build Exit0. Rust doğrulaması sürüyor.
+Rust: cargo test --offline Exit0; 282 başarılı, 9 ignored. Otomatik doğrulama tamam. Sonraki adım: docs/TOPLU_TEST.md gerçek Windows kabulü (UNVERIFIED). Bu tur uygulama kodu değiştirilmedi, exe paketlenmedi, commit/push yapılmadı. Üç doğrulama logu diskte.
+
+## M12 ana uygulamaya aktarım — 2026-10-04
+Ana klasör ve M12 aynı HEAD 3112d10. Ana src/tests içerik değişikliği yok (yalnız satır sonu farkları); altı M12 dosyası aktarıldı. Önceki dosyalar delivery/m12-integration-20261004 altında yedeklendi. Test ve yeni EXE hazırlığı başladı. Gerçek Windows kabulü UNVERIFIED, commit/push yok.
+M12 entegrasyon doğrulaması: 76 test dosyası / 923 PASS, 0 FAIL. Tauri beforeBuild içindeki TypeScript/Vite tamamlandı; release EXE derlemesi sürüyor. Log: windows/test-results/m12-integrated-exe.log. Ana klasör headless ekran taraması da sürüyor: m12-integrated-tarama.log. Masaüstü eski hedef: dist/afunobet-ui-20261004-0144.exe; yeni teslimde tarihli dosya kullanılacak.
+M12 TESLİM: 923 PASS, release build Exit0, 60 ekran / 0 sorun. EXE C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-20261004-033530.exe; SHA256 8FF4B0B833BB5FEE7AB62D07EBDC91768DF22C11BBD720115E5ADDC809518A5E. Kısayol hedefi doğrulandı. Önceki EXE ve kısayol yedeği korunuyor. Sonraki adım: gerçek Windows kabulü; commit/push yok.
+
+## Kullanıcı hatası — üst kenar geri açılma / metin genişliği
+İlk açılıştan sonra kaybolma bildirildi. Teşhis: collapsed/pet/tray durumlarında native cursor poll sonsuz park; frontend hidden hover yalnız compact açıyor. Backend ve frontend görevleri ayrı dosya sahipliğiyle düzeltilecek. Görevler docs/tasks/GOREV_EDGE_*.md. Teslim öncesi test + tarihli EXE + kısayol doğrulama.
+Kullanıcı son tercihi: fare panelden ayrılınca mini pete geçsin, üst kenara geri gelince panel otomatik açılsın. Sürekli compact varsayımı geri alındı; pet akışı korunarak native edge-wake güvenceye alınıyor.
+Üst kenar düzeltmesi: frontend 78 dosya / 931 PASS; native kenar 3 PASS. İlk paralel Rust turu IPC tek_baglantida_coklu_satir_ve_satir_siniri testinde zamanlama hatası verdi; hedefli tekrar PASS, tam seri Rust 285 PASS / 9 ignored Exit0. Release EXE ve ekran taraması sürüyor. Loglar windows/test-results/edge-* altında.
+Üst kenar düzeltmesi TESLİM: build Exit0; 931 frontend PASS, 285 seri Rust PASS/9ignored, 60 ekran/0 sorun. EXE C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-20261004-083716.exe; SHA256 7D407AB2C0CCD14AEB5EB3FB3DE49203654448137FBECA0366E32BFD84B4BCB6. Masaüstü kısayolu güncellendi ve hedef/hash doğrulandı. Sonuç SONUC_EDGE_FIX.md. Gerçek Windows kabulü UNVERIFIED; commit/push yok.
+
+## Kullanıcı yeni hata — açılış hızı / kesilen kontrol / maskot
+Kullanıcı ekranlarıyla: petten geri açılış yavaş, uygulamalar kartı native pencereyi aşıp footer kesiliyor, hover pet büyüyüp üstten kırpılıyor. Ön teşhis: return750ms + spring .5s; frontend contentHeight uzuyor native480 kalıyor. İki alan ayrı sahiplikle düzeltilecek, ardından test/build ve tarihli EXE teslim.
+UI/UX QA kapsamı genişletildi; kullanıcı GitHub commit/push yetkisi verdi. Eski kurtarma island.rs baseline korunuyor; kullanıcı yetkili üst kenar patch'i exact hash manifestiyle ayrı doğrulanıyor. GitHub teslimi fix dalında, yalnız bu çalışmanın kaynak/test/belgeleri stage edilecek; yedek/exe/test-resim/log çıktıları yerelde kalacak.
+UI/UX QA: Rust tam paralel test Exit0; IPC ACK testi5/5 tekrar PASS. Frontend tam testte939PASS4FAIL; character fake style ve pet balon piksel farkları düzeltilecek. Bağımsız review DPI/native ölçek farkında pet-panel boy ayrışması buldu; gerçekDOM native-mock yerleşim QA ekleniyor. fix/uiux-hover-panel-fit-20261004 dalı oluşturuldu.
+UIUX son frontend tam tur958PASS (82dosya), tscPASS. NativeChromium13/13PASS52görsel. M10 geniştarama420/%150 inlinegrid/mediaçakışması yakaladı; düzeltiliyor, teslim ertelendi. Derleme sürüyor; kaynak son düzeltmesinden sonra tekrar build alınacak.
+Son kaynakla frontend82dosya962PASS. NativeChromium13vaka gerçeklongChatModelmetni+scrollassertleriylePASS. Ölçümclonedoğalheightveinheritedmaskotboyukoruyor. Rust286PASS9mevcutignored. PythonfakeworkerWindowsokuma/cleanupyarışıekdüzeltmesonrasıtekrarlanıyor. EXEsonbuildsürüyor.
+UI/UX TESLİM: 962 frontendPASS,286RustPASS/9mevcutignored,298PythonPASS(-Werror),13nativeChromiumPASS,60preview/0sorun. BuildExit0. EXE dist/afunobet-ui-20261004-091321.exe SHA256909B0D6962717A1FF332A168AE46ECFEA567F9FFB1DEF160A98BA97C19A3FDE2. Masaüstü kısayol/hash doğrulandı, eski yedek korundu. Windows elle kabul UNVERIFIED. GitHubfixdalıpushhazırlığı.
