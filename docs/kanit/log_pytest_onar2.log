@@ -1,0 +1,12 @@
+2026-10-03T15:16:22.209102+03:00 ADIM Tur 2: git status/diff ve g?rev dosyalar? incelendi; tamamlanan onar?mlar korundu.
+2026-10-03T15:16:22.209102+03:00 HATA Windows kaynak/kan?t eksikleri raporland?; windows/ yaz?lmad?.
+2026-10-03T15:16:22.209102+03:00 SON 7 failed, 286 passed in 32.98s; SONUC: YARIM.
+2026-10-03T15:18:05.642949+03:00 SON Son ba??ms?z do?rulama: 6 failed, 287 passed in 33.27s; yaln?z yasakl? Windows kaynak eksikleri kald?.
+2026-10-03T15:20:13.523741+03:00 ADIM Tur 3: status/diff kontrolu; Credential Manager bosluk-duyarli test ve rapor denetimi onarildi.
+2026-10-03T15:20:13.523741+03:00 HATA Kalan 5 test: E7 servisleri (4), Orkestra Codex ret kapisi (1). windows/ yazma yasagi korundu.
+2026-10-03T15:20:13.523741+03:00 SON 5 failed, 288 passed in 26.95s; SONUC: YARIM.
+
+2026-10-03T15:24:23+03:00 ADIM Tum 82 kaynagin kurtarma yetkisi ile hash eslesmesi dogrulandi.
+2026-10-03T15:24:23+03:00 ADIM Ses adapter/tasinabilirlik: 8 passed in 0.11s
+2026-10-03T15:24:23+03:00 HATA windows/ yazma yasagi: dort servis ve Codex ret kapisi eksik.
+2026-10-03T15:24:23+03:00 SON YARIM: 5 failed, 288 passed in 32.56s; rapor docs/kanit/SONUC_PYTEST_ONAR2.md

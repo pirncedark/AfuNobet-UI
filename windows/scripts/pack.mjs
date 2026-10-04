@@ -1,0 +1,20 @@
+import { createHash } from "node:crypto";
+import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { resolve, basename } from "node:path";
+import { copyExecutable } from "./pack-copy.mjs";
+const workspace = fileURLToPath(new URL("../../", import.meta.url));
+const original = resolve(workspace, "windows/target/release/afunobet-ui.exe");
+const directory = resolve(workspace, "dist");
+let output = resolve(directory, "afunobet-ui-coucou.exe");
+const hash = file => createHash("sha256").update(readFileSync(file)).digest("hex");
+mkdirSync(directory, { recursive: true });
+output = copyExecutable(original, output);
+copyFileSync(resolve(workspace, "LICENSE"), resolve(directory, "LICENSE.txt"));
+copyFileSync(resolve(workspace, "LICENSE-ASSETS.md"), resolve(directory, "LICENSE-ASSETS.md"));
+const sha256 = hash(original);
+if (hash(output) !== sha256) throw new Error("Executable copy checksum differs");
+writeFileSync(resolve(directory, "SHA256SUMS.txt"), `${sha256}  ${basename(output)}\n`);
+writeFileSync(resolve(directory, "build-manifest.json"), JSON.stringify({ original, output, sha256, originalSha256: sha256, copySha256: hash(output), bundle: "standalone executable", windowsSmokeTest: "not run" }, null, 2));
+console.log(JSON.stringify({ original, output, sha256 }));
+

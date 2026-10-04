@@ -1,0 +1,16 @@
+{
+  "size": 36877312,
+  "testsPassed": 923,
+  "headlessFindings": 0,
+  "original": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\windows\\target\\release\\afunobet-ui.exe",
+  "created": "2026-10-04T03:35:30.4036520+03:00",
+  "commit": "-",
+  "sha256": "8FF4B0B833BB5FEE7AB62D07EBDC91768DF22C11BBD720115E5ADDC809518A5E",
+  "windowsSmokeTest": "UNVERIFIED",
+  "feature": "M12",
+  "output": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\dist\\afunobet-ui-20261004-033530.exe",
+  "shortcut": "C:/Users/afuuu/Desktop/AfuNobet UI.lnk",
+  "shortcutTarget": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\dist\\afunobet-ui-20261004-033530.exe",
+  "headlessFrames": 60,
+  "previousShortcutTarget": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\dist\\afunobet-ui-20261004-0144.exe"
+}

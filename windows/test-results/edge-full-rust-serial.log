@@ -1,0 +1,1121 @@
+warn: could not canonicalize path C:\Users\afuuu
+warning: variable does not need to be mutable
+   --> src-tauri\src\glide.rs:302:17
+    |
+302 |             let mut guard = runtime.signal.lock().unwrap();
+    |                 ----^^^^^
+    |                 |
+    |                 help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `pencere_mantiksal` is never used
+  --> src-tauri\src\dpi.rs:75:8
+   |
+75 | pub fn pencere_mantiksal(cursor: (f64, f64), origin: (i32, i32), scale: f64) -> (f64, f64) {
+   |        ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `adada` is never used
+  --> src-tauri\src\dpi.rs:78:8
+   |
+78 | pub fn adada(p: (f64, f64), r: (f64, f64, f64, f64)) -> bool {
+   |        ^^^^^
+
+warning: function `apply_geometry` is never used
+   --> src-tauri\src\island.rs:206:8
+    |
+206 | pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `surum` is never used
+  --> src-tauri\src\apps.rs:76:4
+   |
+76 | fn surum(ad: &str) -> Option<Vec<u64>> {
+   |    ^^^^^
+
+warning: function `surum_karsilastir` is never used
+  --> src-tauri\src\apps.rs:92:4
+   |
+92 | fn surum_karsilastir(a: &[u64], b: &[u64]) -> Ordering {
+   |    ^^^^^^^^^^^^^^^^^
+
+warning: function `bul_en_yeni` is never used
+   --> src-tauri\src\apps.rs:103:8
+    |
+103 | pub fn bul_en_yeni(kok: &Path, desen: &str) -> Option<PathBuf> {
+    |        ^^^^^^^^^^^
+
+warning: function `oku` is never used
+   --> src-tauri\src\apps_state.rs:257:8
+    |
+257 | pub fn oku(yol: &Path, simdi: SystemTime) -> Option<AppDurum> {
+    |        ^^^
+
+warning: function `thread_params` is never used
+   --> src-tauri\src\codex.rs:286:8
+    |
+286 | pub fn thread_params(cwd: &Path) -> Value {
+    |        ^^^^^^^^^^^^^
+
+warning: associated function `start` is never used
+   --> src-tauri\src\voice\capture.rs:115:12
+    |
+101 | impl Recorder {
+    | ------------- associated function in this implementation
+...
+115 |     pub fn start() -> Result<Self, SesHata> {
+    |            ^^^^^
+
+warning: function `stt_ready_policy` is never used
+  --> src-tauri\src\voice\winrt.rs:35:4
+   |
+35 | fn stt_ready_policy(identity: bool, languages: &[String]) -> bool {
+   |    ^^^^^^^^^^^^^^^^
+
+warning: function `konus` is never used
+  --> src-tauri\src\voice\winrt.rs:65:8
+   |
+65 | pub fn konus(metin: &str) -> Result<(), SesHata> {
+   |        ^^^^^
+
+warning: fields `is`, `hazir`, and `yeniden_kurulum` are never read
+   --> src-tauri\src\ipc.rs:304:5
+    |
+302 | pub struct Sunucu {
+    |            ------ fields in this struct
+303 |     dur: Arc<AtomicBool>,
+304 |     is: Option<std::thread::JoinHandle<()>>,
+    |     ^^
+305 |     pub hazir: Arc<AtomicBool>,
+    |         ^^^^^
+306 |     pub yeniden_kurulum: Arc<AtomicUsize>,
+    |         ^^^^^^^^^^^^^^^
+
+warning: method `durdur` is never used
+   --> src-tauri\src\ipc.rs:309:12
+    |
+308 | impl Sunucu {
+    | ----------- method in this implementation
+309 |     pub fn durdur(mut self) {
+    |            ^^^^^^
+
+warning: unused `BOOL` that must be used
+   --> src-tauri\src\lib.rs:479:25
+    |
+479 | /                         windows::Win32::UI::Shell::SetWindowSubclass(
+480 | |                             windows::Win32::Foundation::HWND(hwnd.0 as *mut _),
+481 | |                             Some(mouse_activate_subclass),
+482 | |                             0,
+483 | |                             0,
+484 | |                         );
+    | |_________________________^
+    |
+    = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+    |
+479 |                         let _ = windows::Win32::UI::Shell::SetWindowSubclass(
+    |                         +++++++
+
+warning: linker stdout: C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\afunobet_ui_lib.dll.lib kitaplığı ve C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\afunobet_ui_lib.dll.exp nesnesi oluşturuluyor
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: function `apply_geometry` is never used
+   --> src-tauri\src\island.rs:206:8
+    |
+206 | pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
+    |        ^^^^^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: method `wait_changed` is never used
+   --> src-tauri\src\apps_runtime.rs:190:19
+    |
+ 93 | impl WatchSet {
+    | ------------- method in this implementation
+...
+190 |     pub(crate) fn wait_changed(&self, timeout: Duration) -> bool {
+    |                   ^^^^^^^^^^^^
+
+warning: function `speak_headless` is never used
+   --> src-tauri\src\voice\afu.rs:105:8
+    |
+105 | pub fn speak_headless(root: &Path, directory: &Path, text: &str, generation: &AtomicU64) -> Answer {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `esZamanli_baglanti_siniri_asilinca_fazlasi_kapatilir` should have a snake case name
+   --> src-tauri\src\ipc.rs:576:8
+    |
+576 |     fn esZamanli_baglanti_siniri_asilinca_fazlasi_kapatilir() {
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ help: convert the identifier to snake case: `es_zamanli_baglanti_siniri_asilinca_fazlasi_kapatilir`
+    |
+    = note: `#[warn(non_snake_case)]` (part of `#[warn(nonstandard_style)]`) on by default
+
+warning: `afunobet-ui` (lib) generated 16 warnings (run `cargo fix --lib -p afunobet-ui` to apply 1 suggestion)
+warning: `afunobet-ui` (lib test) generated 10 warnings (6 duplicates)
+warning: method `ac_windows` is never used
+   --> src-tauri\tests\..\src\apps.rs:158:12
+    |
+150 | impl Kayit {
+    | ---------- method in this implementation
+...
+158 |     pub fn ac_windows(&self, id: &str) -> Result<(), String> {
+    |            ^^^^^^^^^^
+    |
+    = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `WindowsLauncher` is never constructed
+   --> src-tauri\tests\..\src\apps.rs:185:8
+    |
+185 | struct WindowsLauncher;
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `login_url_ac` is never used
+   --> src-tauri\tests\..\src\apps.rs:432:8
+    |
+432 | pub fn login_url_ac(url: &str) -> Result<(), String> {
+    |        ^^^^^^^^^^^^
+
+warning: function `proje_klasoru_ac` is never used
+   --> src-tauri\tests\..\src\apps.rs:441:8
+    |
+441 | pub fn proje_klasoru_ac(kok: &Path, proje: &str) -> Result<(), String> {
+    |        ^^^^^^^^^^^^^^^^
+
+warning: function `animasyon_studyo_ac` is never used
+   --> src-tauri\tests\..\src\apps.rs:492:8
+    |
+492 | pub fn animasyon_studyo_ac(kok: &Path) -> Result<(), String> {
+    |        ^^^^^^^^^^^^^^^^^^^
+
+warning: function `prepare` is never used
+  --> src-tauri\tests\..\src\ilk_kullanim.rs:15:8
+   |
+15 | pub fn prepare(app: &tauri::AppHandle) {
+   |        ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `Kayit` is never constructed
+  --> src-tauri\tests\..\src\apps.rs:20:12
+   |
+20 | pub struct Kayit {
+   |            ^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: trait `ExeLauncher` is never used
+  --> src-tauri\tests\..\src\apps.rs:25:11
+   |
+25 | pub trait ExeLauncher {
+   |           ^^^^^^^^^^^
+
+warning: function `yukle` is never used
+  --> src-tauri\tests\..\src\apps.rs:37:8
+   |
+37 | pub fn yukle(json: &str) -> Vec<AfuApp> {
+   |        ^^^^^
+
+warning: function `exe_dosyasi` is never used
+  --> src-tauri\tests\..\src\apps.rs:60:4
+   |
+60 | fn exe_dosyasi(path: &Path) -> bool {
+   |    ^^^^^^^^^^^
+
+warning: function `surum` is never used
+  --> src-tauri\tests\..\src\apps.rs:76:4
+   |
+76 | fn surum(ad: &str) -> Option<Vec<u64>> {
+   |    ^^^^^
+
+warning: function `surum_karsilastir` is never used
+  --> src-tauri\tests\..\src\apps.rs:92:4
+   |
+92 | fn surum_karsilastir(a: &[u64], b: &[u64]) -> Ordering {
+   |    ^^^^^^^^^^^^^^^^^
+
+warning: function `bul_en_yeni` is never used
+   --> src-tauri\tests\..\src\apps.rs:103:8
+    |
+103 | pub fn bul_en_yeni(kok: &Path, desen: &str) -> Option<PathBuf> {
+    |        ^^^^^^^^^^^
+
+warning: associated items `yukle`, `uygulamalar`, `ac_windows`, and `ac` are never used
+   --> src-tauri\tests\..\src\apps.rs:151:12
+    |
+150 | impl Kayit {
+    | ---------- associated items in this implementation
+151 |     pub fn yukle(json: &str) -> Self {
+    |            ^^^^^
+...
+154 |     pub fn uygulamalar(&self) -> &[AfuApp] {
+    |            ^^^^^^^^^^^
+...
+158 |     pub fn ac_windows(&self, id: &str) -> Result<(), String> {
+    |            ^^^^^^^^^^
+...
+163 |     pub fn ac(&self, id: &str, launcher: &mut impl ExeLauncher) -> Result<(), String> {
+    |            ^^
+
+warning: associated items `dosyadan`, `liste`, and `indir_url_ac` are never used
+   --> src-tauri\tests\..\src\apps.rs:236:12
+    |
+234 | impl Kayit {
+    | ---------- associated items in this implementation
+235 |     /// Kayıt sadece okunur; aşırı büyük veya bozuk içerik boş kayıt olur.
+236 |     pub fn dosyadan(path: &Path) -> Self {
+    |            ^^^^^^^^
+...
+253 |     pub fn liste(&self, simdi: std::time::SystemTime) -> Vec<AppDto> {
+    |            ^^^^^
+...
+274 |     pub fn indir_url_ac(&self, id: &str) -> Result<(), String> {
+    |            ^^^^^^^^^^^^
+
+warning: function `varsayilan_indir_url` is never used
+   --> src-tauri\tests\..\src\apps.rs:286:8
+    |
+286 | pub fn varsayilan_indir_url(id: &str) -> Option<&'static str> {
+    |        ^^^^^^^^^^^^^^^^^^^^
+
+warning: function `indir_url_guvenilir` is never used
+   --> src-tauri\tests\..\src\apps.rs:297:4
+    |
+297 | fn indir_url_guvenilir(url: &str) -> bool {
+    |    ^^^^^^^^^^^^^^^^^^^
+
+warning: function `etkin_indir_url` is never used
+   --> src-tauri\tests\..\src\apps.rs:302:4
+    |
+302 | fn etkin_indir_url(app: &AfuApp) -> Option<String> {
+    |    ^^^^^^^^^^^^^^^
+
+warning: function `varsayilan_kayit_olustur` is never used
+   --> src-tauri\tests\..\src\apps.rs:310:8
+    |
+310 | pub fn varsayilan_kayit_olustur(
+    |        ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `login_url_gecerli` is never used
+   --> src-tauri\tests\..\src\apps.rs:364:15
+    |
+364 | pub(crate) fn login_url_gecerli(text: &str) -> bool {
+    |               ^^^^^^^^^^^^^^^^^
+
+warning: function `proje_klasoru_dogrula` is never used
+   --> src-tauri\tests\..\src\apps.rs:406:15
+    |
+406 | pub(crate) fn proje_klasoru_dogrula(kok: &Path, proje: &str) -> Result<PathBuf, String> {
+    |               ^^^^^^^^^^^^^^^^^^^^^
+
+warning: function `ses_ayar_hedefi` is never used
+   --> src-tauri\tests\..\src\apps.rs:447:15
+    |
+447 | pub(crate) fn ses_ayar_hedefi(tur: &str) -> Option<&'static str> {
+    |               ^^^^^^^^^^^^^^^
+
+warning: function `ses_ayarlari_ac` is never used
+   --> src-tauri\tests\..\src\apps.rs:456:8
+    |
+456 | pub fn ses_ayarlari_ac(tur: &str) -> Result<(), String> {
+    |        ^^^^^^^^^^^^^^^
+
+warning: function `shell_hedef_ac` is never used
+   --> src-tauri\tests\..\src\apps.rs:463:4
+    |
+463 | fn shell_hedef_ac(target: &std::ffi::OsStr) -> Result<(), ()> {
+    |    ^^^^^^^^^^^^^^
+
+warning: function `animasyon_studyo_dogrula` is never used
+   --> src-tauri\tests\..\src\apps.rs:496:15
+    |
+496 | pub(crate) fn animasyon_studyo_dogrula(kok: &Path) -> Result<PathBuf, String> {
+    |               ^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: field `sender` is never read
+  --> src-tauri\tests\..\src\apps_runtime.rs:89:5
+   |
+86 | pub(crate) struct WatchSet {
+   |                   -------- field in this struct
+...
+89 |     sender: SyncSender<Signal>,
+   |     ^^^^^^
+
+warning: method `wait` is never used
+   --> src-tauri\tests\..\src\apps_runtime.rs:170:8
+    |
+ 93 | impl WatchSet {
+    | ------------- method in this implementation
+...
+170 |     fn wait(&self, timeout: Option<Duration>) -> Option<Signal> {
+    |        ^^^^
+
+warning: field `popup` is never read
+   --> src-tauri\tests\..\src\apps_runtime.rs:201:5
+    |
+199 | pub struct Runtime {
+    |            ------- field in this struct
+200 |     worker: Mutex<Option<Worker>>,
+201 |     popup: Mutex<SavedPopup>,
+    |     ^^^^^
+
+warning: methods `start`, `pet_popup`, and `restore_popup` are never used
+   --> src-tauri\tests\..\src\apps_runtime.rs:204:12
+    |
+203 | impl Runtime {
+    | ------------ methods in this implementation
+204 |     pub fn start(&self, app: &AppHandle, registry_path: &Path) -> Result<(), String> {
+    |            ^^^^^
+...
+248 |     pub fn pet_popup(&self, app: &AppHandle, on: bool) -> Result<(), String> {
+    |            ^^^^^^^^^
+...
+291 |     pub fn restore_popup(&self, app: &AppHandle) {
+    |            ^^^^^^^^^^^^^
+
+warning: function `refresh_apps` is never used
+ --> src-tauri\tests\apps_runtime_contract.rs:8:12
+  |
+8 |     pub fn refresh_apps(_app: &tauri::AppHandle) {}
+  |            ^^^^^^^^^^^^
+
+warning: function `deneme_yolu` is never used
+  --> src-tauri\tests\..\src\hook_kur.rs:60:4
+   |
+60 | fn deneme_yolu(app:&tauri::AppHandle)->Result<PathBuf,String> {
+   |    ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `hook_onizle` is never used
+  --> src-tauri\tests\..\src\hook_kur.rs:65:8
+   |
+65 | pub fn hook_onizle(app:tauri::AppHandle,command:String,kur:bool)->Result<Degisiklik,String> {
+   |        ^^^^^^^^^^^
+
+warning: function `hook_uygula` is never used
+  --> src-tauri\tests\..\src\hook_kur.rs:69:8
+   |
+69 | pub fn hook_uygula(app:tauri::AppHandle,command:String,kur:bool,once:String)->Result<String,String> {
+   |        ^^^^^^^^^^^
+
+warning: struct `WindowsKasa` is never constructed
+  --> src-tauri\tests\..\src\kimlik.rs:20:12
+   |
+20 | pub struct WindowsKasa;
+   |            ^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `anahtar_kaydet` is never used
+  --> src-tauri\tests\..\src\kimlik.rs:51:8
+   |
+51 | pub fn anahtar_kaydet(name:String,mut secret:String)->Result<(),String>{let result=kaydet(&WindowsKasa,&name,&secret);unsafe{sifirla...
+   |        ^^^^^^^^^^^^^^
+
+warning: function `anahtar_var` is never used
+  --> src-tauri\tests\..\src\kimlik.rs:53:8
+   |
+53 | pub fn anahtar_var(name:String)->Result<bool,String>{var(&WindowsKasa,&name)}
+   |        ^^^^^^^^^^^
+
+warning: function `anahtar_sil` is never used
+  --> src-tauri\tests\..\src\kimlik.rs:55:8
+   |
+55 | pub fn anahtar_sil(name:String)->Result<(),String>{sil(&WindowsKasa,&name)}
+   |        ^^^^^^^^^^^
+
+warning: function `sol_durum_metni` is never used
+  --> src-tauri\tests\..\src\codex.rs:46:8
+   |
+46 | pub fn sol_durum_metni(error: &CodexHata) -> &'static str {
+   |        ^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: field `login_id` is never read
+   --> src-tauri\tests\..\src\codex.rs:414:5
+    |
+404 | pub struct CodexBridge {
+    |            ----------- field in this struct
+...
+414 |     login_id: Mutex<Option<String>>,
+    |     ^^^^^^^^
+
+warning: associated items `start`, `new_chat`, `logout`, `cancel`, `login_start`, and `login_cancel` are never used
+   --> src-tauri\tests\..\src\codex.rs:418:12
+    |
+417 | impl CodexBridge {
+    | ---------------- associated items in this implementation
+418 |     pub fn start() -> Result<Self, CodexHata> {
+    |            ^^^^^
+...
+626 |     pub fn new_chat(&self) -> Result<(), CodexHata> {
+    |            ^^^^^^^^
+...
+634 |     pub fn logout(&self) -> Result<Value, CodexHata> {
+    |            ^^^^^^
+...
+641 |     pub fn cancel(&self) -> Result<Value, CodexHata> {
+    |            ^^^^^^
+...
+655 |     pub fn login_start(&self) -> Result<String, CodexHata> {
+    |            ^^^^^^^^^^^
+...
+665 |     pub fn login_cancel(&self) -> Result<Value, CodexHata> {
+    |            ^^^^^^^^^^^^
+
+warning: field `started` is never read
+ --> src-tauri\tests\..\src\servis.rs:8:43
+  |
+8 | pub struct Runtime { cache: Mutex<Cache>, started: Instant }
+  |            ------- field in this struct   ^^^^^^^
+  |
+  = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `query_github` is never used
+  --> src-tauri\tests\..\src\servis.rs:50:4
+   |
+50 | fn query_github(path: &Path) -> Result<String, String> {
+   |    ^^^^^^^^^^^^
+
+warning: function `servis_panel_open` is never used
+  --> src-tauri\tests\..\src\servis.rs:66:8
+   |
+66 | pub fn servis_panel_open(runtime: tauri::State<Arc<Runtime>>, open: bool) { runtime.panel_open(open); }
+   |        ^^^^^^^^^^^^^^^^^
+
+warning: function `servis_github_refresh` is never used
+  --> src-tauri\tests\..\src\servis.rs:68:14
+   |
+68 | pub async fn servis_github_refresh(runtime: tauri::State<'_, Arc<Runtime>>) -> Result<Option<Pill>, String> {
+   |              ^^^^^^^^^^^^^^^^^^^^^
+
+warning: struct `Runtime` is never constructed
+  --> src-tauri\tests\..\src\bildirim.rs:81:12
+   |
+81 | pub struct Runtime {
+   |            ^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: struct `RuntimeState` is never constructed
+  --> src-tauri\tests\..\src\bildirim.rs:85:8
+   |
+85 | struct RuntimeState { settings: Ayarlar, paused: bool, flow: Akis, protocol: Akis, sounds: HashSet<(String, String, String, String)> }
+   |        ^^^^^^^^^^^^
+
+warning: multiple associated items are never used
+   --> src-tauri\tests\..\src\bildirim.rs:87:12
+    |
+ 86 | impl Runtime {
+    | ------------ associated items in this implementation
+ 87 |     pub fn new(path: std::path::PathBuf, baseline: &serde_json::Value) -> Self {
+    |            ^^^
+...
+ 94 |     pub fn settings(&self) -> Ayarlar { self.inner.lock().unwrap_or_else(|e| e.into_inner()).settings }
+    |            ^^^^^^^^
+ 95 |     pub fn pause(&self, paused: bool) {
+    |            ^^^^^
+...
+ 99 |     pub fn mute(&self, muted: bool) -> Result<Ayarlar, String> {
+    |            ^^^^
+...
+107 |     pub fn snapshot(&self, app: &tauri::AppHandle, value: &serde_json::Value) {
+    |            ^^^^^^^^
+...
+114 |     pub fn protokol(&self, app: &tauri::AppHandle, value: &serde_json::Value) {
+    |            ^^^^^^^^
+...
+128 |     pub fn olay(&self, app: &tauri::AppHandle, agent: &str, task: &str, kind: &str, occurrence: &str) {
+    |            ^^^^
+
+warning: function `deliver` is never used
+   --> src-tauri\tests\..\src\bildirim.rs:138:4
+    |
+138 | fn deliver(app: &tauri::AppHandle, alert: &Bildirim, muted: bool) {
+    |    ^^^^^^^
+
+warning: function `native_toast` is never used
+   --> src-tauri\tests\..\src\bildirim.rs:146:4
+    |
+146 | fn native_toast(message: &str) -> windows::core::Result<()> {
+    |    ^^^^^^^^^^^^
+
+warning: function `play` is never used
+  --> src-tauri\tests\..\src\ses.rs:18:8
+   |
+18 | pub fn play(kind: &str) {
+   |        ^^^^
+
+warning: function `stop` is never used
+  --> src-tauri\tests\..\src\ses.rs:28:8
+   |
+28 | pub fn stop() {
+   |        ^^^^
+
+warning: function `PlaySoundW` is never used
+  --> src-tauri\tests\..\src\ses.rs:16:8
+   |
+16 |     fn PlaySoundW(sound: *const u8, module: *const std::ffi::c_void, flags: u32) -> i32;
+   |        ^^^^^^^^^^
+
+warning: `afunobet-ui` (test "apps_contract") generated 5 warnings
+warning: `afunobet-ui` (test "ilk_kullanim_contract") generated 1 warning
+warning: `afunobet-ui` (test "apps_runtime_contract") generated 28 warnings (4 duplicates)
+warning: `afunobet-ui` (test "hook_kur_contract") generated 3 warnings
+warning: `afunobet-ui` (test "kimlik_contract") generated 4 warnings
+warning: `afunobet-ui` (test "codex_protocol") generated 3 warnings
+warning: `afunobet-ui` (test "servis_contract") generated 4 warnings
+warning: `afunobet-ui` (test "bildirim_contract") generated 8 warnings
+warning: variant `Busy` is never constructed
+  --> src-tauri\tests\..\src\voice\mod.rs:21:5
+   |
+15 | pub enum SesHata {
+   |          ------- variant in this enum
+...
+21 |     Busy,
+   |     ^^^^
+   |
+   = note: `SesHata` has derived impls for the traits `Debug` and `Clone`, but these are intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: fields `motor` and `afu_preferences` are never read
+  --> src-tauri\tests\..\src\voice\mod.rs:42:5
+   |
+40 | pub struct VoiceState {
+   |            ---------- fields in this struct
+41 |     recorder: Arc<Mutex<Option<(u64, capture::Recorder)>>>,
+42 |     motor: Arc<Mutex<Option<whisper::Motor>>>,
+   |     ^^^^^
+...
+49 |     afu_preferences: Mutex<()>,
+   |     ^^^^^^^^^^^^^^^
+
+warning: struct `Supported` is never constructed
+   --> src-tauri\tests\..\src\voice\mod.rs:118:12
+    |
+118 | pub struct Supported {
+    |            ^^^^^^^^^
+
+warning: function `voice_supported` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:125:14
+    |
+125 | pub async fn voice_supported() -> Supported {
+    |              ^^^^^^^^^^^^^^^
+
+warning: function `voice_start` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:141:14
+    |
+141 | pub async fn voice_start(state: State<'_, VoiceState>) -> Result<(), String> {
+    |              ^^^^^^^^^^^
+
+warning: function `voice_stop` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:197:14
+    |
+197 | pub async fn voice_stop(state: State<'_, VoiceState>) -> Result<String, String> {
+    |              ^^^^^^^^^^
+
+warning: function `voice_listen_turn` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:223:14
+    |
+223 | pub async fn voice_listen_turn(state: State<'_, VoiceState>, max_bekleme_ms: usize) -> Result<String, String> {
+    |              ^^^^^^^^^^^^^^^^^
+
+warning: function `voice_cancel` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:267:14
+    |
+267 | pub async fn voice_cancel(state: State<'_, VoiceState>) -> Result<(), String> {
+    |              ^^^^^^^^^^^^
+
+warning: function `voice_silence` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:274:8
+    |
+274 | pub fn voice_silence(state: State<'_, VoiceState>) {
+    |        ^^^^^^^^^^^^^
+
+warning: function `choice_path` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:278:4
+    |
+278 | fn choice_path(app: &tauri::AppHandle) -> Result<std::path::PathBuf, String> {
+    |    ^^^^^^^^^^^
+
+warning: function `voice_choices` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:282:8
+    |
+282 | pub fn voice_choices(app: tauri::AppHandle, state: State<'_, VoiceState>) -> Result<afu::Choice, String> {
+    |        ^^^^^^^^^^^^^
+
+warning: function `voice_choose` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:287:8
+    |
+287 | pub fn voice_choose(app: tauri::AppHandle, state: State<'_, VoiceState>, ses: String, filtre: String) -> Result<afu::Choice, String> {
+    |        ^^^^^^^^^^^^
+
+warning: function `voice_response` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:294:14
+    |
+294 | pub async fn voice_response(app: tauri::AppHandle, state: State<'_, VoiceState>, text: String) -> Result<ResponseResult, String> {
+    |              ^^^^^^^^^^^^^^
+
+warning: function `voice_speak` is never used
+   --> src-tauri\tests\..\src\voice\mod.rs:335:14
+    |
+335 | pub async fn voice_speak(state: State<'_, VoiceState>, text: String) -> Result<(), String> {
+    |              ^^^^^^^^^^^
+
+warning: constant `RATE` is never used
+ --> src-tauri\tests\..\src\voice\capture.rs:9:11
+  |
+9 | pub const RATE: u32 = 16_000;
+  |           ^^^^
+
+warning: constant `START_TIMEOUT` is never used
+  --> src-tauri\tests\..\src\voice\capture.rs:66:7
+   |
+66 | const START_TIMEOUT: Duration = Duration::from_secs(5);
+   |       ^^^^^^^^^^^^^
+
+warning: static `WORKER_ACTIVE` is never used
+  --> src-tauri\tests\..\src\voice\capture.rs:68:8
+   |
+68 | static WORKER_ACTIVE: AtomicBool = AtomicBool::new(false);
+   |        ^^^^^^^^^^^^^
+
+warning: struct `WorkerLease` is never constructed
+  --> src-tauri\tests\..\src\voice\capture.rs:69:8
+   |
+69 | struct WorkerLease;
+   |        ^^^^^^^^^^^
+
+warning: associated function `acquire` is never used
+  --> src-tauri\tests\..\src\voice\capture.rs:71:8
+   |
+70 | impl WorkerLease {
+   | ---------------- associated function in this implementation
+71 |     fn acquire() -> Result<Self, SesHata> {
+   |        ^^^^^^^
+
+warning: associated functions `start_auto`, `start`, `start_cancelled`, and `start_internal` are never used
+   --> src-tauri\tests\..\src\voice\capture.rs:102:12
+    |
+101 | impl Recorder {
+    | ------------- associated functions in this implementation
+102 |     pub fn start_auto(cancelled: Arc<AtomicBool>, esik: f32, sessizlik_ms: usize, bekleme_ms: usize) -> Result<Self, SesHata> {
+    |            ^^^^^^^^^^
+...
+115 |     pub fn start() -> Result<Self, SesHata> {
+    |            ^^^^^
+...
+118 |     pub fn start_cancelled(cancelled: Arc<AtomicBool>) -> Result<Self, SesHata> {
+    |            ^^^^^^^^^^^^^^^
+...
+121 |     fn start_internal(cancelled: Arc<AtomicBool>, auto_stop: Option<(f32, usize, usize)>) -> Result<Self, SesHata> {
+    |        ^^^^^^^^^^^^^^
+
+warning: type alias `Prepared` is never used
+   --> src-tauri\tests\..\src\voice\capture.rs:240:6
+    |
+240 | type Prepared = (cpal::Stream, Arc<Mutex<Vec<f32>>>, Arc<AtomicBool>, u32);
+    |      ^^^^^^^^
+
+warning: function `prepare` is never used
+   --> src-tauri\tests\..\src\voice\capture.rs:241:4
+    |
+241 | fn prepare(cancelled: Arc<AtomicBool>) -> Result<Prepared, SesHata> {
+    |    ^^^^^^^
+
+warning: constant `FALLBACK` is never used
+ --> src-tauri\tests\..\src\voice\afu.rs:5:11
+  |
+5 | pub const FALLBACK: &str = "Afu sesi hazır değil; Windows sesiyle devam ediyorum, daha sonra yeniden dene.";
+  |           ^^^^^^^^
+
+warning: function `tts_supported` is never used
+  --> src-tauri\tests\..\src\voice\winrt.rs:38:8
+   |
+38 | pub fn tts_supported() -> bool {
+   |        ^^^^^^^^^^^^^
+
+warning: `afunobet-ui` (test "voice_backend") generated 24 warnings
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.82s
+     Running unittests src\lib.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\afunobet_ui_lib-fae2f27ee080545b.exe)
+
+running 159 tests
+test apps_runtime::lifecycle_tests::concurrent_start_is_blocked_until_previous_worker_join_finishes ... ok
+test apps_runtime::lifecycle_tests::stop_wakes_parked_worker_and_joins_only_owned_thread ... ok
+test apps_state::tests::bayat_ve_bozuk_durum_yok_sayilir ... ok
+test codex::gercek_codex ... ignored, real ChatGPT inference; requires local login and network
+test codex::tests::auth_only_chatgpt_and_account_scoped_thread ... ok
+test codex::tests::chunked_utf8_and_crlf_frames ... ok
+test codex::tests::correlation_routes_out_of_order_and_errors ... ok
+test codex::tests::eof_releases_all_pending_requests ... ok
+test codex::tests::null_apps_or_mcp_servers_do_not_block_sending ... ok
+test codex::tests::owned_child_shutdown_fixture ... ignored, yalnız hidden owned-child fixture; env yoksa hemen döner
+test codex::tests::rate_limit_filter_drops_identifiers_and_credit_data ... ok
+test codex::tests::shutdown_is_explicit_idempotent_even_when_arc_clone_survives ... ok
+test codex::tests::shutdown_kills_only_owned_hidden_fixture_while_arc_survives ... ok
+test codex::tests::sol_model_response_is_top_level_and_mismatch_never_falls_back ... ok
+test codex::tests::timeout_and_disconnected_are_distinct ... ok
+test disari::tests::kart_icindeki_tik_disari_degil ... ok
+test disari::tests::masaustune_tik_disari_sayilir ... ok
+test disari::tests::negatif_orijinli_monitor ... ok
+test disari::tests::surukle_birak_tiklama_sayilmaz ... ok
+test dpi::tests::a_display_that_cannot_be_enumerated_still_yields_a_usable_placement ... ok
+test dpi::tests::a_window_sized_in_the_wrong_scale_is_detected_and_corrected ... ok
+test dpi::tests::an_unusable_or_missing_scale_never_reports_a_correct_size ... ok
+test dpi::tests::buyutulmus_kart_hedef_masaustlerine_sigar ... ok
+test dpi::tests::farkli_olcek_ve_monitor_orijininde_hesap_tutarli ... ok
+test dpi::tests::invalid_scale_uses_one_instead_of_a_one_pixel_window ... ok
+test dpi::tests::kart_dugme_satiri_metin_olcegi_132_de_adada_kalir ... ok
+test dpi::tests::kart_uzama_sinirlari ... ok
+test dpi::tests::logical_size_becomes_the_matching_physical_size_at_every_windows_scale ... ok
+test dpi::tests::missing_monitor_bounds_still_centre_the_panel ... ok
+test dpi::tests::neither_the_panel_nor_the_wake_strip_ever_lands_in_a_corner ... ok
+test dpi::tests::the_island_hangs_from_the_top_centre_of_the_display ... ok
+test glide::tests::balloon_window_is_clipped_at_the_screen_top_never_below_the_taskbar ... ok
+test glide::tests::cancelled_generation_cannot_move_or_reactivate ... ok
+test glide::tests::drag_keeps_pet_active_but_cancellation_invalidates_its_motion ... ok
+test glide::tests::drag_threshold_is_logical_at_all_dpis ... ok
+test glide::tests::exact_endpoints_and_monotone_descent ... ok
+test glide::tests::fullscreen_hides_pet_only_without_pending_approval ... ok
+test glide::tests::hand_anchor_recomputes_after_a_monitor_dpi_resize ... ok
+test glide::tests::hand_anchor_tracks_cursor_at_all_dpis_and_negative_coordinates ... ok
+test glide::tests::m8_balloon_grows_sideways_and_restores_the_pet_at_every_dpi ... ok
+test glide::tests::pending_approval_starts_false_and_survives_pet_transitions ... ok
+test glide::tests::pet_transition_resets_the_balloon ... ok
+test glide::tests::pet_window_grows_only_upwards_at_every_dpi ... ok
+test glide::tests::return_path_is_ease_out_and_has_exact_endpoints ... ok
+test glide::tests::timing_steps_and_bad_inputs_are_bounded ... ok
+test ipc::tests::ad_kapilmissa_acilmaz_bosalinca_kendiliginden_toparlanir ... ok
+test ipc::tests::buyuk_mesaj_reddedilir_ve_baglanti_kapanir ... ok
+test ipc::tests::cevap_okumayan_istemci_baglanti_yuvasini_bosaltir ... ok
+test ipc::tests::esZamanli_baglanti_siniri_asilinca_fazlasi_kapatilir ... ok
+test ipc::tests::sahte_istemci_json_gonderir_yeni_ajan_tanınir ... ok
+test ipc::tests::sessiz_istemci_zaman_asiminda_kapatilir ... ok
+test ipc::tests::tek_baglantida_coklu_satir_ve_satir_siniri ... ok
+test ipc::tests::yalniz_ayni_kullanici_dacl_ve_baska_kullanici_reddi ... ok
+test ipc::tests::yarim_kalan_istemci_sunucuyu_dusurmez_ve_yeniden_baslatma_sonrasi_baglanilir ... ok
+test island::edge_tests::edge_entry_rearms_only_after_exit_and_suppresses_drag ... ok
+test island::edge_tests::edge_physical_origin_dpi_and_boundaries ... ok
+test island::edge_tests::inactive_poll_returns_without_activation ... ok
+test log::tests::test_log_file_creation ... ok
+test log::tests::test_log_rotation_at_size_limit ... ok
+test log::tests::test_masking_api_keys ... ok
+test log::tests::test_masking_bearer_tokens ... ok
+test log::tests::test_masking_home_dir ... ok
+test log::tests::test_masking_sk_tokens ... ok
+test orkestra::tests::claude_ve_bilinmeyen_ajan_reddedilir ... ok
+test orkestra::tests::proje_klasoru_disari_cikamaz ... ok
+test orkestra::tests::test_build_command_agent ... ok
+test orkestra::tests::test_build_command_otomatik ... ok
+test protokol::tests::alt_ajan_baslat_bitir_ayri_satir ... ok
+test protokol::tests::ana_bitince_acik_alt_ajanlar_biter_ve_bayatlar_duser ... ok
+test protokol::tests::esleme_tablosu_codex_gemini_opencode_claude ... ok
+test protokol::tests::gecersiz_satirlar_reddedilir ... ok
+test protokol::tests::gorev_metni_temizlenir ... ok
+test protokol::tests::hata_metninde_kota_varsa_rate_limit_olur ... ok
+test protokol::tests::liste_en_fazla_64_satir_once_bitmisler_atilir ... ok
+test protokol::tests::ortak_ingilizce_alanlar_kabul_edilir_celiski_reddedilir ... ok
+test protokol::tests::sahte_yeni_ajan_kod_degismeden_gorunur ... ok
+test questions::tests::bekleyenler_cevaplananlari_ve_gecersizleri_atlar_eskiyi_once_verir ... ok
+test questions::tests::bom_kabul_edilir_buyuk_dosya_reddedilir ... ok
+test questions::tests::cevap_dogrulanir_ve_atomik_yazilir ... ok
+test questions::tests::gecerli_soru_okunur_ve_alanlar_tasinir ... ok
+test questions::tests::gizli_bilgi_maskelenir ... ok
+test questions::tests::izleyici_klasor_sonradan_acilsa_da_yeni_soruyu_bildirir ... ok
+test questions::tests::kopru_betiginin_yazdigi_bicim_okunur ... ok
+test questions::tests::serbest_metin_kirpilir_ve_sinirlanir ... ok
+test questions::tests::suresi_gecmis_bozuk_ve_uyumsuz_sorular_reddedilir ... ok
+test questions::tests::uzun_metin_kesilir ... ok
+test settings::tests::false_survives_serialization ... ok
+test settings::tests::missing_or_corrupt_settings_default_on ... ok
+test state::tests::display_fields_cross_readonly_bridge_without_private_paths ... ok
+test state::tests::invalid_shape_duplicate_ids_and_oversized_source_are_rejected ... ok
+test state::tests::malformed_deleted_and_old_version_preserve_last_valid_tasks_with_waiting_message ... ok
+test state::tests::missing_source_does_not_create_a_file ... ok
+test state::tests::ordinary_pause_does_not_invent_a_quota_reason ... ok
+test state::tests::ordinary_titles_and_filenames_containing_port_are_not_filtered ... ok
+test state::tests::quota_cache_crosses_bridge_even_without_jobs_and_claude_is_excluded ... ok
+test state::tests::quota_failure_is_paused_but_old_quota_errors_do_not_override_active_or_completed_tasks ... ok
+test state::tests::recorded_quota_circuit_and_last_error_are_detected_without_crossing_ipc ... ok
+test state::tests::user_text_paths_and_raw_quota_errors_are_sanitized ... ok
+test state::tests::valid_readonly_source_is_read_without_mutation_and_technical_fields_are_dropped ... ok
+test taskbar::tests::absent_start_and_autohide_have_safe_defaults ... ok
+test taskbar::tests::beside_start_and_on_top_of_taskbar ... ok
+test taskbar::tests::every_edge_and_negative_monitor_origin_stays_in_bounds ... ok
+test taskbar::tests::full_screen_rect_comparison ... ok
+test taskbar::tests::pet_size_and_position_respect_work_area_at_each_dpi ... ok
+test taskbar::tests::release_destination_uses_start_and_all_taskbar_edges_at_each_dpi ... ok
+test tray_icon::tests::distinct_statuses ... ok
+test tray_icon::tests::transparent_corners_and_size ... ok
+test voice::afu::tests::cancelled_request_never_starts_worker_or_falls_back ... ok
+test voice::afu::tests::cleanup_keeps_another_process_gpu_lock ... ok
+test voice::afu::tests::interpreter_paths_follow_portable_priority_and_skip_missing_files ... ok
+test voice::afu::tests::missing_interpreter_never_starts_worker ... ok
+test voice::afu::tests::missing_runtime_cannot_read_raw_code_aloud ... ok
+test voice::afu::tests::missing_voice_returns_text_only_notice ... ok
+test voice::afu::tests::selection_survives_restart_and_defaults_are_unchosen ... ok
+test voice::afu::tests::stalled_generation_is_stopped_promptly_and_releases_its_lock ... ok
+test voice::afu::tests::worktree_finds_shared_interpreter ... ok
+test voice::capture::tests::auto_stop_tamamlanan_kaydi_iptal_etmez ... ok
+test voice::capture::tests::ayni_oran_degismez ... ok
+test voice::capture::tests::baslangic_hazirligi_zaman_asimi_sinirlidir ... ok
+test voice::capture::tests::bozuk_giris_guvenli ... ok
+test voice::capture::tests::cumle_bitti_mi_calisir ... ok
+test voice::capture::tests::drop_iptal_sinyali_gonderir_worker_kaynagi_birakir ... ok
+test voice::capture::tests::drop_takilan_surucuyu_beklemez ... ok
+test voice::capture::tests::kayit_tavana_ulastiginda_buyumez ... ok
+test voice::capture::tests::kisa_duraklama_yeni_konusmada_sifirlanir ... ok
+test voice::capture::tests::sessizlik_konusma_olmadan_cumleyi_bitirmez ... ok
+test voice::capture::tests::stereo_mono_ortalama ... ok
+test voice::capture::tests::stop_worker_sonucunu_alir_ve_kaynak_birakilir ... ok
+test voice::capture::tests::takilan_worker_stop_beklemesi_sinirlidir ... ok
+test voice::capture::tests::yeniden_ornekleme_uzunlugu ... ok
+test voice::tests::gecikmis_iptal_yeni_kaydin_sinyalini_degistirmez ... ok
+test voice::tests::shutdown_diger_kilitleri_beklemez ... ok
+test voice::tests::shutdown_iptal_eder_ve_idempotenttir ... ok
+test voice::tests::shutdown_kilit_acilinca_gecikmis_iptali_tamamlar ... ok
+test voice::tests::shutdown_signals_afu_playback_without_waiting_for_speech ... ok
+test voice::tests::yerel_model_oncelikli_yoksa_anlamli_hata_doner ... ok
+test voice::whisper::tests::cok_kisa_ses_model_gerekmeden_ayirt_edilir ... ok
+test voice::whisper::tests::model_yoksa_tek_cumle_hata ... ok
+test voice::whisper::tests::turkce_ornek_ses_cevrilir ... ignored, yalnız güvenli örnek WAV ve yerel model ile
+test voice::winrt::tests::bos_metin_hoparlor_acmaz ... ok
+test voice::winrt::tests::iptal_edilmis_istek_sentez_baslatmaz ... ok
+test voice::winrt::tests::turkce_ses_varsa_varsayilandan_once_secilir ... ok
+test voice::winrt::tests::turkce_yoksa_windows_varsayilan_sesi_kullanilir ... ok
+test voice::winrt::tests::uzun_metin_hoparlor_acmadan_reddedilir ... ok
+test voice::winrt::tests::windows_yedegi_paket_kimligi_ve_turkce_dikte_ister ... ok
+test watch::tests::atomic_publication_and_existing_file_replace_are_observed ... ok
+test watch::tests::deleted_parent_is_recreated_and_new_atomic_snapshot_is_observed ... ok
+test watch::tests::idle_watch_never_produces_a_timer_read ... ok
+test watch::tests::partial_publication_retries_once_and_recovers_without_restart ... ok
+test yaslanma::tests::alt_cubukta_baslatin_yanina_yaslanir ... ok
+test yaslanma::tests::bozuk_calisma_alani_ve_kucuk_ekran_tasmaz ... ok
+test yaslanma::tests::cubuk_hic_yoksa_ekranin_en_altinda ... ok
+test yaslanma::tests::her_durumda_ekrandan_tasmaz ... ok
+test yaslanma::tests::ikinci_monitor_negatif_koordinatta_ana_cubugu_kullanmaz ... ok
+test yaslanma::tests::ikinci_monitorun_kendi_cubugu_varsa_ustunde_durur ... ok
+test yaslanma::tests::otomatik_gizli_cubukta_en_altta_baslat_hizasinda ... ok
+test yaslanma::tests::soldaki_ve_sagdaki_cubukta_ekranin_en_altina_iner ... ok
+test yaslanma::tests::ustteki_cubukta_ekranin_en_altina_iner ... ok
+test yaslanma::tests::yuzde_150_olcekte_alt_kenar_ve_sinirlar_dogru ... ok
+
+test result: ok. 156 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 5.69s
+
+     Running unittests src\main.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\afunobet_ui-f534b0e45189a255.exe)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\apps_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\apps_contract-b788eae65be6d49e.exe)
+
+running 35 tests
+test acma_hatasi_insan_mesajina_donusur ... ok
+test apps_state::tests::bayat_ve_bozuk_durum_yok_sayilir ... ok
+test asiri_buyuk_dosya_okunmaz ... ok
+test bayat_gelecek_ve_kimlik_uyusmazligi_yok_sayilir ... ok
+test bilinmeyen_kimligin_varsayilan_indir_url_yok ... ok
+test bos_yanlis_tur_ve_yinelenen_kimlik_atlanir ... ok
+test bozuk_bilinmeyen_ve_eksik_durum_reddedilir ... ok
+test bozuk_json_ve_dizi_olmayan_bos_kayit_uretir ... ok
+test bozuk_satir_gecerli_komsulari_kaybettirmez ... ok
+test cok_parcali_surumlar_sayisal_ve_deterministik ... ok
+test desen_yol_kacisi_ve_eksik_kok_reddedilir ... ok
+test dto_salt_okur_taze_durumla_birlesir ... ok
+test eski_bicim_kayit_indir_url_varsayilandan_doldurulur ... ok
+test exe_olmayan_eksik_dizin_ve_argumanli_yol_hic_acilmaz ... ok
+test github_disi_indir_url_filtrelenir_varsayilana_dusmez ... ok
+test gizli_bilgi_isaretleri_ve_eposta_ozetten_reddedilir ... ok
+test gizli_bilgi_suzgeci_siradan_turkce_insan_metnini_korur ... ok
+test iso_tarih_araligi_ve_bicimi_kati_dogrulanir ... ok
+test kayit_sadece_eksikse_ve_kok_biliniyorsa_olusturulur ... ok
+test login_url_tam_ayristirilir_ve_yalniz_guvenilen_otoriteyi_kabul_eder ... ok
+test mevcut_bozuk_kayit_ezilmez_ve_okuyucu_sinirlidir ... ok
+test okuyucu_salt_okur_ve_dosya_kimligini_denetler ... ok
+test proje_junction_kok_disina_kacis_reddedilir ... ok
+test proje_yalniz_kok_icindeki_dogrudan_klasor_olabilir ... ok
+test sayisal_surum_ve_mevcut_exe_secilir ... ok
+test ses_ayarlari_yalniz_sabit_hedefleri_kabul_eder ... ok
+test studyo_yalniz_sabit_mevcut_dosyayi_acar ... ok
+test takvim_tasma_hatasi_tazelik_kontrolunun_arkasina_saklanmaz ... ok
+test taze_durum_ve_bes_dakika_siniri_okunur ... ok
+test teknik_ve_kontrol_metni_ana_uiya_gecmez ... ok
+test teknik_yol_gizli_surucu_ve_ipv6_ozette_gosterilmez ... ok
+test tum_durumlar_ve_negatif_ofset_desteklenir ... ok
+test turkce_ozet_karakterle_sinirlanir_baytla_degil ... ok
+test varsayilan_kayit_padkopru_indir_url_icerir ... ok
+test yalniz_kayitli_mevcut_exe_parametresiz_kanala_ulastirilir ... ok
+
+test result: ok. 35 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.19s
+
+     Running tests\apps_runtime_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\apps_runtime_contract-618779b17e77d64b.exe)
+
+running 12 tests
+test apps_runtime::lifecycle_tests::concurrent_start_is_blocked_until_previous_worker_join_finishes ... ok
+test apps_runtime::lifecycle_tests::stop_wakes_parked_worker_and_joins_only_owned_thread ... ok
+test apps_state::tests::bayat_ve_bozuk_durum_yok_sayilir ... ok
+test no_status_means_no_timer_stale_transition_stops_timer ... ok
+test popup_bad_scale_uses_safe_default ... ok
+test popup_bottom_anchor_and_center_preserved ... ok
+test popup_negative_monitor_and_dpi_clamps ... ok
+test registry_rebind_watches_new_status_and_ignores_removed_status ... ok
+test runtime_stop_without_start_is_idempotent ... ok
+test saved_popup_geometry_is_not_overwritten_by_repeat_open ... ok
+test watcher_idle_has_no_poll_and_registry_write_wakes ... ok
+test watcher_missing_status_parent_creation_is_observed ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.34s
+
+     Running tests\bildirim_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\bildirim_contract-16b5e303bd0d3280.exe)
+
+running 9 tests
+test a_new_turn_can_notify_even_when_intermediate_snapshots_were_missed ... ok
+test event_sound_mapping_uses_only_embedded_valid_cues ... ok
+test important_events_map_to_safe_short_messages_and_distinct_sounds ... ok
+test live_start_and_reconnect_cues_never_replay_on_identical_snapshots ... ok
+test mute_survives_reload_in_a_test_directory ... ok
+test notification_ids_survive_serialization_without_tuple_collisions ... ok
+test same_event_never_repeats_but_a_new_turn_and_agent_can_notify ... ok
+test six_wav_cues_are_short_valid_and_different ... ok
+test snapshot_baseline_is_silent_and_only_live_important_transitions_notify ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\codex_protocol.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\codex_protocol-a6a688252d0b9c2b.exe)
+
+running 24 tests
+test codex::gercek_codex ... ignored, real ChatGPT inference; requires local login and network
+test codex::tests::auth_only_chatgpt_and_account_scoped_thread ... ok
+test codex::tests::chunked_utf8_and_crlf_frames ... ok
+test codex::tests::correlation_routes_out_of_order_and_errors ... ok
+test codex::tests::eof_releases_all_pending_requests ... ok
+test codex::tests::null_apps_or_mcp_servers_do_not_block_sending ... ok
+test codex::tests::owned_child_shutdown_fixture ... ignored, yalnız hidden owned-child fixture; env yoksa hemen döner
+test codex::tests::rate_limit_filter_drops_identifiers_and_credit_data ... ok
+test codex::tests::shutdown_is_explicit_idempotent_even_when_arc_clone_survives ... ok
+test codex::tests::shutdown_kills_only_owned_hidden_fixture_while_arc_survives ... ok
+test codex::tests::sol_model_response_is_top_level_and_mismatch_never_falls_back ... ok
+test codex::tests::timeout_and_disconnected_are_distinct ... ok
+test dotted_mcp_names_are_kept_as_literal_table_keys ... ok
+test eof_error_is_correlated_before_active_ids_are_cleared ... ok
+test failed_or_malformed_config_is_fail_closed_before_thread_start ... ok
+test inherited_mcp_and_apps_are_disabled_in_all_effective_layers ... ok
+test live_voice_reply ... ignored, requires a real ChatGPT login and network outside the command sandbox
+test oversized_and_invalid_frames_fail_closed ... ok
+test partial_and_multiple_frames ... ok
+test process_flags_disable_tools_before_any_thread ... ok
+test readonly_and_input_validation ... ok
+test safe_status_and_notification ... ok
+test stream_events_keep_correlation_but_drop_private_fields ... ok
+test thread_start_uses_only_stable_local_protocol_fields ... ok
+
+test result: ok. 21 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests\config.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\config-63038721891d81ce.exe)
+
+running 1 test
+test island_window_is_transparent_non_focusing_and_outside_taskbar ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\hook_kur_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\hook_kur_contract-cfc739770f6fce28.exe)
+
+running 5 tests
+test bayat_diff_ve_bozuk_json_yazilmaz ... ok
+test gecersiz_onizleme_ayar_dosyasini_degistirmez ... ok
+test kur_kaldir_yabanci_kayitlari_korur_ve_yedekler ... ok
+test kurulum_tekrari_tek_kayit_yapar ... ok
+test yalniz_isaretli_tam_afu_kaydi_kaldirilir ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.05s
+
+     Running tests\ilk_kullanim_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\ilk_kullanim_contract-b8c7c35dc03482b6.exe)
+
+running 2 tests
+test concurrent_startups_only_claim_one_hint ... ok
+test first_launch_flag_survives_restart_and_is_scoped_to_app_data ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests\kimlik_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\kimlik_contract-725c7032ddc1069f.exe)
+
+running 2 tests
+test anahtar_yalniz_kasada_ve_afu_ad_alaninda ... ok
+test gecersiz_isim_ve_bos_sir_kasaya_ulasmaz ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\servis_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\servis_contract-7f33bfdb5bdbcb31.exe)
+
+running 4 tests
+test closed_panel_never_requests_github ... ok
+test gh_command_uses_read_only_latest_run_without_shell ... ok
+test open_panel_refreshes_and_throttles_then_close_stops ... ok
+test unavailable_run_is_unknown_and_unsafe_link_is_hidden ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\tray_system_contract.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\tray_system_contract-13366f3b1438df83.exe)
+
+running 1 test
+test tray_has_four_single_click_actions_and_restores_window_natively ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests\voice_backend.rs (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\debug\deps\voice_backend-b3654d59d45db168.exe)
+
+running 40 tests
+test afu_5b_existing_proof ... ignored, requires an existing 5b proof directory and local Whisper model
+test afu_5b_roundtrip ... ignored, requires the installed offline Afu voice and Whisper models
+test voice::afu::tests::cancelled_request_never_starts_worker_or_falls_back ... ok
+test voice::afu::tests::cleanup_keeps_another_process_gpu_lock ... ok
+test voice::afu::tests::interpreter_paths_follow_portable_priority_and_skip_missing_files ... ok
+test voice::afu::tests::missing_interpreter_never_starts_worker ... ok
+test voice::afu::tests::missing_runtime_cannot_read_raw_code_aloud ... ok
+test voice::afu::tests::missing_voice_returns_text_only_notice ... ok
+test voice::afu::tests::selection_survives_restart_and_defaults_are_unchosen ... ok
+test voice::afu::tests::stalled_generation_is_stopped_promptly_and_releases_its_lock ... ok
+test voice::afu::tests::worktree_finds_shared_interpreter ... ok
+test voice::capture::tests::auto_stop_tamamlanan_kaydi_iptal_etmez ... ok
+test voice::capture::tests::ayni_oran_degismez ... ok
+test voice::capture::tests::baslangic_hazirligi_zaman_asimi_sinirlidir ... ok
+test voice::capture::tests::bozuk_giris_guvenli ... ok
+test voice::capture::tests::cumle_bitti_mi_calisir ... ok
+test voice::capture::tests::drop_iptal_sinyali_gonderir_worker_kaynagi_birakir ... ok
+test voice::capture::tests::drop_takilan_surucuyu_beklemez ... ok
+test voice::capture::tests::kayit_tavana_ulastiginda_buyumez ... ok
+test voice::capture::tests::kisa_duraklama_yeni_konusmada_sifirlanir ... ok
+test voice::capture::tests::sessizlik_konusma_olmadan_cumleyi_bitirmez ... ok
+test voice::capture::tests::stereo_mono_ortalama ... ok
+test voice::capture::tests::stop_worker_sonucunu_alir_ve_kaynak_birakilir ... ok
+test voice::capture::tests::takilan_worker_stop_beklemesi_sinirlidir ... ok
+test voice::capture::tests::yeniden_ornekleme_uzunlugu ... ok
+test voice::tests::gecikmis_iptal_yeni_kaydin_sinyalini_degistirmez ... ok
+test voice::tests::shutdown_diger_kilitleri_beklemez ... ok
+test voice::tests::shutdown_iptal_eder_ve_idempotenttir ... ok
+test voice::tests::shutdown_kilit_acilinca_gecikmis_iptali_tamamlar ... ok
+test voice::tests::shutdown_signals_afu_playback_without_waiting_for_speech ... ok
+test voice::tests::yerel_model_oncelikli_yoksa_anlamli_hata_doner ... ok
+test voice::whisper::tests::cok_kisa_ses_model_gerekmeden_ayirt_edilir ... ok
+test voice::whisper::tests::model_yoksa_tek_cumle_hata ... ok
+test voice::whisper::tests::turkce_ornek_ses_cevrilir ... ignored, yalnız güvenli örnek WAV ve yerel model ile
+test voice::winrt::tests::bos_metin_hoparlor_acmaz ... ok
+test voice::winrt::tests::iptal_edilmis_istek_sentez_baslatmaz ... ok
+test voice::winrt::tests::turkce_ses_varsa_varsayilandan_once_secilir ... ok
+test voice::winrt::tests::turkce_yoksa_windows_varsayilan_sesi_kullanilir ... ok
+test voice::winrt::tests::uzun_metin_hoparlor_acmadan_reddedilir ... ok
+test voice::winrt::tests::windows_yedegi_paket_kimligi_ve_turkce_dikte_ister ... ok
+
+test result: ok. 37 passed; 0 failed; 3 ignored; 0 measured; 0 filtered out; finished in 2.24s
+
+   Doc-tests afunobet_ui_lib
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+

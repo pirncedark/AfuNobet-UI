@@ -1,0 +1,13 @@
+{
+  "shortcut": "C:\\Users\\afuuu\\Desktop\\AfuNobet UI.lnk",
+  "shortcutTarget": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\dist\\afunobet-ui-20261004-083716.exe",
+  "windowsSmokeTest": "UNVERIFIED",
+  "source": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\windows\\target\\release\\afunobet-ui.exe",
+  "output": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\dist\\afunobet-ui-20261004-083716.exe",
+  "commit": "-",
+  "size": 36878336,
+  "sha256": "7D407AB2C0CCD14AEB5EB3FB3DE49203654448137FBECA0366E32BFD84B4BCB6",
+  "created": "2026-10-04T08:37:16.9370116+03:00",
+  "feature": "edge-wake-content-width",
+  "previousShortcutTarget": "C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI\\dist\\afunobet-ui-20261004-033530.exe"
+}

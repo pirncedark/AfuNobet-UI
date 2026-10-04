@@ -1,0 +1,815 @@
+[
+  {
+    "path": "afu-character\\pet\\akis_bekleme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\akis_gorunme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\akis_kuculme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\akis_normal.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\akis_suzulme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\akis_tutunma.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_bakis.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_dusunme.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_etkilesim.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_goz_kirpma.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_idle.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_mutlu.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_saskin.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\durum_uyku.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\gecis_kayma.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\gecis_kompakt.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\idle_goz_acilis.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\idle_goz_kapali.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\idle_nefes.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\idle_normal.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\idle_sag.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\idle_sol.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\kesim-kontrol.png",
+    "size": [
+      1280,
+      925
+    ],
+    "mode": "RGB",
+    "alpha_range": null
+  },
+  {
+    "path": "afu-character\\pet\\ozel_bas_donmesi.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\ozel_dosya_tut.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\ozel_dosya_yakala.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\ozel_sessiz.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\ozel_veda.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\ozel_yogun.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\simge.png",
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_basari.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_dinleme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_dusunme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_goz_kirpma.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_hata.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_konusma.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_mutlu.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_uyari.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\tepki_uyku.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\uyan_dikkat.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\uyan_gizli.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\uyan_gozukme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\uyan_tam.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\uyan_yukselme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\pet\\uyan_yuzme.png",
+    "size": [
+      517,
+      460
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\basari.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\bekleme_kota.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\calisiyor.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\dinleme.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\dusunme.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\hata.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\idle.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\konusma.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\kart\\selam.png",
+    "size": [
+      372,
+      415
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\bas_donmesi.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\kalp.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\konusma_balonu.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\parilti.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\ses_dalgasi.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\soru.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\tik.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\unlem.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\efekt\\uyku_z.png",
+    "size": [
+      350,
+      338
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\simge\\durum_16.png",
+    "size": [
+      16,
+      16
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\simge\\durum_32.png",
+    "size": [
+      32,
+      32
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\simge\\durum_64.png",
+    "size": [
+      64,
+      64
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\simge\\simge_kaynak.png",
+    "size": [
+      377,
+      334
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  },
+  {
+    "path": "afu-character\\simge\\uygulama_256.png",
+    "size": [
+      256,
+      256
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ]
+  }
+]

@@ -1,0 +1,157 @@
+        Info Looking up installed tauri packages to check mismatched versions...
+     Running beforeBuildCommand `npm run build`
+
+> afunobet-ui@0.1.1 build
+> tsc --noEmit && vite build --configLoader runner
+
+vite v6.4.3 building for production...
+transforming...
+✓ 58 modules transformed.
+[plugin vite:reporter] 
+(!) C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows/node_modules/@tauri-apps/api/window.js is dynamically imported by C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows/src/core/bridge.ts but also statically imported by C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows/node_modules/@tauri-apps/api/webview.js, C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows/node_modules/@tauri-apps/api/webviewWindow.js, C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows/src/island/island.ts, C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows/src/message/notifications.ts, dynamic import will not move module into another chunk.
+
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:  0.28 kB
+dist/assets/index-Df3NFd85.css   45.32 kB │ gzip:  9.65 kB
+dist/assets/index-BATM4BDn.js   202.17 kB │ gzip: 64.56 kB
+✓ built in 726ms
+   Compiling afunobet-ui v0.1.1 (C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\src-tauri)
+warning: variable does not need to be mutable
+   --> src-tauri\src\glide.rs:302:17
+    |
+302 |             let mut guard = runtime.signal.lock().unwrap();
+    |                 ----^^^^^
+    |                 |
+    |                 help: remove this `mut`
+    |
+    = note: `#[warn(unused_mut)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `pencere_mantiksal` is never used
+  --> src-tauri\src\dpi.rs:75:8
+   |
+75 | pub fn pencere_mantiksal(cursor: (f64, f64), origin: (i32, i32), scale: f64) -> (f64, f64) {
+   |        ^^^^^^^^^^^^^^^^^
+   |
+   = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: function `adada` is never used
+  --> src-tauri\src\dpi.rs:78:8
+   |
+78 | pub fn adada(p: (f64, f64), r: (f64, f64, f64, f64)) -> bool {
+   |        ^^^^^
+
+warning: constant `STRIP_W` is never used
+  --> src-tauri\src\island.rs:30:11
+   |
+30 | pub const STRIP_W: f64 = 240.0;
+   |           ^^^^^^^
+
+warning: constant `STRIP_H` is never used
+  --> src-tauri\src\island.rs:31:11
+   |
+31 | pub const STRIP_H: f64 = 6.0;
+   |           ^^^^^^^
+
+warning: function `apply_geometry` is never used
+   --> src-tauri\src\island.rs:206:8
+    |
+206 | pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
+    |        ^^^^^^^^^^^^^^
+
+warning: function `surum` is never used
+  --> src-tauri\src\apps.rs:76:4
+   |
+76 | fn surum(ad: &str) -> Option<Vec<u64>> {
+   |    ^^^^^
+
+warning: function `surum_karsilastir` is never used
+  --> src-tauri\src\apps.rs:92:4
+   |
+92 | fn surum_karsilastir(a: &[u64], b: &[u64]) -> Ordering {
+   |    ^^^^^^^^^^^^^^^^^
+
+warning: function `bul_en_yeni` is never used
+   --> src-tauri\src\apps.rs:103:8
+    |
+103 | pub fn bul_en_yeni(kok: &Path, desen: &str) -> Option<PathBuf> {
+    |        ^^^^^^^^^^^
+
+warning: function `oku` is never used
+   --> src-tauri\src\apps_state.rs:257:8
+    |
+257 | pub fn oku(yol: &Path, simdi: SystemTime) -> Option<AppDurum> {
+    |        ^^^
+
+warning: function `thread_params` is never used
+   --> src-tauri\src\codex.rs:286:8
+    |
+286 | pub fn thread_params(cwd: &Path) -> Value {
+    |        ^^^^^^^^^^^^^
+
+warning: associated function `start` is never used
+   --> src-tauri\src\voice\capture.rs:115:12
+    |
+101 | impl Recorder {
+    | ------------- associated function in this implementation
+...
+115 |     pub fn start() -> Result<Self, SesHata> {
+    |            ^^^^^
+
+warning: function `stt_ready_policy` is never used
+  --> src-tauri\src\voice\winrt.rs:35:4
+   |
+35 | fn stt_ready_policy(identity: bool, languages: &[String]) -> bool {
+   |    ^^^^^^^^^^^^^^^^
+
+warning: function `konus` is never used
+  --> src-tauri\src\voice\winrt.rs:65:8
+   |
+65 | pub fn konus(metin: &str) -> Result<(), SesHata> {
+   |        ^^^^^
+
+warning: fields `is`, `hazir`, and `yeniden_kurulum` are never read
+   --> src-tauri\src\ipc.rs:304:5
+    |
+302 | pub struct Sunucu {
+    |            ------ fields in this struct
+303 |     dur: Arc<AtomicBool>,
+304 |     is: Option<std::thread::JoinHandle<()>>,
+    |     ^^
+305 |     pub hazir: Arc<AtomicBool>,
+    |         ^^^^^
+306 |     pub yeniden_kurulum: Arc<AtomicUsize>,
+    |         ^^^^^^^^^^^^^^^
+
+warning: method `durdur` is never used
+   --> src-tauri\src\ipc.rs:309:12
+    |
+308 | impl Sunucu {
+    | ----------- method in this implementation
+309 |     pub fn durdur(mut self) {
+    |            ^^^^^^
+
+warning: unused `BOOL` that must be used
+   --> src-tauri\src\lib.rs:479:25
+    |
+479 | /                         windows::Win32::UI::Shell::SetWindowSubclass(
+480 | |                             windows::Win32::Foundation::HWND(hwnd.0 as *mut _),
+481 | |                             Some(mouse_activate_subclass),
+482 | |                             0,
+483 | |                             0,
+484 | |                         );
+    | |_________________________^
+    |
+    = note: `#[warn(unused_must_use)]` (part of `#[warn(unused)]`) on by default
+help: use `let _ = ...` to ignore the resulting value
+    |
+479 |                         let _ = windows::Win32::UI::Shell::SetWindowSubclass(
+    |                         +++++++
+
+warning: linker stdout: C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\release\deps\afunobet_ui_lib.dll.lib kitaplığı ve C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\release\deps\afunobet_ui_lib.dll.exp nesnesi oluşturuluyor
+  |
+  = note: `#[warn(linker_messages)]` on by default
+
+warning: `afunobet-ui` (lib) generated 18 warnings (run `cargo fix --lib -p afunobet-ui` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 1m 51s
+       Built application at: C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\windows\target\release\afunobet-ui.exe
