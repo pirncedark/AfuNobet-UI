@@ -1,33 +1,39 @@
-// Island open/close FSM — port of IslandStateMachine.swift.
+// Island open/close FSM â€” port of IslandStateMachine.swift.
 // No DOM, no Tauri: it only reports transitions.
 
-export type FsmState = "hidden" | "petit" | "home" | "coucou";
+export type FsmState = "hidden" | "petit" | "home" | "greeting" | "pet" | "tray";
 
 export class IslandStateMachine {
+  petEnabled = true;
   state: FsmState = "hidden";
 
   onTransition: ((from: FsmState, to: FsmState) => void) | null = null;
 
-  /** home → petit delay, seconds. */
+  /** home â†’ petit delay, seconds. */
   homeToPetitDelay = 15;
-  /** petit → hidden delay, seconds. */
+  /** petit â†’ hidden delay, seconds. */
   petitToHiddenDelay = 60;
-  /** coucou → petit once the greeting animation ends (no hover). */
+  /** greeting â†’ petit once the greeting animation ends (no hover). */
   greetAutoCollapseDelay = 0.6;
-  /** coucou → petit while the mouse hovers the greeting. */
+  /** greeting â†’ petit while the mouse hovers the greeting. */
   greetHoverCollapseDelay = 10;
   /** An alert waiting for an answer stays open, even when the mouse leaves. */
-  pinned = false;
+  private isPinned = false;
+  get pinned() { return this.isPinned; }
+  set pinned(value: boolean) {
+    this.isPinned = value;
+    if (value) this.clear("homeCollapse");
+  }
 
   private petitHide: number | null = null;
   private homeCollapse: number | null = null;
   private greetCollapse: number | null = null;
 
-  // ── Inputs ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Inputs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   launch() {
     this.cancelTimers();
-    this.transition("coucou");
+    this.transition("greeting");
   }
 
   mouseEntered() {
@@ -42,7 +48,7 @@ export class IslandStateMachine {
       case "home":
         this.clear("homeCollapse");
         break;
-      case "coucou":
+      case "greeting":
         this.scheduleGreetCollapse(this.greetHoverCollapseDelay);
         break;
     }
@@ -58,7 +64,7 @@ export class IslandStateMachine {
       case "home":
         this.scheduleHomeCollapse();
         break;
-      case "coucou":
+      case "greeting":
         this.clear("greetCollapse");
         this.transition("petit");
         break;
@@ -66,6 +72,8 @@ export class IslandStateMachine {
   }
 
   click() {
+    if (this.state === "tray") { this.trayClick(); return; }
+    if (this.state === "pet") { this.fromPet(); return; }
     if (this.state !== "petit") return;
     this.cancelTimers();
     this.transition("home");
@@ -73,7 +81,7 @@ export class IslandStateMachine {
 
   /** Greeting animation finished (T.end). Doesn't override a running hover timer. */
   greetComplete() {
-    if (this.state !== "coucou") return;
+    if (this.state !== "greeting") return;
     if (this.greetCollapse == null) this.scheduleGreetCollapse(this.greetAutoCollapseDelay);
   }
 
@@ -101,8 +109,26 @@ export class IslandStateMachine {
     this.cancelTimers();
     this.transition("hidden");
   }
+  private beforeMessage: { state: FsmState; pinned: boolean } | null = null;
+  messageOpened() {
+    this.beforeMessage ??= { state: this.state, pinned: this.pinned };
+    this.pinned = true;
+    if (this.state === "pet") this.cancelTimers(); else this.forceHome();
+  }
+  messageClosed() {
+    const previous = this.beforeMessage; this.beforeMessage = null;
+    if (!previous) return;
+    this.cancelTimers(); this.pinned = previous.pinned; this.transition(previous.state);
+    if (previous.state === "petit") this.schedulePetitHide();
+    if (previous.state === "home") this.scheduleHomeCollapse();
+    if (previous.state === "greeting") this.scheduleGreetCollapse(this.greetAutoCollapseDelay);
+  }
+  toPet() { this.cancelTimers(); this.transition("pet"); }
+  fromPet() { this.isPinned = false; this.forceHome(); }
+  collapse() { this.isPinned = false; this.cancelTimers(); this.transition(this.petEnabled ? "pet" : "tray"); }
+  trayClick() { this.isPinned = false; this.forceHome(); }
 
-  // ── Timers ──────────────────────────────────────────────────────────────────
+  // â”€â”€ Timers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private schedulePetitHide() {
     this.clear("petitHide");
@@ -117,7 +143,7 @@ export class IslandStateMachine {
     if (this.pinned) return;
     this.homeCollapse = window.setTimeout(() => {
       this.homeCollapse = null;
-      if (this.state === "home") this.transition("petit");
+      if (this.state === "home") this.collapse();
     }, this.homeToPetitDelay * 1000);
   }
 
@@ -125,7 +151,7 @@ export class IslandStateMachine {
     this.clear("greetCollapse");
     this.greetCollapse = window.setTimeout(() => {
       this.greetCollapse = null;
-      if (this.state === "coucou") this.transition("petit");
+      if (this.state === "greeting") this.transition("petit");
     }, delay * 1000);
   }
 
@@ -148,3 +174,4 @@ export class IslandStateMachine {
     this.onTransition?.(from, next);
   }
 }
+

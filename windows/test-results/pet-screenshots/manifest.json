@@ -1,0 +1,54 @@
+{
+  "headless": true,
+  "nativeWindowsSmokeVerified": false,
+  "proofs": [
+    {
+      "pose": "bekleme",
+      "visible": true,
+      "frame": "/afu/pet/idle_normal.webp",
+      "width": 128,
+      "height": 128,
+      "file": "bekleme.png"
+    },
+    {
+      "pose": "uyari",
+      "visible": true,
+      "frame": "/afu/pet/tepki_uyari.webp",
+      "width": 128,
+      "height": 128,
+      "file": "uyari.png"
+    },
+    {
+      "pose": "hata",
+      "visible": true,
+      "frame": "/afu/pet/tepki_hata.webp",
+      "width": 128,
+      "height": 128,
+      "file": "hata.png"
+    },
+    {
+      "pose": "basari",
+      "visible": true,
+      "frame": "/afu/pet/tepki_basari.webp",
+      "width": 128,
+      "height": 128,
+      "file": "basari.png"
+    },
+    {
+      "pose": "uyku",
+      "visible": true,
+      "frame": "/afu/pet/tepki_uyku.webp",
+      "width": 128,
+      "height": 128,
+      "file": "uyku.png"
+    },
+    {
+      "pose": "yuzme",
+      "visible": true,
+      "frame": "/afu/pet/uyan_yuzme.webp",
+      "width": 128,
+      "height": 128,
+      "file": "yuzme.png"
+    }
+  ]
+}

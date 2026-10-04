@@ -1,0 +1,24 @@
+........................................................................ [ 24%]
+........................................................................ [ 48%]
+........................................................................ [ 72%]
+...................................................................F.... [ 97%]
+........                                                                 [100%]
+================================== FAILURES ===================================
+____________ test_island_rs_is_byte_identical_to_recovery_baseline ____________
+
+    def test_island_rs_is_byte_identical_to_recovery_baseline():
+        # CLAUDE.md: island.rs stays byte-for-byte unchanged. Other sources evolve with
+        # new features; kurtarma_source_hashes.json remains coverage evidence only.
+        # Line endings are normalised so a CRLF checkout (core.autocrlf) does not fail.
+        hashes = json.loads((ROOT / "docs/kanit/kurtarma_source_hashes.json").read_text(encoding="utf-8"))
+        data = (ROOT / "windows/src-tauri/src/island.rs").read_bytes().replace(b"\r\n", b"\n")
+>       assert hashlib.sha256(data).hexdigest() == hashes["windows/src-tauri/src/island.rs"]
+E       AssertionError: assert 'fbb8e8a5d6f0...d8138f6448cbf' == '23a1430f865a...617a2e7b79791'
+E         
+E         - 23a1430f865ae86139dac3b3b68dc6ca6cdb1acb5e8a7392749617a2e7b79791
+E         + fbb8e8a5d6f0bb649fdf31e55703908f44f725053f27c269185d8138f6448cbf
+
+tests\test_tum_ozellik_sozlesme.py:106: AssertionError
+=========================== short test summary info ===========================
+FAILED tests/test_tum_ozellik_sozlesme.py::test_island_rs_is_byte_identical_to_recovery_baseline
+1 failed, 295 passed in 23.06s

@@ -1,28 +1,25 @@
-# Coucou — name, character and artwork
+﻿# Asset licensing and provenance
 
-Copyright (c) 2026 Louis Raillé. All rights reserved, except as stated below.
+The original MIT LICENSE and copyright notice for Louis Raillé remain unchanged.
+The code derives from Louis-CFM/coucou; attribution is also retained in README
+and AFU_CHANGES.md.
 
-The [MIT License](LICENSE) covers the **source code** of Coucou. It does **not** cover the brand and the artwork listed here, which remain the property of Louis Raillé:
+All upstream Coucou and Mochi character assets, tray icons, audio, promotional
+media, screenshots, design prototypes and NotchBuddy resources were removed.
+None are inputs to the AfuNobet-UI production build.
 
-- the names **“Coucou”** and **“Mochi”**;
-- the **Mochi character** — its design, look, expressions and animations as a character;
-- the **app icon** and **menu bar icon** (`NotchBuddy/Assets.xcassets/`);
-- the **sounds** (`NotchBuddy/Resources/sounds/`);
-- the **images, GIFs and videos** in `docs/media/` and `design/`.
+afu-character/REFERANS.png is the official Afu character reference supplied by
+the user for this task. Its six transparent character cutouts preserve the
+source RGB pixels; no new face, brain structure, clothing or color was drawn.
+The cut manifest and inspection sheet are in afu-character/. The public image
+copies and application icons are derived from those cutouts.
 
-## What you can do
+The user-supplied character artwork is not automatically relicensed under the
+upstream MIT code license. Artwork usage rights remain with its owner or the
+party supplying the reference. This document does not assert additional rights
+or authorship over the supplied artwork.
 
-- Build and run Coucou from this repository, for yourself, as it is.
-- Fork it and contribute back with pull requests.
-- Show, review, write or talk about Coucou (articles, videos, posts), including screenshots and the demo media.
+question.svg, exclamation.svg and sparkle.svg are separate simple interface
+effects created for this adaptation, not character drawings. Adaptation code,
+cutting script and these interface effects use the repository MIT license.
 
-## What you can't do without written permission
-
-- Publish or distribute an app, a fork or a derivative work under the name “Coucou” or “Mochi”, or with the Coucou icon, the Mochi character or the Coucou sounds — on the App Store, on GitHub releases, or anywhere else.
-- Use any of these assets commercially, or in a way that suggests your project is Coucou or is made or endorsed by its author.
-
-If you fork Coucou to ship your own app, that's welcome under the MIT License: just give it **your own name, icon, character and sounds**.
-
-## Questions or permission requests
-
-Open an issue on [GitHub](https://github.com/Louis-CFM/coucou/issues) or write to raillelouis@gmail.com.

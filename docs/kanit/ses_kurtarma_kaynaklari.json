@@ -1,0 +1,112 @@
+[
+  {
+    "session": "rollout-2026-10-02T13-31-07-01a0fc2a-ee6f-7463-afb9-0bd1271f35d5.jsonl",
+    "timestamp": "2026-10-02T10:34:39.936Z",
+    "patch_sha256": "59b7de894c0e08cf7a52f2199cc51b52b531c58968470e926d91495ce3ddb84e"
+  },
+  {
+    "session": "rollout-2026-10-02T13-31-07-01a0fc2a-ee6f-7463-afb9-0bd1271f35d5.jsonl",
+    "timestamp": "2026-10-02T10:36:02.223Z",
+    "patch_sha256": "ccb81304b9e252ca536abf1a2cb4c54bb58ee6b362e37e0b113e6f8e23c1ea3d"
+  },
+  {
+    "session": "rollout-2026-10-02T13-31-07-01a0fc2a-ee6f-7463-afb9-0bd1271f35d5.jsonl",
+    "timestamp": "2026-10-02T10:36:50.516Z",
+    "patch_sha256": "e5eee9802afe7209d577b4d7ad391cd35672cbb1881c0ab0bafec533531250cc"
+  },
+  {
+    "session": "rollout-2026-10-02T13-31-07-01a0fc2a-ee6f-7463-afb9-0bd1271f35d5.jsonl",
+    "timestamp": "2026-10-02T10:38:27.094Z",
+    "patch_sha256": "5438e4147c506c3c1c7baf3280bb4d12036bb17f3c4eeab75bbd2f01d1441435"
+  },
+  {
+    "session": "rollout-2026-10-02T13-39-02-01a0fc32-3037-70e3-9b8e-bc01d4d75f52.jsonl",
+    "timestamp": "2026-10-02T10:41:27.286Z",
+    "patch_sha256": "39593f65dc59daa928e78cb2513a19552c8b42ca6190b8496d9d9c334aeb8287"
+  },
+  {
+    "session": "rollout-2026-10-02T13-39-02-01a0fc32-3037-70e3-9b8e-bc01d4d75f52.jsonl",
+    "timestamp": "2026-10-02T10:43:22.998Z",
+    "patch_sha256": "07eb2367820de4ebaf4d32a3ada5d3436934e039976ca713cd9f9915e038a1e0"
+  },
+  {
+    "session": "rollout-2026-10-02T13-39-02-01a0fc32-3037-70e3-9b8e-bc01d4d75f52.jsonl",
+    "timestamp": "2026-10-02T10:46:20.491Z",
+    "patch_sha256": "db420ea04ebef726b3b1df63a7b73f06aa76b5acc009654f6f433d08dbe6046c"
+  },
+  {
+    "session": "rollout-2026-10-02T13-39-02-01a0fc32-3037-70e3-9b8e-bc01d4d75f52.jsonl",
+    "timestamp": "2026-10-02T10:46:59.761Z",
+    "patch_sha256": "5a730ec53a2b71ac93d836efc4e3d0d2d7318616707d99d537eeef45841dd2dc"
+  },
+  {
+    "session": "rollout-2026-10-02T13-39-02-01a0fc32-3037-70e3-9b8e-bc01d4d75f52.jsonl",
+    "timestamp": "2026-10-02T10:50:03.222Z",
+    "patch_sha256": "277ecf4fce97c50553816f83b11e55457ff198f9f1a943eb325dfcc2468a9357"
+  },
+  {
+    "session": "rollout-2026-10-02T13-48-38-01a0fc3a-f864-74d0-ba6c-040502c6da4f.jsonl",
+    "timestamp": "2026-10-02T10:51:16.959Z",
+    "patch_sha256": "8d9d78107f79321d2c1abff4b669a911602c24394b06377583ae0dca6788d997"
+  },
+  {
+    "session": "rollout-2026-10-02T13-54-43-01a0fc40-8a93-7f83-9c23-984bc976f86c.jsonl",
+    "timestamp": "2026-10-02T10:57:08.975Z",
+    "patch_sha256": "297ca9fec6597c6fe526e0016487cede4f4f28d873c702467da47f7bfe54b427"
+  },
+  {
+    "session": "rollout-2026-10-02T13-54-43-01a0fc40-8a93-7f83-9c23-984bc976f86c.jsonl",
+    "timestamp": "2026-10-02T10:58:26.333Z",
+    "patch_sha256": "b754b0f16945462b3489e30b45a03a4cc809ed9f8640c2668de272c7f4e10945"
+  },
+  {
+    "session": "rollout-2026-10-02T18-24-04-01a0fd37-2297-7041-a6bd-91decd6edf52.jsonl",
+    "timestamp": "2026-10-02T15:27:45.703Z",
+    "patch_sha256": "88eb2d0f14dd4957d8a377b9c0b87e7c757c72c5044fb8ccfc7d60ecfe4c0c98"
+  },
+  {
+    "session": "rollout-2026-10-02T18-24-04-01a0fd37-2297-7041-a6bd-91decd6edf52.jsonl",
+    "timestamp": "2026-10-02T15:40:07.054Z",
+    "patch_sha256": "d96020089f2ca965bc646ee86ac64271d3d958562536f6d7f25c426885b00a45"
+  },
+  {
+    "session": "rollout-2026-10-02T18-24-04-01a0fd37-2297-7041-a6bd-91decd6edf52.jsonl",
+    "timestamp": "2026-10-02T15:44:57.270Z",
+    "patch_sha256": "60e5747e31101a1852aae1d33021fbae3e40cd3df5a617502a063d93f24b6711"
+  },
+  {
+    "session": "rollout-2026-10-02T18-58-18-01a0fd56-778a-7a22-998a-6d89fbd6b0ac.jsonl",
+    "timestamp": "2026-10-02T16:00:27.783Z",
+    "patch_sha256": "97e98885fde6039dcfe0b03561df2ceb6cee4dfb8e905f43264d583e1d2e2056"
+  },
+  {
+    "session": "rollout-2026-10-02T23-17-38-01a0fe43-e41c-7971-a544-2fb3d0b28b02.jsonl",
+    "timestamp": "2026-10-02T20:20:03.845Z",
+    "patch_sha256": "7fa176eeb479e73910bcc0b50410bed1e618e18636c9fd09702442ed257c527a"
+  },
+  {
+    "session": "rollout-2026-10-02T23-17-38-01a0fe43-e41c-7971-a544-2fb3d0b28b02.jsonl",
+    "timestamp": "2026-10-02T20:21:15.236Z",
+    "patch_sha256": "b6fd13832555373460031eb2ba5b6653e22617b4aa452cdc7c15a2e1464b9d75"
+  },
+  {
+    "session": "rollout-2026-10-02T23-17-38-01a0fe43-e41c-7971-a544-2fb3d0b28b02.jsonl",
+    "timestamp": "2026-10-02T20:27:24.879Z",
+    "patch_sha256": "c6c00cb0796fb997953ddea9566fdebce7fa450ab8816e86f7b1135dc8dda999"
+  },
+  {
+    "session": "rollout-2026-10-02T23-17-38-01a0fe43-e41c-7971-a544-2fb3d0b28b02.jsonl",
+    "timestamp": "2026-10-02T20:28:45.083Z",
+    "patch_sha256": "d9ea06aa49eeb08155c9822ca183b09b95974692391fafdad36ba8380dca2267"
+  },
+  {
+    "session": "rollout-2026-10-02T23-27-12-01a0fe4c-abe2-70b2-b250-fc1d94f04c88.jsonl",
+    "timestamp": "2026-10-02T20:29:30.375Z",
+    "patch_sha256": "0a905693790860bf0c0067d2d5fe7a1d2aff429cb22249035e496383522b4ad2"
+  },
+  {
+    "session": "rollout-2026-10-03T11-46-04-01a100f1-1ac0-7132-9275-e2f91496e72b.jsonl",
+    "timestamp": "2026-10-03T08:59:24.412Z",
+    "patch_sha256": "e3c9d26d6507cec7b0463ffbc12d07ed5a56254eaaa4ecfdf0818955b46e763e"
+  }
+]

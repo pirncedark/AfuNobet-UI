@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "task",
+      "agent": "codex",
+      "status": "Calisiyor",
+      "task": "Sonsuz donguye giren gorev",
+      "current_action": "Analiz ediliyor...",
+      "started_at": "2020-01-01T00:00:00Z",
+      "updated_at": "2020-01-01T00:00:00Z"
+    }
+  ],
+  "mesaj": "",
+  "quotas": {
+    "codex": {
+      "remaining_percent": 80
+    },
+    "gemini": {
+      "remaining_percent": 90
+    }
+  }
+}

@@ -1,0 +1,635 @@
+{
+  "toplam": 0,
+  "tablo": [
+    {
+      "ekran": "genel-bakis",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "genel-bakis-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 18,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "genel-bakis-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "genel-bakis-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "genel-bakis-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "gorev-karti",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "gorev-karti-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "gorev-karti-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "gorev-karti-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "gorev-karti-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "kota",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "kota-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 9,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "kota-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "kota-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "kota-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 5,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "uygulamalar",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "uygulamalar-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 12,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "uygulamalar-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "uygulamalar-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "uygulamalar-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "orkestra",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "orkestra-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 19,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "orkestra-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 15,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "orkestra-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 15,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "orkestra-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 15,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "sohbet",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "sohbet-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "sohbet-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "sohbet-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "sohbet-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 6,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "sohbet-acik",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "sohbet-acik-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 16,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "sohbet-acik-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "sohbet-acik-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 12,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "sohbet-acik-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "sesli-sohbet",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "sesli-sohbet-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 11,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "sesli-sohbet-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "sesli-sohbet-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "sesli-sohbet-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 7,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "daha-fazla",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "daha-fazla-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "daha-fazla-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 22,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "daha-fazla-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "daha-fazla-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "ayarlar",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "ayarlar-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 24,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "ayarlar-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 22,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "ayarlar-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 24,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "ayarlar-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 24,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "gorev-ara",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "gorev-ara-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 19,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "gorev-ara-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "gorev-ara-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 23,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "gorev-ara-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 17,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "soru-karti",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "soru-karti-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "soru-karti-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "soru-karti-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "soru-karti-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 8,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "mesaj-ayrintisi",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "mesaj-ayrintisi-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "mesaj-ayrintisi-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "mesaj-ayrintisi-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "mesaj-ayrintisi-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 1,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "pet-balon",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "pet-balon-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "pet-balon-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "pet-balon-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "pet-balon-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#afu-pet",
+          "tiklanabilir": 2,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    },
+    {
+      "ekran": "tepsi-durum",
+      "satirlar": [
+        {
+          "olcu": "100-640",
+          "dosya": "tepsi-durum-100-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 14,
+          "genislik": 640
+        },
+        {
+          "olcu": "150-640",
+          "dosya": "tepsi-durum-150-640.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 640
+        },
+        {
+          "olcu": "100-420",
+          "dosya": "tepsi-durum-100-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        },
+        {
+          "olcu": "150-420",
+          "dosya": "tepsi-durum-150-420.png",
+          "sorunlar": [],
+          "ozet": {},
+          "kok": "#island",
+          "tiklanabilir": 10,
+          "genislik": 420
+        }
+      ],
+      "toplam": 0
+    }
+  ]
+}
