@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1100" height="300" viewBox="0 0 1100 300" role="img" aria-label="How Afu works: agent hooks and the AfuNobet supervisor feed the Rust core, which drives the island, card, mini pet and tray">
+  <defs>
+    <linearGradient id="brain" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#3fa9ff"/><stop offset="1" stop-color="#ff7a2e"/>
+    </linearGradient>
+  </defs>
+  <style>
+    text { font-family: "Segoe UI", -apple-system, system-ui, Roboto, Helvetica, Arial, sans-serif; }
+    .box { fill: #0b1326; stroke: #22314f; stroke-width: 1.5; }
+    .core { stroke: url(#brain); stroke-width: 2; }
+    .h { font-size: 15px; font-weight: 700; fill: #f3f6ff; }
+    .s { font-size: 12px; fill: #8b9bc0; }
+    .g { font-size: 12px; fill: #e9b55a; }
+    .ln { fill: none; stroke: #2a3a5c; stroke-width: 2; stroke-dasharray: 6 6; animation: dash 1s linear infinite; }
+    .ln.gold { stroke: #6b5426; }
+    @keyframes dash { to { stroke-dashoffset: -12; } }
+    .glow { animation: glow 2.6s ease-in-out infinite; }
+    @keyframes glow { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+    @media (prefers-reduced-motion: reduce) { .ln, .glow { animation: none; } .mv { display: none; } }
+  </style>
+  <rect width="1100" height="300" rx="20" fill="#070c18"/>
+
+  <!-- top path: agents -->
+  <path class="ln" d="M210 75 H 262"/>
+  <path class="ln" d="M452 75 H 504"/>
+  <path class="ln" d="M694 75 C 730 75, 730 140, 760 140"/>
+  <!-- bottom path: supervisor -->
+  <path class="ln gold" d="M210 215 H 262"/>
+  <path class="ln gold" d="M452 215 H 504"/>
+  <path class="ln gold" d="M694 215 C 730 215, 730 160, 760 160"/>
+  <path class="ln" d="M930 150 H 960"/>
+
+  <rect class="box" x="20" y="38" width="190" height="74" rx="14"/>
+  <text class="h" x="115" y="70" text-anchor="middle">AI agents</text>
+  <text class="s" x="115" y="92" text-anchor="middle">Claude Code · Codex · Gemini</text>
+
+  <rect class="box" x="262" y="38" width="190" height="74" rx="14"/>
+  <text class="h" x="357" y="70" text-anchor="middle">afu_ajan_koprusu.py</text>
+  <text class="s" x="357" y="92" text-anchor="middle">exit 0 · gives up in 0.3 s</text>
+
+  <rect class="box" x="504" y="38" width="190" height="74" rx="14"/>
+  <text class="h" x="599" y="70" text-anchor="middle">Named pipe</text>
+  <text class="s" x="599" y="92" text-anchor="middle">same Windows user only</text>
+
+  <rect class="box" x="20" y="178" width="190" height="74" rx="14"/>
+  <text class="h" x="115" y="210" text-anchor="middle">AfuNobet supervisor</text>
+  <text class="s" x="115" y="232" text-anchor="middle">optional</text>
+
+  <rect class="box" x="262" y="178" width="190" height="74" rx="14"/>
+  <text class="h" x="357" y="210" text-anchor="middle">state.json</text>
+  <text class="s" x="357" y="232" text-anchor="middle">+ sorular/ · cevaplar/</text>
+
+  <rect class="box" x="504" y="178" width="190" height="74" rx="14"/>
+  <text class="h" x="599" y="210" text-anchor="middle">Directory events</text>
+  <text class="s" x="599" y="232" text-anchor="middle">read-only, no polling</text>
+
+  <rect class="box core glow" x="760" y="106" width="170" height="88" rx="16"/>
+  <text class="h" x="845" y="140" text-anchor="middle">Rust core</text>
+  <text class="s" x="845" y="160" text-anchor="middle">Tauri 2 · masks secrets</text>
+  <text class="g" x="845" y="178" text-anchor="middle">one task list</text>
+
+  <rect class="box" x="960" y="70" width="120" height="160" rx="16" stroke="#e9b55a"/>
+  <text class="h" x="1020" y="104" text-anchor="middle">Afu</text>
+  <text class="s" x="1020" y="132" text-anchor="middle">island</text>
+  <text class="s" x="1020" y="154" text-anchor="middle">card</text>
+  <text class="s" x="1020" y="176" text-anchor="middle">mini pet</text>
+  <text class="s" x="1020" y="198" text-anchor="middle">tray</text>
+
+  <text class="s" x="550" y="285" text-anchor="middle">Agents are never slowed down — if Afu is closed, the bridge simply exits.</text>
+
+  <circle class="mv" r="5" fill="#3fa9ff"><animateMotion dur="3s" repeatCount="indefinite" path="M210 75 H 694 C 730 75, 730 140, 760 140"/></circle>
+  <circle class="mv" r="5" fill="#e9b55a"><animateMotion dur="3s" begin="1.5s" repeatCount="indefinite" path="M210 215 H 694 C 730 215, 730 160, 760 160"/></circle>
+  <circle class="mv" r="5" fill="#ff7a2e"><animateMotion dur="1.2s" repeatCount="indefinite" path="M930 150 H 960"/></circle>
+</svg>

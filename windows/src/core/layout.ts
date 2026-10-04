@@ -1,243 +1,109 @@
-// Island geometry — ported from IslandTypes.swift + IslandWindowController.islandSize
-// + IslandRootView.botPosition. All values are logical pixels, identical to the
-// macOS app's points.
-
-export type IslandMode = "hidden" | "compact" | "expanded";
-
-export type IslandViewName =
-  | "overview"
-  | "empty"
-  | "approval"
-  | "question"
-  | "error"
-  | "finished"
-  | "confused"
-  | "upload"
-  | "uploading"
-  | "choose"
-  | "mail"
-  | "prompt"
-  | "searching"
-  | "result"
-  | "note"
-  | "settings"
-  | "greeting";
-
-export type BotStateName =
-  | "idle"
-  | "working"
-  | "thinking"
-  | "searching"
-  | "approval"
-  | "question"
-  | "error"
-  | "finished"
-  | "ratelimit"
-  | "sleeping"
-  | "dizzy";
-
-export type BotEmoteName = "love" | "surprised" | "proud" | "wink" | "yawn" | "happy" | "annoyed";
-
-export type AgentLayoutMode = "none" | "grid" | "pills" | "column";
-
-export interface ViewLayout {
-  height: number;
-  botX: number;
-  botY: number | null; // null = auto-centred
-  botDiameter: number;
-  agentMode: AgentLayoutMode;
+// Original window sizes; keep these in step with unchanged island.rs.
+export type IslandMode = "hidden" | "compact" | "expanded" | "pet" | "tray";
+export type IslandViewName = "overview" | "quota" | "greeting" | "apps" | "chat" | "orkestra" | "sor";
+/**
+ * Kartın büyütme oranı (P8). Tasarım 720x320 CSS px'te yazıldı; pencere
+ * KART_OLCEK katına çıkarılır ve ada `zoom` ile aynı oranda büyütülür, böylece
+ * yazı, boşluk, düğme ve karakter *aynı* oranda büyür ve hiçbir kural ayrı
+ * ayrı güncellenmez. CSS'teki karşılığı `--kart-olcek`.
+ */
+export const KART_OLCEK = 1.5;
+/** Tasarım ölçüsü: kart CSS px'te bu boyutta yazıldı. */
+export const DESIGN_W = 720, DESIGN_H = 320;
+/** Pencere ölçüsü: tasarımın KART_OLCEK katı. Rust tarafındaki karşılığı
+ *  `src-tauri/src/dpi.rs` (KART_OLCEK, PANEL_W, PANEL_H) — ikisi de aynı olmalı. */
+export const PANEL_W = 1080, PANEL_H = 480;
+export const PANEL_MIN_H = 480;
+export const PANEL_MAX_H_RATIO = 0.85;
+export const NOTCH_W = 184, NOTCH_H = 32, COMPACT_W = 288, EXPANDED_W = 640;
+export const ROUNDED_CORNER = 14, EXPANDED_CORNER = 22;
+/** Dar pencerede görünürlük CSS yerleşimiyle korunur; ölçek alt sınırı yoktur. */
+export const PET_PENCERE = 256;
+/** Design CSS width, bounded by the actual CSS viewport after zoom/fit. */
+export function contentWidth(textWidth: number, viewportW: number, _viewportH: number): number {
+  const limit = viewportW / (panelScale(viewportW) * KART_OLCEK);
+  return Math.min(limit, Math.max(EXPANDED_W, Math.ceil(textWidth + 216)));
+}
+/**
+ * P10 — mini pet modundayken görev/ajan mesajı balonu karakterin BAŞININ
+ * ÜSTÜNDE, çizgi-roman balonu olarak durur. Balon, 256 px'lik pet kutusundan
+ * ayrı bir şeritte çizilir: ölçülen alfa kutularından en yükseği (`ozel_dosya_
+ * yakala`, üst ≈ 32 px) pet kutusunun tepesine kadar geldiği için balon asla
+ * pet kutusuyla çakışmaz. Pencerenin alt kenarı (görev çubuğu üstü) sabit
+ * kalır, karakter yerinden oynamaz; büyüme yalnız YUKARI doğrudur.
+ *
+ * Karşılığı Rust tarafında `src-tauri/src/glide.rs` (PET_BALON_PAY,
+ * PET_BALON_YUKSEKLIK, PET_BALON_BOSLUK) — iki taraf aynı sayıları kullanır.
+ */
+/** Pencerenin tepesinde kalan şeffaf pay. island.rs isabet kutusuna HIT_MARGIN
+ *  (14 px) eklediği için bu pay 14'ten büyük olmak zorunda: aksi hâlde balonun
+ *  üstündeki "boş" kısım tıklamayı yutar ve tıklama masaüstüne geçmez. */
+export const PET_BALON_PAY = 24;
+export const PET_BALON_YUKSEKLIK = 220;
+export const PET_BALON_GENISLIK = 296;
+export const PET_BALON_PENCERE = 320;
+/** Balon kuyruğu ile karakterin başı arasındaki boşluk. */
+export const PET_BALON_BOSLUK = 8;
+/** Balon kutusunun alt kenarı, pencerenin alt kenarından bu kadar yukarıda. */
+export const PET_BALON_TABAN = PET_PENCERE + PET_BALON_BOSLUK;
+/** Balon görünürken pet penceresinin yüksekliği (yalnız YUKARI büyür). */
+export function petPencereYuksekligi(balon: boolean): number {
+  return balon ? PET_BALON_TABAN + PET_BALON_YUKSEKLIK + PET_BALON_PAY : PET_PENCERE;
+}
+/** Balonun üstünde kalan şeffaf pay: isabet kutusu bu satırdan başlar. */
+export function petBalonUst(balon: boolean): number { return balon ? PET_BALON_PAY : 0; }
+/**
+ * Kesme: ekranın üstü yetmezse pencere tepeden kırpılır ve balon da kısalır.
+ * Balon kutusu pencerenin altına PET_BALON_TABAN sabit mesafeyle bağlı olduğu
+ * için kalan yer kadar yükseklikte çizilir: kuyruk ucu (karakterin başına bakan
+ * ::after) hep görünür, yalnız metnin üstü kırpılır.
+ */
+export function petBalonKutusu(pencereYuksekligi: number, taban = PET_BALON_TABAN): number {
+  if (!(pencereYuksekligi > 0)) return PET_BALON_YUKSEKLIK;
+  return Math.max(0, Math.min(PET_BALON_YUKSEKLIK, pencereYuksekligi - taban - PET_BALON_PAY));
 }
 
-// The window is a fixed 720×320 (largest view) like the macOS panel; the island is
-// drawn inside it, glued to the top edge and horizontally centred.
-export const PANEL_W = 720;
-export const PANEL_H = 320;
-
-// No notch on a PC: these are the hidden/compact sizes from docs/SPEC.md.
-export const NOTCH_W = 184;
-export const NOTCH_H = 32;
-export const COMPACT_W = 288; // NOTCH_W + 104
-export const EXPANDED_W = 640;
-
-export const ROUNDED_CORNER = 14; // hidden / compact
-export const EXPANDED_CORNER = 22;
-
-/** Invisible hover strip that wakes the island when hidden. */
-export const WAKE_STRIP_W = 240;
-export const WAKE_STRIP_H = 6;
-
-export const VIEW_LAYOUTS: Record<IslandViewName, ViewLayout> = {
-  overview: { height: 160, botX: 68, botY: null, botDiameter: 58, agentMode: "pills" },
-  empty: { height: 160, botX: 70, botY: null, botDiameter: 62, agentMode: "none" },
-  approval: { height: 160, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
-  question: { height: 160, botX: 62, botY: null, botDiameter: 56, agentMode: "column" },
-  error: { height: 160, botX: 62, botY: null, botDiameter: 58, agentMode: "column" },
-  finished: { height: 160, botX: 62, botY: null, botDiameter: 58, agentMode: "column" },
-  confused: { height: 160, botX: 76, botY: null, botDiameter: 66, agentMode: "column" },
-  upload: { height: 176, botX: 140, botY: 104, botDiameter: 62, agentMode: "column" },
-  // botY 103 = bar top (42 + 58) + 3, so the dot really rides the bar. The Swift
-  // layout says 118 while its own comment says 103; the comment matches the spec.
-  uploading: { height: 176, botX: 46, botY: 103, botDiameter: 20, agentMode: "none" },
-  choose: { height: 176, botX: 60, botY: 101, botDiameter: 52, agentMode: "column" },
-  mail: { height: 240, botX: 56, botY: null, botDiameter: 46, agentMode: "column" },
-  prompt: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
-  searching: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
-  result: { height: 160, botX: 52, botY: null, botDiameter: 44, agentMode: "column" },
-  note: { height: 160, botX: 60, botY: null, botDiameter: 50, agentMode: "column" },
-  settings: { height: 160, botX: 54, botY: null, botDiameter: 46, agentMode: "none" },
-  greeting: { height: 150, botX: 320, botY: 90, botDiameter: 0, agentMode: "none" },
-};
-
-// The upload views above are only the fallback geometry. Once a file is actually
-// dropped the whole sequence — Mochi included — is drawn by src/upload, which
-// owns its own constants (USC) straight from UploadSequenceEngine.swift.
-
-/** Chat view grows with the conversation — IslandContainer.chatPromptHeight. */
-export function chatPromptHeight(messageCount: number): number {
-  return Math.min(300, 240 + messageCount * 40);
+export function islandSize(mode: IslandMode, view: IslandViewName): { w: number; h: number } {
+  if (mode === "pet") return { w: PET_PENCERE, h: PET_PENCERE };
+  if (mode === "hidden" || mode === "tray") return { w: NOTCH_W, h: 0 };
+  if (mode === "compact") return { w: COMPACT_W, h: NOTCH_H };
+  return { w: EXPANDED_W, h: view === "greeting" ? 160 : DESIGN_H };
+}
+/**
+ * Uniform scale that keeps the whole panel inside the viewport the webview
+ * really has.
+ *
+ * The native side sizes the window in physical pixels, the front end is laid
+ * out in CSS pixels, and the two are only the same when the native scale factor
+ * matches the webview's. When it does not — mixed-DPI desktops, a display change
+ * between show and paint — the CSS viewport is smaller than PANEL_W x PANEL_H
+ * and the design would be cut off on the right and the bottom. Scaling by the
+ * ratio turns that clipping into a proportionally smaller island instead.
+ *
+ * Never enlarges: above the design size the panel keeps its original size and
+ * simply sits in the middle of the extra room.
+ */
+export function fitScale(viewportW: number, viewportH: number): number {
+  if (!(viewportW > 0) || !(viewportH > 0)) return 1;
+  return Math.min(1, viewportW / PANEL_W, viewportH / PANEL_H);
 }
 
-export function islandSize(
-  mode: IslandMode,
-  view: IslandViewName,
-  chatCount = 0,
-): { w: number; h: number } {
-  switch (mode) {
-    case "hidden":
-      // No notch to hide inside on a PC: the island retracts to zero height and
-      // slides into the top edge of the screen instead of sitting there as a bar.
-      return { w: NOTCH_W, h: 0 };
-    case "compact":
-      return { w: COMPACT_W, h: NOTCH_H };
-    case "expanded": {
-      const h = view === "prompt" ? chatPromptHeight(chatCount) : VIEW_LAYOUTS[view].height;
-      return { w: EXPANDED_W, h };
-    }
-  }
+export const MASCOT_VISIBLE_H = 170;
+/** Expanded cards fit horizontally; height is independently bounded by the client. */
+export function panelScale(viewportW: number): number { return Math.min(1, Math.max(1, viewportW) / PANEL_W); }
+export function panelHeight(contentH: number, viewportW: number, viewportH: number, screenH: number) {
+  const k = panelScale(viewportW) * KART_OLCEK;
+  const desired = Math.min(Math.max(320 * k, contentH * k), Math.max(1, screenH) * PANEL_MAX_H_RATIO);
+  return { nativeCss: desired, design: Math.min(desired, viewportH) / k };
+}
+/** Alpha bounds of a square sprite, fitted to a shared visible height. */
+export function mascotScale(bounds: [number, number, number, number], frame: number, target = MASCOT_VISIBLE_H) {
+  const width = (bounds[2] - bounds[0]) * frame, height = (bounds[3] - bounds[1]) * frame;
+  return Math.min(target / Math.max(1, height), (frame - 12) / Math.max(1, width));
 }
 
-export interface BotPlacement {
-  cx: number;
-  cy: number;
-  diameter: number;
-  opacity: number;
-}
-
-/** IslandRootView.botPosition — cy is measured from the island's top edge. */
-export function botPosition(
-  mode: IslandMode,
-  view: IslandViewName,
-  islandH: number,
-  uploadProgress = 0,
-): BotPlacement {
-  switch (mode) {
-    case "hidden":
-      return { cx: 46, cy: 16, diameter: 6, opacity: 0 };
-    case "compact":
-      return { cx: 40, cy: 16, diameter: 20, opacity: 1 };
-    case "expanded": {
-      const layout = VIEW_LAYOUTS[view];
-      if (view === "uploading") {
-        return {
-          cx: 36 + uploadProgress * 526,
-          cy: layout.botY ?? 103,
-          diameter: layout.botDiameter,
-          opacity: 1,
-        };
-      }
-      if (layout.botY != null) {
-        return { cx: layout.botX, cy: layout.botY, diameter: layout.botDiameter, opacity: 1 };
-      }
-      // Centre of the fixed 84 pt card (8 pt top inset + 34 pt header → content at y = 42)
-      const headerBottom = 42;
-      const cardH = 84;
-      const cy = headerBottom + (islandH - headerBottom - cardH) / 2 + cardH / 2;
-      return { cx: layout.botX, cy, diameter: layout.botDiameter, opacity: 1 };
-    }
-  }
-}
-
-export function botGlowColor(s: BotStateName): string {
-  switch (s) {
-    case "working":
-      return "#3B9EFF";
-    case "thinking":
-      return "#A78BFA";
-    case "searching":
-      return "#6366F1";
-    case "approval":
-      return "#F5A524";
-    case "error":
-      return "#F4505E";
-    case "finished":
-      return "#34D399";
-    case "ratelimit":
-      return "#F59E0B";
-    default:
-      return "#FFFFFF";
-  }
-}
-
-export function botGlowOpacity(s: BotStateName): number {
-  switch (s) {
-    case "idle":
-    case "sleeping":
-      return 0.15;
-    case "dizzy":
-      return 0;
-    default:
-      return 0.65;
-  }
-}
-
-// Project colours (IslandConst.projectColors)
-const PROJECT_COLORS: Record<string, string> = {
-  korus: "#FF5A4E",
-  "sbe hub": "#2EC4A0",
-  "morning ai brief": "#F29B38",
-  "publication ig": "#7C5CFF",
-  "ig post": "#7C5CFF",
-  "louisraille.fr": "#38BDF8",
-  louisraille: "#38BDF8",
-  "notch buddy": "#EC4899",
-  "notch-buddy": "#EC4899",
-  notchbuddy: "#EC4899",
-};
-
-const FALLBACK_COLORS = ["#22C55E", "#EAB308", "#60A5FA", "#E879F9"];
-
-export function colorForProject(name: string): string {
-  const key = name.toLowerCase().trim();
-  const exact = PROJECT_COLORS[key];
-  if (exact) return exact;
-  for (const [k, c] of Object.entries(PROJECT_COLORS)) {
-    if (key.startsWith(k) || key.includes(k)) return c;
-  }
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0;
-  return FALLBACK_COLORS[Math.abs(hash) % FALLBACK_COLORS.length];
-}
-
-// Card wash colours (CardBackground.washColor)
-export type Wash = "red" | "green" | "pink" | "amber" | "cyan" | "indigo" | "soft" | null;
-
-export function washRGBA(wash: Wash): string {
-  switch (wash) {
-    case "red":
-      return "rgba(244,80,94,0.55)";
-    case "green":
-      return "rgba(52,211,153,0.5)";
-    case "pink":
-      return "rgba(244,114,182,0.55)";
-    case "amber":
-      return "rgba(245,165,36,0.42)";
-    case "cyan":
-      return "rgba(34,211,238,0.38)";
-    case "indigo":
-      return "rgba(99,102,241,0.5)";
-    case "soft":
-      return "rgba(255,255,255,0.08)";
-    default:
-      return "rgba(0,0,0,0)";
-  }
+/** The small-screen CSS mode removes panel zoom and its fit transform. */
+export function mascotDesignHeight(viewportW: number, logicalPerCss: number, bodyZoom = 1): number {
+  const cardScale = viewportW <= 719 ? 1 : panelScale(viewportW) * KART_OLCEK;
+  return MASCOT_VISIBLE_H / (cardScale * logicalPerCss * bodyZoom);
 }

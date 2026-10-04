@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfuNöbet — Kullanım Rehberi</title>
+<style>
+body{background:#090d17;color:#e6ebf6;font:16px/1.65 system-ui,sans-serif;margin:40px auto;max-width:860px;padding:0 24px}
+h1,h2,h3{color:#83d9f5}
+section{border-top:1px solid #29364e;padding:24px 0}
+a{color:#83d9f5;text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit}
+li{margin:8px 0}
+.badge-ready{background:#11382b;border:1px solid #28a745;border-radius:6px;color:#7ee787;display:inline-block;font-size:12px;font-weight:700;padding:2px 8px}
+.badge-future{background:#3d2714;border:1px solid #d29922;border-radius:6px;color:#e3b341;display:inline-block;font-size:12px;font-weight:700;padding:2px 8px}
+.note{background:#192233;border-left:4px solid #83d9f5;border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
+.note-warn{background:#261d15;border-left:4px solid #d29922;border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
+code{background:#161f30;border-radius:4px;overflow-wrap:anywhere;padding:2px 6px}
+table{border-collapse:collapse;margin:16px 0;width:100%}
+th,td{border:1px solid #29364e;padding:10px 12px;text-align:left}
+th{background:#131c2d;color:#83d9f5}
+</style>
+</head>
+<body>
+<h1>AfuNöbet — Kullanım Rehberi</h1>
+<p>AfuNöbet, çalışan yapay zeka görevlerini ve durumlarını ekranınızda sade, sessiz ve kesintisiz şekilde takip etmenizi sağlar.</p>
+
+<section>
+<h2>1. Hızlı Başlangıç ve Teslimat <span class="badge-ready">Faz A — Doğrulandı</span></h2>
+<p>Uygulamayı açmak için masaüstündeki <strong>AfuNobet UI</strong> kısayoluna çift tıklayın veya <code>dist/afunobet-ui-coucou.exe</code> dosyasını çalıştırın.</p>
+<ul>
+<li><strong>Açılış:</strong> Ekranın üst ortasında küçük bir ada ve Afu maskotu görünür.</li>
+<li><strong>Geri Alma (Rollback):</strong> Yeni sürümden önceki sürüme dönmek isterseniz uygulama kapalıyken şu komutu çalıştırabilirsiniz:
+<br><code>powershell -NoProfile -File dist/onceki/GERI_AL.ps1</code></li>
+</ul>
+<p class="note">Geliştirme testleri (headless) tamamlanmıştır. Gerçek Windows ortamında görsel ve fare kontrolleri <a href="KAPI1_KONTROL_LISTESI.md">Kapı 1 Kontrol Listesi</a> ile yapılır.</p>
+</section>
+
+<section>
+<h2>2. Ekran ve Pencere Davranışları <span class="badge-ready">Faz A — Doğrulandı</span></h2>
+<p>AfuNöbet ekranınızı kaplamaz ve işinizi bölmez:</p>
+<ul>
+<li><strong>Her Zaman Üstte (Always-on-top):</strong> Durum adası ve mini pet diğer pencerelerin önünde asılı kalır.</li>
+<li><strong>Odak Çalmaz:</strong> Kart açıkken veya açılırken başka bir uygulamada yazı yazıyorsanız yazınız kesilmez.</li>
+<li><strong>Şeffaf Alanlardan Geçiş (Click-through):</strong> Karakter veya kartın dışındaki boş şeffaf alanlara tıkladığınızda tıklamanız arkadaki uygulamaya ya da masaüstüne geçer.</li>
+<li><strong>Temiz Görev Listesi:</strong> Uygulama Alt-Tab pencere listesinde ve görev çubuğu açık uygulama butonlarında yer kaplamaz; sistem tepsisinde (sağ altta) durur.</li>
+<li><strong>DPI ve Ekran Ölçeği:</strong> Windows ekran ölçeği %100, %125 veya %150 olduğunda ada ve karakter bulanıklaşmaz, kırpılmaz.</li>
+<li><strong>Tam Ekran Koruması:</strong> Tam ekran bir video veya oyun açtığınızda ada ve pet görüntüyü kapatmamak için kendiliğinden gizlenir.</li>
+</ul>
+</section>
+
+<section>
+<h2>3. Mini Pet ve Karakter Tepkileri (A12, A14–A19) <span class="badge-ready">Faz A — Doğrulandı</span></h2>
+<p>Afu sadece bir simge değil, masaüstünüzde yaşayan 50 karelik canlı bir yardımcıdır.</p>
+<ul>
+<li><strong>Görev Çubuğuna İniş (Glide):</strong> Ana kart açıkken <code>Esc</code> tuşuna basın veya <em>Küçült</em> düğmesine tıklayın. Afu ekranın üstünden görev çubuğuna doğru süzülerek iner ve Başlat düğmesi yanında mini pet moduna geçer.</li>
+<li><strong>Tek Tıklama:</strong> Görev çubuğundaki Afu'ya tek tıkladığınızda ana durum kartı ekranın üst ortasına geri açılır.</li>
+<li><strong>Üzerinde Bekleme (Hover):</strong> Fareyi mini pet üzerine getirdiğinizde Afu göz kırpar, selam verir veya pozitif tepki gösterir.</li>
+<li><strong>3 Hızlı Tıklama:</strong> Karakterin üzerine peş peşe 3 kez hızlıca tıkladığınızda kısa bir baş dönmesi ve şaşkınlık ifadesi gösterir, ardından sakinleşir.</li>
+<li><strong>Uyku ve Uyanma:</strong> Pet görev çubuğunda 5–10 dakika dokunulmadan kaldığında yavaş nefes alır ve uykuya geçer. Fareyi yaklaştırdığınızda uyanır.</li>
+<li><strong>Karakter Kesimi:</strong> <code>afu-character/REFERANS.png</code> kaynağından 50 sözleşme karesi (34 pet durumu, 9 kart, 9 efekt ve durum simgeleri; dengeli sol ve sağ bakış) birebir kayıpsız üretilmiştir.</li>
+</ul>
+</section>
+
+<section>
+<h2>4. Görev Takibi ve Kota Paneli (A1–A10) <span class="badge-ready">Faz A — Doğrulandı</span></h2>
+<p>AfuNöbet, arka plandaki görevleri sessizce izler:</p>
+<ul>
+<li><strong>Ajan Sekmeleri:</strong> CODEX, GLM, GEMINI ve OPENCODE sekmelerine tıklayarak o anki görevin durumunu ve özetini görebilirsiniz.</li>
+<li><strong>Kota Gösterimi:</strong> Kotalar yerel <code>.ajan_kota.cache</code> dosyasından okunur. Kota yüzdesi ve kalan süre doğrudan gösterilir.</li>
+<li><strong>Eksik/Bayat Kota Durumu:</strong> Kota kaynağı henüz güncellenmemişse, son kontrol süresi belirsizse veya bayat veri varsa ekranda uydurma değerler yerine <code>-</code> (tire) gösterilir.</li>
+<li><strong>Claude Rozeti:</strong> Claude için kota okunmaz ve işlem yapılmaz; yalnızca kilitli <em>Claude KORUNUYOR</em> rozeti gösterilir.</li>
+<li><strong>Canlı Yenileme:</strong> <code>state.json</code> dosyası yenilendiğinde karttaki bilgiler kendiliğinden güncellenir. Boşta gereksiz disk taraması yapılmaz.</li>
+</ul>
+</section>
+
+<section>
+<h2>5. Sistem Tepsisi (A3, A18) <span class="badge-ready">Faz A — Doğrulandı</span></h2>
+<p>Ekranın sağ alt köşesindeki (saat yanı) Afu simgesine sağ tıklayarak hızlı ayarlara ulaşabilirsiniz:</p>
+<ul>
+<li><strong>Mini Peti Göster / Gizle:</strong> Görev çubuğundaki mini peti geçici olarak kapatabilir, ihtiyaç duyduğunuzda tekrar açabilirsiniz.</li>
+<li><strong>Bildirimleri Duraklat:</strong> Durum bildirimlerini susturur; görev akışı arka planda sessizce izlenmeye devam eder.</li>
+<li><strong>Çıkış:</strong> Uygulamayı tamamen kapatır.</li>
+</ul>
+</section>
+
+<section>
+<h2>6. Gelecek Özellikler (Faz B ve Faz C) <span class="badge-future">Henüz Yok / Geliştirme Aşamasında</span></h2>
+<p class="note-warn"><strong>Bilgilendirme:</strong> Aşağıdaki sohbet ve ses özellikleri Faz A teslimatında <u>aktif değildir</u>. Bu özellikler Faz B ve Faz C kapsamında geliştirilecek ve gerçek ortam kabulü yapılacaktır.</p>
+
+<h3>Yapay Zeka Sohbeti (Faz B — Henüz Yok)</h3>
+<p>Sohbet kutusu, ek dosya bırakma ve doğrudan mesajlaşma özelliği henüz kullanıma hazır değildir. Bu özellik devreye girdiğinde mevcut Codex oturumunu kullanacak ve teknik ayrıntıları arka planda tutacaktır.</p>
+
+<h3>Sesli Asistan ve Mikrofon (Faz C — Henüz Yok)</h3>
+<p>Bas-konuş mikrofon desteği, yerel Whisper/Windows konuşma tanıma (STT) ve sesli yanıt okuma (TTS) henüz aktif değildir. Şu anki sürümde mikrofon kaydı veya ses çıkışı yapılmaz.</p>
+
+<h3>Afu Uygulamaları Entegrasyonu (Faz B — Henüz Yok)</h3>
+<p>Uygulamalar menüsü üzerinden diğer Afu araçlarını (AfuDM, AfuRemote vb.) tek tıkla açma kısayolları bu sürümde hazır değildir.</p>
+</section>
+
+<section>
+<h2>7. Beş Dakikalık Kullanıcı Denemesi (Kapı 1)</h2>
+<p>Masaüstünde Faz A'yı doğrulamak için şu adımları takip edin:</p>
+<ol>
+<li>Masaüstündeki <strong>AfuNobet UI</strong> kısayolunu açın. Karşılama adasının ekranın üst ortasında belirdiğini görün.</li>
+<li>Kart açıkken başka bir pencerede (ör. tarayıcı veya not defteri) yazı yazın; yazınızın bölünmediğini doğrulayın.</li>
+<li>Kartın kenarındaki şeffaf boşluklara tıklayarak arkadaki pencerenin seçilebildiğini (click-through) görün.</li>
+<li><code>Esc</code> tuşuna veya Küçült düğmesine basın; Afu'nun süzülerek görev çubuğuna indiğini izleyin.</li>
+<li>Görev çubuğundaki Afu'nun üzerine fareyi getirin; göz kırpma selamını görün. Hızlıca 3 kez tıklayarak şaşkınlık hareketini test edin.</li>
+<li>Mini pete tek tıklayarak ana kartı tekrar yukarı açın.</li>
+<li>Sağ alttaki Afu tepsi simgesine sağ tıklayarak menüyü ve Türkçe seçenekleri kontrol edin.</li>
+</ol>
+<p>Detaylı maddeler ve kontrol formu için <a href="KAPI1_KONTROL_LISTESI.md">Kapı 1 Kontrol Listesi</a> belgesine bakın.</p>
+</section>
+
+<section>
+<h2>8. Sorun Giderme</h2>
+<ul>
+<li><strong>Bilgiler güncellenmiyor:</strong> <code>AfuNobet/state.json</code> dosyasının üretildiğinden emin olun. Uygulama dosya hazır olana kadar son geçerli durumu korur ve "Bağlantı bekleniyor" yazar.</li>
+<li><strong>Kota kısmında tire (-) işareti var:</strong> Kota önbelleği henüz dolmamış veya güncellenme zamanı belirsizdir. Bu bir hata değil, güvenli gösterim kuralıdır.</li>
+<li><strong>Önceki sürüme dönme:</strong> Yeni exe ile sorun yaşarsanız <code>dist/onceki/GERI_AL.ps1</code> betiğini PowerShell ile çalıştırarak önceki kararlı sürüme anında dönebilirsiniz.</li>
+</ul>
+</section>
+
+</body>
+</html>

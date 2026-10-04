@@ -1,0 +1,50 @@
+.afu-konusma-balonu{position:absolute;top:0;left:2px;right:2px;z-index:12;padding:5px 6px;border-radius:10px;background:#17283f;color:#edf5ff;border:1px solid #659dd5;box-shadow:0 2px 8px #0005;font:12px/1.4 system-ui;text-align:left;overflow-wrap:anywhere;cursor:pointer;overflow:auto;min-height:24px}
+.afu-konusma-balonu:focus-visible{outline:2px solid #fff}
+.afu-bildirim-kap[hidden]{display:none}
+.afu-bildirim-kap>.afu-bildirim-balonu{position:relative;left:auto;right:auto;top:auto;box-sizing:border-box;max-height:200px;overflow:auto;pointer-events:auto}
+#afu-pet-balon>.afu-bildirim-kap,#afu-pet-balon>.soru-kap{height:100%;pointer-events:auto}
+#afu-pet-balon .soru-karti{max-height:180px;overflow:auto;gap:3px;padding:5px 7px;font-size:12px}
+#afu-pet-balon .soru-baslik{font-size:13px}
+#afu-pet-balon .soru-govde{flex-shrink:0;max-height:80px}
+/* Card preview: three complete lines, with ellipsis; click opens the full message.
+   The fixed heading row reserves space for Okudum; at most half the pet is covered. */
+#afu-character>.afu-konusma-balonu{display:block;top:-12px;left:0;right:0;font-size:12px;max-height:104px;overflow:hidden}
+#afu-character>.afu-konusma-balonu .afu-balon-etiket{height:26px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#afu-character>.afu-konusma-balonu .afu-balon-metin{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;padding-right:0;line-height:16px;max-height:48px}
+#afu-character>.afu-konusma-balonu .afu-balon-metin .soru-baslik{font-size:12px;line-height:16px}
+#afu-character>.afu-konusma-balonu:has(.afu-balon-ek){padding-bottom:19px}
+.afu-baglanti{font-size:11px;margin:3px 0 7px;color:#879bb6;white-space:nowrap}
+.afu-baglanti .bagli{color:#75d9a4}
+.afu-mesaj-ipucu{font-size:12px;line-height:1.4;color:#b5cce8;margin:4px 0 8px}
+.afu-mesaj-detayi{font-size:12px;padding:10px;border-radius:10px;background:#16273e;margin:5px 0;max-height:155px;overflow:auto}
+.afu-mesaj-detayi p{white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;margin-top:6px}
+.afu-mesaj-detayi>button{display:block;margin:8px 0 0 auto;height:28px;padding:0 12px;border-radius:8px;border:1px solid #d6a84f66;background:#0f1e30;font-size:12px;font-weight:600;color:#edf5ff}
+.afu-mesaj-detayi>button:hover{background:#26405e;box-shadow:0 0 8px #d6a84f22}
+.afu-mesaj-detayi>button:focus-visible,.afu-balon-kapat:focus-visible{outline:2px solid #ffd97a;outline-offset:2px}
+.afu-konusuyor .pet-image,.afu-konusuyor .afu-image{animation:afu-konusma-tepkisi .45s ease-in-out infinite!important}
+@keyframes afu-konusma-tepkisi{50%{transform:translateY(-1px) rotate(.7deg)}}
+@media(prefers-reduced-motion:reduce){.afu-konusuyor .pet-image,.afu-konusuyor .afu-image{animation:none!important}}
+/* P10 — mini pet modundayken balon karakterin BAŞININ ÜSTÜNDE çizgi-roman
+   balonu olarak durur. `#afu-pet` `overflow:hidden` olduğu için balon ayrı bir
+   kutuya (pet kutusu + balon şeridi) çizilir; konumu core/layout.ts
+   (PET_BALON_TABAN/PET_BALON_YUKSEKLIK) ile Rust tarafında aynı sayıdır. */
+#afu-pet-balon{position:absolute;left:50%;bottom:var(--pet-balon-bottom,274px);width:calc(100% - 24px);max-width:296px;height:auto;transform:translateX(-50%);pointer-events:none;z-index:12}
+#afu-pet-balon:empty{display:none}
+#afu-pet-balon>.afu-konusma-balonu{display:block;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;width:100%;overflow:visible;pointer-events:auto;border-width:2px;margin:0;padding:8px 10px;background:#17283f;border-radius:10px;box-shadow:0 3px 10px #0006;max-height:var(--pet-balon-h,220px)}
+.afu-balon-etiket{display:block;min-height:26px;font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:#ffd97a;opacity:.9;padding-right:58px}
+.afu-balon-metin{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere;padding-right:16px}
+.afu-balon-ek{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:bold;color:#ffd97a;background:#0f1e30cc;border-radius:8px;padding:0 5px}
+.afu-balon-kapat{position:absolute;right:4px;top:3px;min-width:54px;padding:3px 5px;line-height:18px;text-align:center;border-radius:7px;font-size:12px;color:#cfe2f7;background:#0f1e30cc;cursor:pointer}
+.afu-balon-kapat:hover{background:#26405e}
+/* Kuyruk: başın üstündeki balonun ucu karakterin başına bakar. */
+#afu-pet-balon .afu-konusma-balonu::after{content:"";position:absolute;left:50%;bottom:-10px;width:0;height:0;margin-left:-8px;border:9px solid transparent;border-top-color:#659dd5;border-bottom:0;filter:drop-shadow(0 1px 0 #0006)}
+/* P10 kesme: ekranın üstü yetmezse pet penceresi tepeden kırpılır; balon kutusu
+   kalan yer kadar kısalır, kuyruk ucu karakterin başına bağlı kalır. Yükseklik
+   island.ts `petBalonKutusu()` ile `--pet-balon-h` üzerinden verilir. */
+#afu-pet-balon .afu-balon-metin{padding-right:0;max-height:max(0px,calc(var(--pet-balon-h,220px) - 46px));overflow:hidden;white-space:pre-wrap;line-height:17px}
+#afu-pet-balon:has(.afu-balon-ek) .afu-konusma-balonu{padding-bottom:24px}
+#afu-pet-balon:has(.afu-balon-ek) .afu-balon-metin{max-height:max(0px,calc(var(--pet-balon-h,220px) - 62px))}
+#afu-pet-balon .afu-balon-kapat{top:5px;right:6px}
+/* The expanded card owns its character; hide the separate miniature pet. */
+#island[data-mode=expanded] ~ #afu-pet,
+#island[data-mode=expanded] ~ #afu-pet-balon{display:none}

@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "tasks": [
+    {
+      "id": "task-cbf7a2f26d502192",
+      "job_id": "uctan-1",
+      "agent": "codex",
+      "task": "Arayuz uzerinde veri gosterimini duzelt",
+      "repo": "AfuNobet-UI",
+      "status": "Calisiyor",
+      "file": null,
+      "current_file": null,
+      "progress": 42,
+      "started": "2026-10-03T09:00:00",
+      "updated_at": "2026-10-03T09:10:00",
+      "quota": {
+        "remaining_percent": 55,
+        "reset_at": null
+      },
+      "mesaj": "Gorev calisiyor",
+      "message": "Gorev calisiyor",
+      "current_action": "Metin duzenleniyor",
+      "model": "gpt-x",
+      "stage": "RUN",
+      "effort": "high",
+      "handoff": {
+        "from": "codex",
+        "to": "gemini",
+        "reason": "kota doldu"
+      },
+      "context": {
+        "used": 25000,
+        "total": 200000
+      },
+      "cost": 0.42,
+      "started_at": "2026-10-03T09:00:00"
+    },
+    {
+      "id": "task-5a128122bc9cdc99",
+      "job_id": "uctan-2",
+      "agent": "codex",
+      "task": "Claude hedefli devir denemesi",
+      "repo": "AfuNobet-UI",
+      "status": "Calisiyor",
+      "file": null,
+      "current_file": null,
+      "progress": null,
+      "started": "2026-10-03T09:00:00",
+      "updated_at": "2026-10-03T09:10:00",
+      "quota": {
+        "remaining_percent": 55,
+        "reset_at": null
+      },
+      "mesaj": "Gorev calisiyor",
+      "message": "Gorev calisiyor",
+      "model": "gpt-x",
+      "stage": "RUN",
+      "effort": "low",
+      "started_at": "2026-10-03T09:00:00"
+    },
+    {
+      "id": "task-f6aadf19ebb63d05",
+      "job_id": "uctan-3",
+      "agent": "gemini",
+      "task": "Kuyrukta bekleyen is",
+      "repo": "AfuNobet-UI",
+      "status": "Bekliyor",
+      "file": null,
+      "current_file": null,
+      "progress": null,
+      "started": "2026-09-30T09:00:00",
+      "updated_at": "2026-09-30T09:00:00",
+      "quota": {
+        "remaining_percent": 80,
+        "reset_at": null
+      },
+      "mesaj": "Gorev sirada - hazir olunca baslayacak",
+      "message": "Gorev sirada - hazir olunca baslayacak",
+      "stage": "TRIAGE",
+      "started_at": "2026-09-30T09:00:00"
+    },
+    {
+      "id": "task-a0be7876ef2a23c2",
+      "job_id": "uctan-4",
+      "agent": "opencode",
+      "task": "Duzeltme yok",
+      "repo": "AfuNobet-UI",
+      "status": "Hazirlaniyor",
+      "file": null,
+      "current_file": null,
+      "progress": null,
+      "started": "2026-09-30T09:00:00",
+      "updated_at": "2026-09-30T09:00:00",
+      "quota": {
+        "remaining_percent": 90,
+        "reset_at": null
+      },
+      "mesaj": "Gorev hazirlaniyor",
+      "message": "Gorev hazirlaniyor",
+      "started_at": "2026-09-30T09:00:00"
+    }
+  ],
+  "mesaj": "",
+  "quotas": {}
+}

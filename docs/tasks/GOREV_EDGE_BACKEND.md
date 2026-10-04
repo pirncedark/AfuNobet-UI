@@ -1,0 +1,9 @@
+# Üst kenardan kalıcı geri açılma — backend
+ONAY: Kullanıcı hemen düzeltmeyi istedi. Kapsam onaylı; onay bekleme.
+ÇALIŞMA DİZİNİ: C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI
+Sahiplik: yalnız windows/src-tauri/src/island.rs ve bunun aynı dosyadaki testleri. Diğer ajan frontend üzerinde çalışıyor; değişikliklerini geri alma. Commit/push, paket indirme, pencere açma yok.
+📍 windows/src-tauri/src/island.rs:103 wait_until_active ve :275 spawn_cursor_poll: active=false iken condvar sonsuz park; lib.rs:320 set_collapsed gate.set_active(!collapsed) çağırıyor. pet/tray de park ediyor. Böylece gizlenen panel cursor olayını hiç almıyor.
+YAP: inactive iken düşük maliyetli (~80-120 ms) global üst-kenar algısı; seçili monitörün fiziksel orijini/DPI ve üst-orta alanını kullan, pencere pet altta olsa da çalışsın. Tek native poll thread içinde yap; aktif modda mevcut click-through ve cursor poll davranışını koru. Kenara girişte WINDOW_LABEL için edge-wake olayını emit et; kenarda sabit duran fare spam üretmesin, çıkıp yeniden girince tekrar emit et. Aynı sinyali aktif ama kompakt/gizli geçiş esnasında da gerektiğinde üret. Frontend diğer ajan main.ts edge-wake dinleyip panel açacak. Basılı fare ile sürüklerken yanlışlıkla açma; ekran değişince güncel monitor bilgisi. Eski island.rs değiştirmeme kuralı kullanıcı düzeltme talebiyle bu iş için geçersiz; değişiklik minimal.
+TEST: pure edge rectangle/origin/DPI sınırları ve tekrar giriş davranışı, inactive polling liveness regresyonu. cargo test --offline ilgili filtre. Sonuç docs/tasks/SONUC_EDGE_BACKEND.md: ne değişti, gerçek test çıkışı, sınırlamalar. Gerçek Windows testini PASS yazma.
+
+SON KULLANICI KARARI: varsayılan otomatik durum compact üst çubuk sürekli görünür olacak (frontend ajan değiştiriyor). Native düşük hızlı wake explicit hidden/pet/tray için güvenlik ağı; compact üzerindeki mevcut cursor olayları çalışmaya devam etmeli.

@@ -1,193 +1,217 @@
 <div align="center">
 
-<img src="docs/readme/hero.svg" width="100%" alt="AfuNobet UI — your AI coding agents, at a glance">
+<img src="docs/readme/afu-baslik.svg" width="100%" alt="AfuNobet UI — Afu keeps watch over your AI coding agents">
 
 <br>
 
-[![MIT License](https://img.shields.io/badge/code-MIT-2fbf71?style=for-the-badge)](LICENSE)
-[![Built on Coucou](https://img.shields.io/badge/built%20on-Coucou-8b86ff?style=for-the-badge)](https://github.com/Louis-CFM/coucou)
-[![Tauri 2](https://img.shields.io/badge/Tauri-2-FFC131?style=for-the-badge&logo=tauri&logoColor=black)](windows/)
-[![Swift 6](https://img.shields.io/badge/Swift-6-F05138?style=for-the-badge&logo=swift&logoColor=white)](NotchBuddy/)
-[![Rust](https://img.shields.io/badge/Rust-backend-000?style=for-the-badge&logo=rust)](windows/src-tauri/)
+[![Download](https://img.shields.io/github/v/release/pirncedark/AfuNobet-UI?style=for-the-badge&label=download&color=e9b55a&labelColor=0b1326)](https://github.com/pirncedark/AfuNobet-UI/releases/latest)
+[![Windows 10/11](https://img.shields.io/badge/Windows-10%2F11-3fa9ff?style=for-the-badge&logo=windows&labelColor=0b1326)](#install-on-a-new-pc)
+[![Tauri 2](https://img.shields.io/badge/Tauri-2-ff7a2e?style=for-the-badge&logo=tauri&logoColor=white&labelColor=0b1326)](windows/)
+[![Rust](https://img.shields.io/badge/Rust-core-f3f6ff?style=for-the-badge&logo=rust&logoColor=white&labelColor=0b1326)](windows/src-tauri/)
+[![MIT](https://img.shields.io/badge/code-MIT-2fd27a?style=for-the-badge&labelColor=0b1326)](LICENSE)
 
-**[English](#-english)** · **[Türkçe](#-türkçe)**
+**[English](#english)** · **[Türkçe](#türkçe)**
 
 </div>
 
-<p align="center">
-  <img src="docs/media/demo.gif" width="760" alt="Demo: the island opens from the top of the screen and shows a live Claude Code session">
-</p>
-
----
-
-## 🇬🇧 English
-
-A small island at the top of your screen that watches your AI coding agents (**Claude Code, Codex, Cursor, Gemini CLI, Antigravity** and more). It lets you **approve permissions, answer questions, chat and drop files** without leaving what you're doing. On a MacBook it lives in the notch. On Windows and Linux it slides down from the top edge.
-
-> [!NOTE]
-> This repository is built on **[Coucou](https://github.com/Louis-CFM/coucou)** by Louis Raillé. The source code is MIT. The names *Coucou* and *Mochi*, the Mochi character, the icons, the sounds and the media in `docs/media/` and `design/` belong to Louis Raillé. See [LICENSE-ASSETS.md](LICENSE-ASSETS.md).
-
-### ✨ What it does
-
 <table>
   <tr>
-    <td width="50%" valign="top">
-      <img src="docs/media/claude-code.png" alt="A live Claude Code session with the file diff">
-      <h4>👀 Live agent sessions</h4>
-      Every step (Read, Edit, Bash, Done) appears as it happens. File edits show their <code>+N −M</code> lines, and a click opens the diff.
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/media/chat.png" alt="Chatting from the island">
-      <h4>💬 Chat from the island</h4>
-      Anthropic, Google AI, OpenAI, or local models through Ollama / LM Studio. Answers stream in with Markdown and code blocks.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/media/upload.png" alt="Dropping a file on the island">
-      <h4>📦 Drop a file</h4>
-      Drag a file onto the island. It turns into a box, swallows the file, then offers to answer questions about it.
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/media/stripe.png" alt="An integration pill showing Stripe">
-      <h4>🔌 Integrations</h4>
-      Stripe, GitHub (PRs, CI, review requests), Vercel, n8n, Resend, Notion and Cal.com, each one in its own pill.
-    </td>
-  </tr>
-  <tr>
-    <td width="50%" valign="top">
-      <img src="docs/media/coucou.png" alt="The character waving hello">
-      <h4>👋 A character with moods</h4>
-      It breathes, blinks, follows your cursor, dances to your music and dresses up for the seasons.
-    </td>
-    <td width="50%" valign="top">
-      <img src="docs/media/dizzy.png" alt="The character going dizzy after three clicks">
-      <h4>😵 Don't poke it too much</h4>
-      Click it and it gets annoyed. Click it three times in a row and it goes dizzy. Rest the pointer on it for hearts.
-    </td>
+    <td width="62%" align="center"><img src="docs/media/afu-ada.gif" alt="The Afu island: tasks, a Claude Code session and status"><br><sub><b>The island</b> · tasks, agent pills, questions</sub></td>
+    <td width="38%" align="center"><img src="docs/media/afu-karakter.gif" alt="Afu's character states"><br><sub><b>Afu</b> · one face for every state</sub></td>
   </tr>
 </table>
 
-### ⚙️ How it works
+### Afu's moods · Afu'nun hâlleri
 
 <p align="center">
-  <img src="docs/readme/flow.svg" width="100%" alt="Agent hook → relay → local pipe → island → your answer back to the agent">
+  <img src="afu-character/kart/selam.png" width="104" alt="Selam / Hello" title="Selam · Hello">
+  <img src="afu-character/kart/calisiyor.png" width="104" alt="Çalışıyor / Working" title="Çalışıyor · Working">
+  <img src="afu-character/kart/dusunme.png" width="104" alt="Düşünüyor / Thinking" title="Düşünüyor · Thinking">
+  <img src="afu-character/kart/dinleme.png" width="104" alt="Dinliyor / Listening" title="Dinliyor · Listening">
+  <img src="afu-character/kart/konusma.png" width="104" alt="Konuşuyor / Talking" title="Konuşuyor · Talking">
+  <img src="afu-character/kart/bekleme_kota.png" width="104" alt="Kota bekliyor / Waiting for quota" title="Kota bekliyor · Waiting for quota">
+  <img src="afu-character/kart/basari.png" width="104" alt="Başarılı / Done" title="Başarılı · Done">
+  <img src="afu-character/kart/hata.png" width="104" alt="Hata / Error" title="Hata · Error">
 </p>
 
-- The hook relay gets **300 ms** to reach the app. If the app is closed, slow or has crashed, it exits right away, so **an agent session is never blocked**.
-- Nothing is approved without **your explicit click**.
-- `~/.claude/settings.json` is never overwritten: you see a dated backup and the exact diff, and nothing is written until you confirm.
-- Keys live in the **Keychain / Windows Credential Manager / Secret Service**, never on disk. No telemetry: the only network calls go to services you configure yourself.
-
-### 🖥️ Platforms
-
-| Platform | Folder | How it looks | Status |
-|---|---|---|---|
-| **macOS 15+** | [`NotchBuddy/`](NotchBuddy/) | Lives in the notch (a small bar on Macs without one) | Native Swift app |
-| **Windows 10/11** | [`windows/`](windows/) | Slides down from the top-centre of the screen | Build from source ([why](windows/README.md#install)) |
-| **Linux** | [`windows/`](windows/) | gtk-layer-shell overlay (regular window on GNOME) | Beta: AppImage, .deb, .rpm |
-
-<p align="center">
-  <img src="windows/screenshots/approval.png" width="640" alt="Windows: a Claude Code permission request with Deny and Allow"><br>
-  <sub>Windows: a Claude Code permission request, answered from the island</sub>
-</p>
-
-### 🚀 Quick start
-
-<details open>
-<summary><b>Windows / Linux</b>: Rust, Node 20+ and the MSVC build tools on Windows</summary>
-
-```powershell
-cd windows
-npm install
-npm run tauri dev      # live-reloading development build
-npm run pack           # installer in windows/release/
-```
-
-Then open **Settings… → Claude Code → Install hooks…**. All the details are in [windows/README.md](windows/README.md).
-</details>
-
-<details>
-<summary><b>macOS</b>: Xcode and XcodeGen</summary>
-
-```bash
-cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug build
-```
-</details>
-
-### 🗂️ Repository map
-
-```
-NotchBuddy/   native macOS app (Swift 6, SwiftUI + AppKit)
-windows/      Tauri 2 app for Windows and Linux (Rust + TypeScript)
-  hook/         the Claude Code relay (coucou-hook)
-docs/         SPEC, INTEGRATIONS, AGENTS, the website and media
-design/       original prototype and target screenshots
-```
-
-### 🏷️ Versions
-
-| Version | Date | Highlights |
-|---|---|---|
-| [0.1.7](CHANGELOG.md#017--october-4-2026) | Oct 4, 2026 | Global keyboard shortcuts, configurable in Settings → Shortcuts |
-| [0.1.6](CHANGELOG.md#016--october-4-2026) | Oct 4, 2026 | Drag the character out to the desktop; it flies back when Claude needs you |
-| [0.1.5](CHANGELOG.md#015--october-4-2026) | Oct 4, 2026 | Wardrobe and seasonal outfits, new launch greeting |
-| [0.1.4](CHANGELOG.md#014--october-3-2026) | Oct 3, 2026 | Live file diffs, GitHub PR/CI pill and alerts |
-| [0.1.3](CHANGELOG.md#013--october-3-2026) | Oct 3, 2026 | Answer Claude's questions from the island, local models, plan usage |
-| [0.1.2](CHANGELOG.md#012--october-2-2026) | Oct 2, 2026 | Codex and Cursor support |
-| [0.1.1](CHANGELOG.md#011--october-2-2026) | Oct 2, 2026 | Linux build, Gemini / OpenAI chat, any agent can get its own pill |
-| [0.1.0](CHANGELOG.md#010--september-27-2026) | Sep 27, 2026 | First release |
-
-### 🙌 Credits & license
-
-- **Coucou** and **Mochi** were created by [Louis Raillé](https://github.com/Louis-CFM), with contributions from @lacatu5, @Davy133, @Kamasoutra, @Cris1670, @Vignesh-Thangamariappan, @rouderz, @MysJofR, @corefusiion and others (see [CHANGELOG.md](CHANGELOG.md)).
-- Code: [MIT](LICENSE). Name, character, icons, sounds and media: [LICENSE-ASSETS.md](LICENSE-ASSETS.md). They may be shown and discussed, but not shipped in your own app without written permission.
-- Want to help? Read [CONTRIBUTING.md](CONTRIBUTING.md).
+<p align="center"><sub>selam · çalışıyor · düşünüyor · dinliyor · konuşuyor · kota bekliyor · başarılı · hata</sub></p>
 
 ---
 
-## 🇹🇷 Türkçe
+## English
 
-Ekranın üstünde duran küçük bir **ada**. Yapay zekâ kodlama ajanlarını (**Claude Code, Codex, Cursor, Gemini CLI, Antigravity** ve fazlası) izler. İşini bırakmadan **izin onaylamanı, sorulara cevap vermeni, sohbet etmeni ve dosya bırakmanı** sağlar. MacBook'ta çentiğin (notch) içinde yaşar. Windows ve Linux'ta ekranın üst kenarından aşağı kayar.
+**A desktop status island and companion for AI coding agents on Windows.**
+Afu lives at the top centre of your screen, shows what your agents (Claude Code, Codex, Gemini, OpenCode, GLM and any agent that speaks its protocol) are doing, and tells you when one of them needs you.
 
-> [!NOTE]
-> Bu depo, Louis Raillé'nin **[Coucou](https://github.com/Louis-CFM/coucou)** projesi üzerine kuruludur. Kaynak kod MIT lisanslıdır. *Coucou* ve *Mochi* adları, Mochi karakteri, simgeler, sesler ve `docs/media/` ile `design/` içindeki görseller Louis Raillé'ye aittir. Ayrıntılar için [LICENSE-ASSETS.md](LICENSE-ASSETS.md) dosyasına bak.
-
-### ✨ Neler yapar
+### What it does
 
 | | |
 |---|---|
-| 👀 **Canlı ajan oturumları** | Her adım (Read, Edit, Bash, Done) anında görünür. Dosya düzenlemeleri `+N −M` satır olarak gösterilir, tıklayınca fark (diff) açılır. |
-| ✅ **İzin ve sorular** | Claude Code ile Codex'in izin isteklerine adadan **Reddet / İzin ver** dersin. Çoktan seçmeli sorulara da oradan cevap verirsin. |
-| 💬 **Sohbet** | Anthropic, Google AI, OpenAI ya da Ollama / LM Studio üzerinden yerel modellerle konuşabilirsin. |
-| 📦 **Dosya bırak** | Dosyayı adaya sürükle. Karakter kutuya dönüşüp dosyayı yutar, sonra dosya hakkında soru sormanı teklif eder. |
-| 🔌 **Entegrasyonlar** | Stripe, GitHub (PR, CI, inceleme istekleri), Vercel, n8n, Resend, Notion ve Cal.com. Her biri kendi hapında görünür. |
-| 👋 **Karakter** | Nefes alır, göz kırpar, imleci takip eder, müziğe dans eder, mevsime göre giyinir. Üç kez tıklarsan başı döner. |
+| 🏝️ **Status island** | A small always-on-top card at the top of the screen. It never steals focus, lets clicks pass through its transparent parts and does not appear in Alt-Tab or on the taskbar. Move the mouse to the top edge and the panel opens; when the mouse leaves, Afu returns to the mini pet. |
+| 👀 **Live agent sessions** | Every agent session reported over the local agent pipe is listed with its state: thinking, working, needs approval, done, error or quota wait. Claude Code is connected with hooks; Claude is only *watched*, never given work (the 🔒 **Claude KORUNUYOR** badge). |
+| 📋 **AfuNobet tasks and quotas** | When the AfuNobet supervisor writes `state.json`, its tasks, agent pills, stages and hand-overs (`Codex quota full → Gemini took over`) are shown. Remaining quotas are read from `.ajan_kota.cache`; stale or unknown values show `-`, never a guess. |
+| ❓ **Questions and approvals** | Agents can ask a question; Afu shows a card and writes your answer back. |
+| 🐾 **Mini pet** | Minimise (or press Esc) and Afu glides down next to the Start button. It greets you when the mouse comes near, sleeps after 5–10 idle minutes, reacts to clicks and makes small expressions every 20–60 s. |
+| 🧭 **Tray menu** | Right-click the tray icon to pause notifications, show/hide the pet or exit. |
+| 💬 **Ask Afu** | Chat from the panel; the request goes through the Codex bridge and you can cancel it at any time. |
+| 🎙️ **Optional extras** | Local push-to-talk speech (Whisper, offline), Windows text-to-speech, GitHub status pill, drag-and-drop file hand-off. |
 
-### ⚙️ Nasıl çalışır
+### How it works
 
-- Ajanın hook'u küçük bir aktarıcıyı çalıştırır. Aktarıcı, yerel boru (Windows'ta named pipe, Linux/macOS'ta Unix soketi) üzerinden adaya ulaşmak için **300 ms** bekler. Uygulama kapalıysa ya da donmuşsa hemen çıkar, yani **ajan oturumu asla bloklanmaz**.
-- Senin **açık tıklaman** olmadan hiçbir şey onaylanmaz.
-- `~/.claude/settings.json` hiçbir zaman ezilmez: tarihli yedeği ve değişikliğin tam farkını görürsün, sen onaylamadan hiçbir şey yazılmaz.
-- Anahtarlar **Keychain / Windows Kimlik Bilgisi Yöneticisi / Secret Service** içinde tutulur, diske yazılmaz. Telemetri yoktur. Ağ istekleri yalnızca senin ayarladığın servislere gider.
+<p align="center">
+  <img src="docs/readme/akis.svg" width="100%" alt="Agent hooks and the AfuNobet supervisor feed the Rust core, which drives the island, card, mini pet and tray">
+</p>
 
-### 🚀 Hızlı başlangıç
+1. An agent hook runs `afu_ajan_koprusu.py`, which turns the hook payload into one line of the agent protocol (`docs/AJAN_PROTOKOLU.md`) and writes it to a local named pipe. The bridge always exits 0 and gives up within 0.3 s if Afu is closed, so agents are never slowed down.
+2. The Rust core accepts pipe connections **only from the same Windows user**, limits size and rate, masks secrets and paths, and keeps a short session list (finished sessions drop after 10 minutes).
+3. It also watches `state.json` through directory events (no polling). A missing or broken file keeps the last good data and shows "Baglanti bekleniyor".
+4. The UI merges both sources into one task list and picks the most important task for the card and Afu's expression.
 
-**Windows / Linux:** Rust, Node 20+ ve Windows'ta MSVC derleme araçları gerekir.
+### Project structure
 
-```powershell
-cd windows
-npm install
-npm run tauri dev      # canlı yenilenen geliştirme sürümü
-npm run pack           # kurulum dosyası windows/release/ içine
+```
+windows/
+  src/                 TypeScript UI
+    core/              state model, agent protocol, labels, bridge to Rust
+    island/            island window and its state machine
+    afu/               character animation, gestures, expressions, mini pet
+    message/ question/ notifications, queue, question cards
+    chat/ sor/         chat panel, voice picker, "Ask Afu"
+  src-tauri/src/       Rust core
+    ipc.rs protokol.rs agent pipe server and event mapping
+    state.rs watch.rs  state.json location, reading, watching
+    island.rs dpi.rs   window flags, click-through, DPI-safe placement
+    glide.rs taskbar.rs yaslanma.rs   mini pet glide and resting place
+    tray*.rs           tray icon and menu
+    voice/             local speech capture and Whisper
+  tests/               Vitest UI tests
+scripts/               agent bridge, Claude bridge, fake-data test mode, update script
+afu-character/         Afu artwork, cut frames and icons
+docs/                  protocol, question contract, test mode, checklists
 ```
 
-Sonra **Settings… → Claude Code → Install hooks…** adımını izle. Windows için hazır kurulum dosyası şu an yayında değil, çünkü Microsoft Defender imzasız kurulumu yanlışlıkla zararlı olarak işaretliyor. Bu yüzden kaynaktan derlemek gerekiyor ([ayrıntı](windows/README.md#install)).
+### Install on a new PC
 
-**macOS:** `cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug build`
+A ready-built `afunobet-ui.exe` is attached to every [Release](https://github.com/pirncedark/AfuNobet-UI/releases/latest). To build it yourself (about 30 minutes the first time):
 
-### 🙌 Emeği geçenler ve lisans
+1. **Prerequisites** — Node.js 20+, Python 3, WebView2 (built into Windows 11), Rust (`winget install Rustlang.Rustup`) and Visual Studio 2022 Build Tools with the C++, CMake and Clang components:
+   ```powershell
+   winget install Microsoft.VisualStudio.2022.BuildTools --override "--quiet --wait --norestart --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.CMake.Project --add Microsoft.VisualStudio.Component.VC.Llvm.Clang --includeRecommended"
+   ```
+   Visual Studio **Code** is an editor and is not enough — the C++ compiler comes with Build Tools.
+2. **Build and install** — from the repository root:
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File scripts/gorev-cubugu-guncelle.ps1
+   ```
+   The script runs `npm ci` if needed, allows the first online dependency download, finds `libclang` in Build Tools, installs the app to `%LOCALAPPDATA%\Programs\AfuNobet-UI`, creates Start menu and desktop shortcuts and, if no supervisor is present, an empty `%LOCALAPPDATA%\AfuNobet\state.json`. Close Afu before building — a running exe is locked ("Access denied").
+3. **Pin to the taskbar** — Afu never shows a taskbar button and Windows does not let programs pin themselves. Drag the desktop **AfuNobet UI** shortcut onto the taskbar once. Later updates replace the exe behind it, so the pin always opens the newest version.
+4. **Update / roll back** — run the same script after pulling changes; `-GeriAl` restores the previous version.
 
-Coucou ve Mochi'yi [Louis Raillé](https://github.com/Louis-CFM) yarattı, topluluk da katkı verdi (bkz. [CHANGELOG.md](CHANGELOG.md)). Kod [MIT](LICENSE) lisanslıdır. Ad, karakter, simge, ses ve görseller [LICENSE-ASSETS.md](LICENSE-ASSETS.md) kapsamındadır: gösterilebilir ve hakkında yazılabilir, ama yazılı izin olmadan kendi uygulamanda dağıtılamaz.
+### Connect Claude Code
 
-<p align="center"><sub>Made with care for people who'd rather not babysit a terminal.</sub></p>
+Add these hooks to `~/.claude/settings.json` (replace `<repo>` with the repository path) and restart Claude Code:
+
+```json
+"hooks": {
+  "SessionStart":     [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "UserPromptSubmit": [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "PreToolUse":       [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "PostToolUse":      [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "Notification":     [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "Stop":             [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "SubagentStop":     [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }],
+  "SessionEnd":       [{ "hooks": [{ "type": "command", "command": "python \"<repo>/scripts/afu_ajan_koprusu.py\" --ajan claude", "timeout": 5 }] }]
+}
+```
+
+The session title is the first 120 characters of your prompt; secrets such as tokens and keys are masked. Other agents use the same bridge with `--ajan codex`, `--ajan gemini` and so on.
+
+### Data and privacy
+
+- Agent data stays on your computer: the pipe is local and limited to your Windows user.
+- `state.json` is opened read-only. In the data folder Afu writes only your answers (`cevaplar/`) and an `ada_canli` heartbeat, and removes agent messages from `mesajlar/` after showing them; its own settings live in the app data folder.
+- Paths, commands, PIDs, ports and secrets are filtered before anything is shown.
+- Network is used only by features you turn on (GitHub status through `gh`, Codex sign-in).
+
+### Data location
+
+`AFUNOBET_UI_STATE` (full path to `state.json`) or `AFUNOBET_DB` (same folder) override the default. Otherwise an existing `%USERPROFILE%\Desktop\afuproject\AfuNobet` is used, else `%LOCALAPPDATA%\AfuNobet`. `AFUNOBET_AJAN_PIPE` changes the pipe name for tests.
+
+### Development
+
+Working directory: `windows`.
+
+```powershell
+npm test                 # Vitest UI tests
+npm run build            # type check + bundle
+cargo test --release     # Rust tests
+```
+
+Screenshot tests need the Playwright browser (`npx playwright install chromium-headless-shell`); if they time out on a busy machine, run them with `--no-file-parallelism`. For a fake-data run without real agents see `docs/SAHTE_TEST_MODU.md`. Change history: `CHANGELOG.md` and `AFU_CHANGES.md`. Local release builds record the dated EXE and its SHA256 in `dist/uiux-build-manifest.json`; build output is never committed.
+
+If a Rust voice test fails only on your machine, check `python.exe`: the Microsoft Store / install-manager launcher starts the real interpreter as a child process.
+
+---
+
+## Türkçe
+
+### Ne işe yarar
+
+- **Durum adası** — ekranın üstünde, her zaman en üstte duran küçük bir kart. Odağı çalmaz, saydam kısımlarından tıklama geçirir, Alt-Tab'da ve görev çubuğunda görünmez. Fareyi ekranın üst kenarına getirince panel açılır; fare ayrılınca Afu mini pete döner.
+- **Canlı ajan oturumları** — yerel ajan borusundan bildirilen her ajan oturumu durumuyla listelenir: düşünüyor, çalışıyor, onay bekliyor, bitti, hata ya da kota bekliyor. Claude Code kancalarla bağlanır; Claude yalnızca *izlenir*, ona iş verilmez (**Claude KORUNUYOR** rozeti).
+- **AfuNöbet görevleri ve kotalar** — AfuNöbet gözetmeni `state.json` yazıyorsa görevleri, ajan sekmeleri, aşamalar ve devirler (`Codex kotası doldu → Gemini devraldı`) gösterilir. Kalan kotalar `.ajan_kota.cache` dosyasından okunur; bayat ya da bilinmeyen değer `-` gösterilir, tahmin üretilmez.
+- **Sorular ve onaylar** — ajanlar soru sorabilir; Afu kart açar ve cevabını geri yazar.
+- **Mini pet** — küçültünce (ya da Esc) Afu süzülerek Başlat düğmesinin yanına iner. Fare yaklaşınca selam verir, 5–10 dakika boşta uyur, tıklamalara tepki verir, 20–60 sn'de bir küçük ifadeler yapar.
+- **Tepsi menüsü** — tepsi simgesine sağ tıklayıp bildirimleri duraklatın, peti gösterin/gizleyin ya da çıkın.
+- **Afu'ya sor** — panelden sohbet; istek Codex köprüsüyle gider, istediğiniz an iptal edebilirsiniz.
+- **İsteğe bağlı** — yerel bas-konuş (Whisper, çevrimdışı), Windows sesli okuma, GitHub durum sekmesi, sürükle-bırak dosya iletme.
+
+### Nasıl çalışır
+
+Yukarıdaki [akış çizimi](#how-it-works) iki veri yolunu gösterir:
+
+1. Ajan kancası `afu_ajan_koprusu.py`'yi çalıştırır; köprü kanca verisini ajan protokolünün (`docs/AJAN_PROTOKOLU.md`) tek satırına çevirip yerel adlandırılmış boruya yazar. Köprü her zaman 0 ile çıkar, Afu kapalıysa en geç 0,3 sn'de vazgeçer; ajanlar yavaşlamaz.
+2. Rust çekirdeği boru bağlantısını **yalnız aynı Windows kullanıcısından** kabul eder, boyut ve hız sınırlar, gizli bilgi ve yolları maskeler, kısa bir oturum listesi tutar (biten oturumlar 10 dakika sonra düşer).
+3. `state.json`'u dizin olaylarıyla izler (periyodik kontrol yok). Eksik ya da bozuk dosyada son geçerli veri korunur, "Bağlantı bekleniyor" gösterilir.
+4. Arayüz iki kaynağı tek görev listesinde birleştirir; kart ve Afu'nun ifadesi için en önemli görevi seçer.
+
+### Proje yapısı
+
+Klasör ağacı İngilizce bölümdedir. Kısaca: `windows/src` TypeScript arayüzü (durum modeli, ada, karakter, bildirim, soru, sohbet), `windows/src-tauri/src` Rust çekirdeği (boru sunucusu, durum dosyası, pencere bayrakları, mini pet, tepsi, ses), `scripts` köprüler ve betikler, `afu-character` Afu çizimleri, `docs` sözleşmeler ve kontrol listeleri.
+
+### Yeni bilgisayarda kurulum
+
+Hazır derlenmiş `afunobet-ui.exe` her [Release](https://github.com/pirncedark/AfuNobet-UI/releases/latest) sayfasında ektedir. Kendin derlemek istersen (ilk sefer yaklaşık 30 dakika):
+
+1. **Gereksinimler** — Node.js 20+, Python 3, WebView2 (Windows 11'de hazır), Rust (`winget install Rustlang.Rustup`) ve C++, CMake ve Clang bileşenleriyle Visual Studio 2022 Build Tools (komut yukarıda). Visual Studio **Code** bir editördür, yetmez — C++ derleyicisi Build Tools ile gelir.
+2. **Derle ve kur** — depo kökünden `powershell -ExecutionPolicy Bypass -File scripts/gorev-cubugu-guncelle.ps1`. Betik gerekirse `npm ci` çalıştırır, ilk çevrimiçi bağımlılık indirmesine izin verir, `libclang`'ı Build Tools içinde bulur, uygulamayı `%LOCALAPPDATA%\Programs\AfuNobet-UI` altına kurar, Başlat menüsü ve masaüstü kısayolu oluşturur; gözetmen yoksa boş bir `%LOCALAPPDATA%\AfuNobet\state.json` yazar. Derlemeden önce Afu'yu kapatın — çalışan exe kilitlidir ("Erişim engellendi").
+3. **Görev çubuğuna sabitle** — Afu görev çubuğunda düğme göstermez, Windows da programların kendini sabitlemesine izin vermez. Masaüstündeki **AfuNobet UI** kısayolunu bir kez görev çubuğuna sürükleyin. Sonraki güncellemeler arkasındaki exe'yi değiştirir; sabitlenen simge hep en yeni sürümü açar.
+4. **Güncelle / geri al** — değişiklikleri çektikten sonra aynı betiği çalıştırın; `-GeriAl` önceki sürüme döner.
+
+### Claude Code'u bağla
+
+İngilizce bölümdeki `hooks` bloğunu `~/.claude/settings.json` dosyasına ekleyin (`<repo>` yerine depo yolunu yazın) ve Claude Code'u yeniden başlatın. Oturum başlığı isteminizin ilk 120 karakteridir; anahtar ve token gibi gizli bilgiler maskelenir. Diğer ajanlar aynı köprüyü `--ajan codex`, `--ajan gemini` gibi kullanır.
+
+### Veri ve gizlilik
+
+- Ajan verisi bilgisayarınızda kalır: boru yereldir ve yalnız sizin Windows kullanıcınıza açıktır.
+- `state.json` salt okunur açılır. Veri klasörüne Afu yalnız cevaplarınızı (`cevaplar/`) ve `ada_canli` canlılık dosyasını yazar; `mesajlar/` içindeki ajan mesajlarını gösterdikten sonra siler. Kendi ayarları uygulama veri klasöründe durur.
+- Yol, komut, PID, port ve gizli bilgiler gösterilmeden önce süzülür.
+- Ağ yalnız açtığınız özelliklerce kullanılır (`gh` ile GitHub durumu, Codex girişi).
+
+### Veri yeri
+
+`AFUNOBET_UI_STATE` (`state.json` tam yolu) ya da `AFUNOBET_DB` (aynı klasör) varsayılanı geçersiz kılar. Yoksa mevcut `%USERPROFILE%\Desktop\afuproject\AfuNobet`, o da yoksa `%LOCALAPPDATA%\AfuNobet` kullanılır. `AFUNOBET_AJAN_PIPE` testler için boru adını değiştirir.
+
+### Geliştirme
+
+Çalışma dizini `windows`: `npm test` (arayüz testleri), `npm run build` (tip denetimi + paket), `cargo test --release` (Rust testleri). Ekran görüntüsü testleri Playwright tarayıcısı ister (`npx playwright install chromium-headless-shell`); yoğun makinede zaman aşımı olursa `--no-file-parallelism` ile çalıştırın. Gerçek ajan olmadan sahte veriyle deneme için `docs/SAHTE_TEST_MODU.md`. Değişiklik geçmişi: `CHANGELOG.md` ve `AFU_CHANGES.md`. Yerel teslim derlemeleri tarihli EXE'yi ve SHA256 değerini `dist/uiux-build-manifest.json` içinde kaydeder; derleme çıktısı depoya eklenmez.
+
+Bir Rust ses testi yalnız sizin makinenizde kalıyorsa `python.exe`'yi kontrol edin: Microsoft Store / yükleme yöneticisi başlatıcısı asıl yorumlayıcıyı alt süreç olarak başlatır.
+
+---
+
+## License / Lisans
+
+MIT — see [LICENSE](LICENSE), [LICENSE-ASSETS.md](LICENSE-ASSETS.md) (Afu artwork) and [THIRD_PARTY.md](THIRD_PARTY.md).
+MIT — bkz. [LICENSE](LICENSE), [LICENSE-ASSETS.md](LICENSE-ASSETS.md) (Afu çizimleri) ve [THIRD_PARTY.md](THIRD_PARTY.md).
