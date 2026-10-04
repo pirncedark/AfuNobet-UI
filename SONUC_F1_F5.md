@@ -2,7 +2,7 @@ SONUC: YARIM - F1–F5 ve F7 uygulandı; npm test içindeki kapsam dışı pet-k
 
 # F1–F5 + F7 sonucu
 
-Görev dosyası, CLAUDE.md, GOREV_COUCOU_AFU.md, AFU_CHANGES.md, planın F1–F5/F7 maddeleri ve veri sözleşmeleri okundu. UI salt okunur sınırı korundu.
+Görev dosyası, CLAUDE.md, GOREV_AFU_TEMEL.md, AFU_CHANGES.md, planın F1–F5/F7 maddeleri ve veri sözleşmeleri okundu. UI salt okunur sınırı korundu.
 
 ## Gerçek veri ölçümü
 

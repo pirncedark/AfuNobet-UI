@@ -80,7 +80,7 @@ export function cevapHazirla(soru: Soru, secim: string | null, yazi: string | nu
   return { id: soru.id, secim: s, metin: m };
 }
 
-/** Bekleyen sorular; kart her zaman en eski soruyu gösterir (coucou: bir kart, bir istek). */
+/** Bekleyen sorular; kart her zaman en eski soruyu gösterir (upstream: bir kart, bir istek). */
 export class SoruModeli {
   sorular: Soru[] = [];
   private cevaplanan = new Set<string>();

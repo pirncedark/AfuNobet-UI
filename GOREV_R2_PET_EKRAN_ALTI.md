@@ -1,6 +1,6 @@
 # GOREV R2: Başlat menüsü olmayan yerde mini pet ekranın en altında dursun
 
-Önce CLAUDE.md, GOREV_COUCOU_AFU.md, AFU_CHANGES.md oku. R1 (mesajda öne gelme) yeni bitti; onun değişikliklerini bozma.
+Önce CLAUDE.md, GOREV_AFU_TEMEL.md, AFU_CHANGES.md oku. R1 (mesajda öne gelme) yeni bitti; onun değişikliklerini bozma.
 
 Kullanıcı isteği (3 Eki): "Başlat menüsü olmadığı yerlerde sayfanın en altında olsun."
 

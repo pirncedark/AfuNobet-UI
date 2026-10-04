@@ -26,12 +26,12 @@ Rust dağılımı: birim 97, apps_contract 30, apps_runtime_contract 12, codex_p
 
 node node_modules/@tauri-apps/cli/tauri.js build --no-bundle ve ardından node scripts/pack.mjs windows/ içinde başarıyla çalıştı. TypeScript ve Vite üretim derlemesi başarılı. Mevcut kullanılmayan kod/ithalat uyarıları derlemeyi engellemedi.
 
-Yeni exe: dist/afunobet-ui-coucou.exe
+Yeni exe: dist/afunobet-ui.exe
 SHA256: d6cc24a03df07f372906703f1d992bb8051990dfcd5dfc43b6d41e80f6cb1f2f
 Release exe, paket exe ve build-manifest.json hash değerleri aynı.
 
-Yedek: dist/onceki/afunobet-ui-coucou.exe
-Ek arşiv: dist/onceki/5b-sabit-20261002/afunobet-ui-coucou.exe
+Yedek: dist/onceki/afunobet-ui.exe
+Ek arşiv: dist/onceki/5b-sabit-20261002/afunobet-ui.exe
 Yedek SHA256: 1b0bad6d922f9d4b31976d58ad3d9ea2defb8830c1591f3b1dd81c55ae227d91
 GERI_AL.ps1 içeriği korunup hash ile doğrulandı; önceki daha eski yedek ayrıca 5b-sabit-20261002/daha-onceki.exe olarak korundu. Derleme başarılı olduğundan geri alma çalıştırılmadı.
 

@@ -26,9 +26,9 @@ Rust ilk çalıştırmada ipc::tests::tek_baglantida_coklu_satir_ve_satir_siniri
 ## EXE teslimi
 
 - Yedekleme sırasında çalışan uygulama bulunmadığı logda kayıtlı.
-- Yedek: dist/onceki/afunobet-ui-coucou-20261002-232230.exe
+- Yedek: dist/onceki/afunobet-ui-20261002-232230.exe
 - Yedek SHA256: 2C14A8F5BD3A2B2482ACD50DA6BC12BF560BB3C999502C900B1201A549E200D3
-- Yeni EXE: dist/afunobet-ui-coucou.exe
+- Yeni EXE: dist/afunobet-ui.exe
 - Dosya tarihi: 2026-10-02T23:24:34.9601967+03:00
 - Boyut: 34.506.752 bayt
 - SHA256: 8AA3D7C9D6B1DD1C3EE7F21BB6260936C6E4C6ADE55CA3570149EF9E55E023BD
@@ -40,7 +40,7 @@ Açılış kanıtı: docs/kanit/tasima/smoke.json. PID 16016, başlangıç 2026-
 
 powershell -NoProfile -File kisayol_guncelle.ps1 önceki turda çalıştırıldı ve exit 1 verdi. Temp kısayolu oluşturuldu, ancak C:\Users\afuuu\Desktop\AfuNobet UI.lnk dosyasına erişim reddedildi. Kanıt: docs/kanit/tasima/kisayol.txt. Bu oturumun yazma izni proje diziniyle sınırlı ve izin yükseltme kapalı olduğundan aynı işlem tekrarlanmadı.
 
-Mevcut masaüstü kısayolu bu turda salt okunur kontrol edildi: hedef yeni dist/afunobet-ui-coucou.exe, çalışma dizini dist. Kısayol zaten doğru hedefi gösteriyor; yine de görevdeki güncelleme komutu başarılı sayılmadı. Tamamlamak için kullanıcı kisayol_guncelle.ps1 betiğini masaüstüne yazma izni olan bir PowerShell oturumunda çalıştırabilir.
+Mevcut masaüstü kısayolu bu turda salt okunur kontrol edildi: hedef yeni dist/afunobet-ui.exe, çalışma dizini dist. Kısayol zaten doğru hedefi gösteriyor; yine de görevdeki güncelleme komutu başarılı sayılmadı. Tamamlamak için kullanıcı kisayol_guncelle.ps1 betiğini masaüstüne yazma izni olan bir PowerShell oturumunda çalıştırabilir.
 
 ## Bu görev kapsamındaki değişiklikler
 
@@ -59,7 +59,7 @@ Sonuç/kanıt ve üretilen teslim dosyaları:
 - docs/kanit/tasima/log.txt
 - docs/kanit/tasima/{tsc,npm-test,cargo-test,cargo-test-retry,python-test,rust-red,pack,kisayol}.txt
 - docs/kanit/tasima/smoke.json ve smoke stdout/stderr kayıtları; smoke-webview/ geçici WebView verileri
-- dist/afunobet-ui-coucou.exe, dist/onceki/afunobet-ui-coucou-20261002-232230.exe
+- dist/afunobet-ui.exe, dist/onceki/afunobet-ui-20261002-232230.exe
 - dist/SHA256SUMS.txt, dist/build-manifest.json, dist/LICENSE.txt, dist/LICENSE-ASSETS.md ve windows/target/, windows/dist/ derleme çıktıları
 
 Bu turda yalnız SONUC_TASIMA.md ve docs/kanit/tasima/log.txt yazıldı. Çalışma ağacında baştan bulunan diğer görevlerin değişiklikleri korunmuştur. Ses modeli/cbenv taşınmadı, silinmedi veya kopyalanmadı; görsellere dokunulmadı.

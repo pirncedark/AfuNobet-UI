@@ -2,7 +2,7 @@
 
 Güncel kaynaklardan Windows x64 release EXE derlendi ve paketlendi.
 
-- Teslim: `dist/afunobet-ui-coucou.exe`, 77.329.408 bayt.
+- Teslim: `dist/afunobet-ui.exe`, 77.329.408 bayt.
 - SHA-256: `1b0bad6d922f9d4b31976d58ad3d9ea2defb8830c1591f3b1dd81c55ae227d91`.
 - Kaynak EXE ile teslim kopyasının SHA-256 değerleri aynı. PE başlığı x64 / Windows GUI olarak doğrulandı.
 - Önceki teslim dosyaları `dist/onceki/sesli-20261002-184658/` altında yedeklendi.

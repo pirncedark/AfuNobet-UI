@@ -2,7 +2,7 @@
 
 Bu liste, `docs/KABUL_FAZ_A.md` gereksinimlerinden türetilmiş, kullanıcının gerçek Windows ortamında masaüstünde bizzat deneyeceği adım adım test listesidir.
 
-**Ön Koşul:** `dist/afunobet-ui-coucou.exe` veya masaüstündeki `AfuNobet UI` kısayolu üzerinden uygulama başlatılmış olmalıdır.
+**Ön Koşul:** `dist/afunobet-ui.exe` veya masaüstündeki `AfuNobet UI` kısayolu üzerinden uygulama başlatılmış olmalıdır.
 
 ---
 

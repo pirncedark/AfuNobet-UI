@@ -1,5 +1,5 @@
 # GOREV: Gercek pencerede icerik kayboluyor - geri getir ve kanitla
-Once GOREV_COUCOU_AFU.md, GOREV_COUCOU_UX.md, CLAUDE.md oku. Sandbox internetsiz (CARGO_NET_OFFLINE=true). Yeni pencere ACMA, commit etme, apostrof yok.
+Once GOREV_AFU_TEMEL.md, GOREV_AFU_UX.md, CLAUDE.md oku. Sandbox internetsiz (CARGO_NET_OFFLINE=true). Yeni pencere ACMA, commit etme, apostrof yok.
 ## Kullanici bulgusu (gercek exe, masaustu kisayolu, 14:26 derlemesi)
 Pencere artik kirpilmiyor ve yuvarlak, AMA: 1) kart gövdesi yok: yalniz "CODEX - AfuNobet" baslik satiri ve ~18px yukseklikte bir serit gorunuyor (gorev adi, mesaj, dosya, yuzde yok); 2) alttaki "Kota durumu" ve "Kucult" dugmeleri (kullanicinin dedigi opsiyonlar) YOK; 3) "0/5 tamamlandi" sayaci dogru. Kullanici: icerik gitti, geri getir.
 ## Benim bulgularim
@@ -11,5 +11,5 @@ Pencere artik kirpilmiyor ve yuvarlak, AMA: 1) kart gövdesi yok: yalniz "CODEX 
 ## Kabul
 - Gercek state.json ile 1x,1.25x,1.5x,2x ve 1366x768 ekran goruntuleri: kart govdesi (ad, mesaj, ilerleme), en fazla 3 satir, "Kota durumu" ve "Kucult" dugmeleri GORUNUR; icerik pencere sinirlari icinde (olcum testi).
 - Boyut/kirpilma icin: icerik toplam yuksekligi <= pencere yuksekligi; sigmayorsa satir sayisi dinamik azalir ama dugmeler her zaman gorunur.
-- AFU_CHANGES.md (yoksa olustur: upstream e gore degisen/korunan dosyalar, gercek Windows smoke testi maddeleri DOGRULANMADI olarak), npm run build + tauri build, exe yi dist/afunobet-ui-coucou.exe ye kopyala, SHA256 asil ile ayni, sonra powershell -File C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/kisayol_guncelle.ps1 calistir.
+- AFU_CHANGES.md (yoksa olustur: upstream e gore degisen/korunan dosyalar, gercek Windows smoke testi maddeleri DOGRULANMADI olarak), npm run build + tauri build, exe yi dist/afunobet-ui.exe ye kopyala, SHA256 asil ile ayni, sonra powershell -File C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/kisayol_guncelle.ps1 calistir.
 Son satir tek satir JSON: {"karar":"TAMAM"|"RET","ozet":"...","dosyalar":[...],"test":"...","commit":"-"}

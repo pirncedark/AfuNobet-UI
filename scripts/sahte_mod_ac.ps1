@@ -20,7 +20,7 @@ $env:AFUNOBET_SORU_DIZINI = $Hedef
 if (-not $Exe) {
     $adaylar = @(
         (Join-Path $kok "windows\target\release\afunobet-ui.exe"),
-        (Join-Path $kok "dist\afunobet-ui-coucou.exe")
+        (Join-Path $kok "dist\afunobet-ui.exe")
     )
     $Exe = $adaylar | Where-Object { Test-Path $_ } | Select-Object -First 1
 }

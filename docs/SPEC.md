@@ -1,6 +1,6 @@
 ﻿# AfuNobet UI V1
 
-The implementation follows GOREV_COUCOU_AFU.md and the read-only published
+The implementation follows GOREV_AFU_TEMEL.md and the read-only published
 snapshot schema in AfuNobet/docs/UI_SOZLESME.md.
 
 The native window remains a transparent 720×320 always-on-top island centered

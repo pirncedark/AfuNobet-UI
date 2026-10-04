@@ -6,7 +6,7 @@ import { copyExecutable } from "./pack-copy.mjs";
 const workspace = fileURLToPath(new URL("../../", import.meta.url));
 const original = resolve(workspace, "windows/target/release/afunobet-ui.exe");
 const directory = resolve(workspace, "dist");
-let output = resolve(directory, "afunobet-ui-coucou.exe");
+let output = resolve(directory, "afunobet-ui.exe");
 const hash = file => createHash("sha256").update(readFileSync(file)).digest("hex");
 mkdirSync(directory, { recursive: true });
 output = copyExecutable(original, output);

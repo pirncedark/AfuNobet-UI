@@ -1,7 +1,7 @@
 [package]
 name = "afunobet-ui"
 description = "AfuNobet durumunu salt okunur izleyen masaustu adasi"
-authors = ["Afu", "Louis Raille (upstream)"]
+authors = ["Afu"]
 version.workspace = true
 edition.workspace = true
 license.workspace = true

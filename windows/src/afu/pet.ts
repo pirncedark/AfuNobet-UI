@@ -110,6 +110,47 @@ export const PET_AYAR: Record<PetPose, { olcek: number; x: number; y: number }> 
     "y": 0
   }
 };
+/**
+ * Kafa genişliği (kare çerçevesine oranla, saç bandındaki kesintisiz alfa genişliği).
+ * Kaynak karelerde Afu farklı ölçeklerde (büst / tam boy) çizildiği için pet her
+ * kareyi aynı kafa boyuna getirir: tüm animasyonlar aynı boyda görünür.
+ * `durum/inis` elle düzeltildi (lacivert saç ölçümü kaçırıyor).
+ */
+export const PET_KAFA: Record<string, number> = {
+  "akis_bekleme": 0.4824,
+  "akis_gorunme": 0.5571,
+  "akis_kuculme": 0.4294,
+  "akis_suzulme": 0.5919,
+  "akis_tutunma": 0.5551,
+  "durum/basari": 0.3592,
+  "durum/bekleme": 0.8058,
+  "durum/dusunme": 0.747,
+  "durum/ense_tutma": 0.4878,
+  "durum/gulumseme": 0.814,
+  "durum/hata": 0.7917,
+  "durum/inis": 0.52,
+  "durum/kalkis": 0.2676,
+  "durum/masa_cikis": 0.8306,
+  "durum/onay_bekleme": 0.6917,
+  "durum/sasirma": 0.8099,
+  "durum/ucus": 0.562,
+  "durum/uyku_masa": 0.7288,
+  "idle_goz_acilis": 0.4445,
+  "idle_goz_kapali": 0.4458,
+  "idle_normal": 0.4445,
+  "idle_sag": 0.4598,
+  "idle_sol": 0.4547,
+  "tepki_hata": 0.4824,
+  "tepki_uyku": 0.4971,
+  "uyan_yuzme": 0.4012
+};
+/** Petin ekrandaki kafa genişliği (px). 1.0.2: eski boyun yarısı (~145 → 72). */
+export const PET_KAFA_PX = 72;
+/** Kare için ortak kafa boyunu veren ölçek; tabloda olmayan karede eski alfa sığdırmanın yarısı. */
+export function petKafaOlcegi(kare: string, kutu: [number, number, number, number], pencere = PET_PENCERE, gorunum = 1): number {
+  const kafa = PET_KAFA[kare];
+  return kafa ? PET_KAFA_PX / gorunum / (kafa * pencere) : mascotScale(kutu, pencere, MASCOT_VISIBLE_H / 2 / gorunum);
+}
 function studyoKareYolu(kare: string) { return kare.startsWith("durum/") ? `/afu/durum/${kare.slice(6)}.webp` : `/afu/pet/${kare}.webp`; }
 export const PET_NORMALIZE: string[] = ["donus", "uyku", "bekleme", "gecis", "uyanma", "dusunme", "uyari", "hata", "mutlu", "basari", "yuzme", "etkilesim", "surukleme"];
 export const PET_BOYUT: Record<string, { olcek: number; x: number; y: number; kutu: [number, number, number, number] }> = {
@@ -1322,7 +1363,7 @@ export class AfuPet {
       const olculu = PET_BOYUT[kare];
       const n = PET_NORMALIZE.includes(this.model.pose) ? (olculu || { olcek: 1, x: 0, y: 0 }) : { olcek: 1, x: 0, y: 0 };
       const isDraggingNow = this.dragRaf !== null || isDragging;
-      const rawScale = (isDraggingNow ? n.olcek : mascotScale(olculu?.kutu ?? [0, 0, 1, 1], PET_PENCERE, MASCOT_VISIBLE_H / this.displayScale)) * ayar.olcek / 100;
+      const rawScale = petKafaOlcegi(kare, olculu?.kutu ?? [0, 0, 1, 1], held ? (window.innerWidth || PET_PENCERE) : PET_PENCERE, this.displayScale) * ayar.olcek / 100;
       const rawTx = ayar.x + (isDraggingNow ? n.x * PET_PENCERE * ayar.olcek / 100 : (0.5 - ((olculu?.kutu[0] ?? 0) + (olculu?.kutu[2] ?? 1)) / 2) * PET_PENCERE * rawScale);
       const rawTy = ayar.y + (isDraggingNow ? n.y * PET_PENCERE * ayar.olcek / 100 : (1 - (olculu?.kutu[3] ?? 1)) * PET_PENCERE * rawScale);
       // Ölçülmüş alfa kutusu her kare için geçerli; kare yoksa tüm çerçeve sayılır.

@@ -1,5 +1,5 @@
 $ErrorActionPreference = "Stop"
-$exe = "C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-coucou.exe"
+$exe = "C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui.exe"
 $desktop = [Environment]::GetFolderPath("Desktop")
 $lnk = Join-Path $desktop "AfuNobet UI.lnk"
 $temp_lnk = Join-Path ([System.IO.Path]::GetTempPath()) "AfuNobet_UI_temp.lnk"

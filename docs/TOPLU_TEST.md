@@ -2,7 +2,7 @@
 
 Bu liste, kullanıcının gerçek Windows ortamında 15–20 dakika içinde uygulayabileceği teknik terimsiz kontrol adımlarını içerir.
 
-**Ön Koşul:** Masaüstündeki **AfuNobet UI** kısayolu veya `dist/afunobet-ui-coucou.exe` çalıştırılmış olmalıdır.
+**Ön Koşul:** Masaüstündeki **AfuNobet UI** kısayolu veya `dist/afunobet-ui.exe` çalıştırılmış olmalıdır.
 
 ---
 

@@ -10,8 +10,6 @@ labels: bug
 
 **How to reproduce**
 
-**macOS version**
+**Windows version**
 
-**Mac model**
-
-**Coucou version**
+**AfuNobet UI version**

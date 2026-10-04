@@ -15,7 +15,7 @@ Tarih: 2026-10-01
 | Kısayol Adı | Hedef Tam Yolu |
 |---|---|
 | AfuDM.exe - Kısayol.lnk | C:\Users\afuuu\Desktop\afuproject\AfuDM\AfuDM.exe |
-| AfuNobet UI.lnk | C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui-coucou.exe |
+| AfuNobet UI.lnk | C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\dist\afunobet-ui.exe |
 
 ## Başka Kurulu Kopyalar
 

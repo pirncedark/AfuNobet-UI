@@ -26,9 +26,9 @@ Doğrulama:
 Paketleme:
 
 - Paketleme öncesinde aktif cargo/rustc süreci yoktu; süreç komut satırı sorgusu sistemce reddedildi. Önceki EXE 23:40:32 tarihliydi. Diğer işin raporuna dokunulmadı.
-- Yedek: `dist/onceki/afunobet-ui-coucou-20261002-234937.exe`.
+- Yedek: `dist/onceki/afunobet-ui-20261002-234937.exe`.
 - `windows/` içinde `npm --offline run pack`: başarılı, çıkış kodu 0.
-- Yeni EXE: `dist/afunobet-ui-coucou.exe`.
+- Yeni EXE: `dist/afunobet-ui.exe`.
 - SHA256: `d72914dce326a1e9fa764bfb6584444a26d1e30b57234f8c2e353659aa879860`.
 - Paketlenen EXE ile `windows/target/release/afunobet-ui.exe` birebir aynı.
 - Kısayol değiştirilmedi; görevde belirtildiği üzere Claude güncelleyecek.

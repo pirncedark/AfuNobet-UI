@@ -1,6 +1,6 @@
 SONUC: TAMAM
 
-GOREV_P9B_AYRINTI_TASMA.md uygulandı. GOREV_COUCOU_AFU.md ve AFU_CHANGES.md okundu.
+GOREV_P9B_AYRINTI_TASMA.md uygulandı. GOREV_AFU_TEMEL.md ve AFU_CHANGES.md okundu.
 
 Neden: Ayrıntı kutusu kaydırılan soru gövdesinin dışında, küçülmeyen kart çocuğuydu. Açıldığında sabit içerik kartın yüksekliğini aşıyor, gövde sıfır yüksekliğe düşüyor ve cevap alanı kartın altından taşıyordu.
 

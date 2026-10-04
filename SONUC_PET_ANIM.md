@@ -55,11 +55,11 @@ Kanıtlar: `docs/kanit/pet_anim/`. Yeni görünür pencere açılmadığı için
 
 Önceki turda `windows/` içinde `npm --offline run pack` başarıyla tamamlandı; çıkış 0 (`docs/kanit/pet_anim/pack.txt`). Paketleme ikinci turda tekrarlanmadı. Oluşan exe'nin hash'i paketleme kaydıyla yeniden karşılaştırıldı ve eşleşti.
 
-- Yeni exe: `dist/afunobet-ui-coucou.exe`
+- Yeni exe: `dist/afunobet-ui.exe`
 - Son değişiklik: **2026-10-02 23:40:32 (Europe/Istanbul)**
 - Boyut: **34.506.752 bayt**
 - SHA256: `6F89773B29050386410FA4C9793747265DA8C5E3729A62C2E9A3F4FA6DB2F30E`
-- Önceki exe yedeği: `dist/onceki/afunobet-ui-coucou-20261002-233831.exe`
+- Önceki exe yedeği: `dist/onceki/afunobet-ui-20261002-233831.exe`
 - Yedek SHA256: `8AA3D7C9D6B1DD1C3EE7F21BB6260936C6E4C6ADE55CA3570149EF9E55E023BD`
 
 Kısayol güncellenmedi; Claude'a bırakıldı. Ses dosyalarına dokunulmadı. Git commit/push yapılmadı.

@@ -1,6 +1,6 @@
 # AfuNobet-UI project guidance
 
-Read GOREV_COUCOU_AFU.md and AFU_CHANGES.md before editing.
+Read GOREV_AFU_TEMEL.md and AFU_CHANGES.md before editing.
 Keep windows/src-tauri/src/island.rs unchanged except for the user-authorized top-edge wake fix recorded in docs/kanit/edge_wake_authorized_patch.json. Preserve the historical recovery baseline and require the exact audited patch hash plus native edge regression tests.
 The application only reads AfuNobet state.json via directory events.
 Do not add model APIs, hook installation, process control (exception: AfuNöbet CLI windowless for Orkestra), uploads or secrets.

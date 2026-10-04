@@ -31,20 +31,20 @@ Uygulama ve MSIX hazırlığı sürüyor; tamamlandı/PASS iddiası henüz yok.
 
 **Tech Stack:** Tauri 2 + Rust (windows 0.61, notify 8) · TypeScript + Vite 6 + Vitest 4 (node ortamı) · Python 3 (AfuNobet, pytest) · Codex CLI 0.159.2 `app-server` (v2 protokolü).
 
-**Spec:** `AfuNobet-UI/GOREV_MASTER.md` (kapsam kilidi, checkpoint ve STOP kuralları dahil). Yardımcı: `GOREV_COUCOU_AFU.md`, `GOREV_COUCOU_UX.md`, `GOREV_COUCOU_ICERIK.md`, `AfuNobet/docs/UI_SOZLESME.md`, Codex protokol şeması (`codex app-server generate-json-schema --out <klasör>`).
+**Spec:** `AfuNobet-UI/GOREV_MASTER.md` (kapsam kilidi, checkpoint ve STOP kuralları dahil). Yardımcı: `GOREV_AFU_TEMEL.md`, `GOREV_AFU_UX.md`, `GOREV_AFU_ICERIK.md`, `AfuNobet/docs/UI_SOZLESME.md`, Codex protokol şeması (`codex app-server generate-json-schema --out <klasör>`).
 
 ## Ürün Haritası (tüm fikirler tek yerde)
 
 | Fikir | Kullanıcıya görünen | Kaynak | Faz / Görev |
 |---|---|---|---|
-| Canlı görev adası | Ekranın üst ortasında açılan kart: ajan, görev, dosya, ilerleme, en fazla 3 satır | Coucou (MIT) pencere/FSM | A1–A2 (A1–A10) |
+| Canlı görev adası | Ekranın üst ortasında açılan kart: ajan, görev, dosya, ilerleme, en fazla 3 satır | upstream (MIT) pencere/FSM | A1–A2 (A1–A10) |
 | Afu karakteri | Beyin saçlı Afu; nefes, göz kırpma, imleç takibi, ifadeler | `afu-character/` resmî görseller | A3 (A12) |
 | Doğru Türkçe | Görev, Çalışıyor, Duraklatıldı, Küçült… | kullanıcı kuralı | A3 (A11) |
 | Mini pet | Küçültünce Afu görev çubuğuna kayar (750 ms zincir), Başlat'ın yanında 128 px bekler, uyur, uyanır, tepki verir | kullanıcı görselleri (9 sayfa, 34 kare) | A4 (A14–A17) |
 | Tek durum simgesi | Pet kapatılınca sağda (bildirim alanı) Afu simgesi + durum noktası | kullanıcı isteği | A4 (A18) |
 | Afu Merkez | Aynı simgeden ve petten AfuDM, AfuDesk, PadKöprü, AfuTube'a erişim ve kısa durum | kullanıcı isteği | C (C1–C3) |
 | Codex sohbeti | Kartta Sohbet görünümü; ChatGPT üyeliğiyle, API anahtarı yok | yerel `codex app-server` şeması | B (B1–B2) |
-| Dosya bırakma | Adaya bırakılan dosya sohbete ek olur, hiçbir yere gönderilmez | Coucou drop davranışı | B (B3) |
+| Dosya bırakma | Adaya bırakılan dosya sohbete ek olur, hiçbir yere gönderilmez | upstream drop davranışı | B (B3) |
 | Sesli asistan | Bas-konuş; çevrimdışı Türkçe Whisper; cevabı Windows sesiyle okur | MurMur (yalnız yerel ses kısmı) | B (B0, B4) |
 | Sesli bildirim | "Codex görevi tamamladı." bir kez, tekrar yok | — | B (B5) |
 | Daha akıcı pet (V2) | Katmanlı rig: göz takibi, kol ve baş hareketleri | Codex önerisi, `pet_teknik_sayfa.png` katman parçaları, Blender 3.6 | D (isteğe bağlı) |
@@ -74,7 +74,7 @@ Kurallar: Bir kapı geçilmeden sonraki faz başlamaz. Aynı anda tek ajan dosya
 ## Global Constraints
 
 - Claude: API yok, süreç başlatma yok, hook yok, sohbet yok, yedek (fallback) yok. Arayüzde yalnızca `🔒 Claude KORUNUYOR`.
-- Mochi / Coucou adı, ikonu, sesi, medyası derlemeye girmez. MIT `LICENSE` ve upstream atfı korunur.
+- upstream maskotu / upstream adı, ikonu, sesi, medyası derlemeye girmez. MIT `LICENSE` ve upstream atfı korunur.
 - Arayüz metinleri UTF-8 ve doğru Türkçe: `Görev`, `Çalışıyor`, `Duraklatıldı`, `Küçült`, `Tamamlandı`, `Düşünüyor`, `Bekliyor`, `Kota yenilenince devam edecek`. `state.json` içindeki durum anahtarları (`Calisiyor` vb.) sözleşme gereği ASCII kalır; yalnızca gösterim etiketi Türkçedir.
 - Ham hata, `429`, stacktrace, PID, port, IP, tam dosya yolu ana arayüzde görünmez.
 - Gerçek değer yoksa `—`; tahmin yok.
@@ -120,7 +120,7 @@ Kurallar: Bir kapı geçilmeden sonraki faz başlamaz. Aynı anda tek ajan dosya
 | `windows/src-tauri/src/voice/whisper.rs` (yeni) | Yerel Whisper çevirisi (MurMur `transcriber.rs` yerel yolu) | B |
 | `windows/src-tauri/src/voice/winrt.rs` (yeni) | Windows TTS + yedek STT | B |
 | `windows/src-tauri/src/voice/mod.rs` (yeni) | Tauri komutları, motor seçimi | B |
-| `THIRD_PARTY.md` (yeni) | Coucou ve MurMur atıfları | B |
+| `THIRD_PARTY.md` (yeni) | upstream ve MurMur atıfları | B |
 | `afu-character/kaynak/*.png` | Kullanıcının verdiği kaynak sayfalar (pet konsepti, sahneler, senaryo) | A4 |
 | `afu-character/pet/*.png` (yeni) | Kesilmiş pet pozları | A4 |
 | `windows/src-tauri/src/taskbar.rs` (yeni) | Görev çubuğu konumu, Başlat düğmesi, tam ekran algısı | A4 |
@@ -145,7 +145,7 @@ Test komutları (her görevde aynı):
 
 **Files:** `docs/ILERLEME_MASTER.md` (yeni), `.gitignore`
 
-- [ ] **Adım 1:** Masaüstü exe'nin kapalı olduğunu doğrula: `ps -W | grep -ci afunobet-ui-coucou` → `0`.
+- [ ] **Adım 1:** Masaüstü exe'nin kapalı olduğunu doğrula: `ps -W | grep -ci afunobet-ui` → `0`.
 - [ ] **Adım 2:** Çalışan başka ajan olmadığını doğrula: `Get-Process opencode,gemini -ErrorAction SilentlyContinue` → boş.
 - [ ] **Adım 3:** Yerel yedek dal oluştur (push yok): `git -C AfuNobet-UI switch -c afu/faz-a` ve mevcut durumu `git stash list` ile kontrol et; çalışma ağacını **commit etmeden** koru.
 - [ ] **Adım 4:** `docs/ILERLEME_MASTER.md` oluştur:
@@ -702,15 +702,15 @@ describe("karakter jestleri", () => {
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
 const roots = ["src", "src-tauri/src", "dist", "public"];
-const yasak = [/anthropic/i, /api\.anthropic\.com/i, /claude\s*(-p|--print|code)/i, /Command::new\(/, /mochi/i, /coucou/i];
+const yasak = [/anthropic/i, /api\.anthropic\.com/i, /claude\s*(-p|--print|code)/i, /Command::new\(/, /upstream maskotu/i, /upstream/i];
 const izinli = new Set(["src-tauri/src/codex.rs"]); // yalnız Faz B, yalnız codex app-server
 const bulgular = [];
 const gez = d => { for (const f of readdirSync(d)) { const p = path.join(d, f); statSync(p).isDirectory() ? gez(p) : tara(p); } };
 const tara = p => {
   if (!/\.(ts|js|rs|html|css|json|svg|png)$/.test(p)) return;
-  if (/\.(png|svg)$/.test(p)) { if (/mochi|coucou/i.test(p)) bulgular.push(`varlik: ${p}`); return; }
+  if (/\.(png|svg)$/.test(p)) { if (/upstream maskotu|upstream/i.test(p)) bulgular.push(`varlik: ${p}`); return; }
   readFileSync(p, "utf8").split("\n").forEach((l, i) => {
-    for (const r of yasak) if (r.test(l) && !izinli.has(p.replace(/\\/g, "/")) && !/upstream|Louis|MIT/.test(l)) bulgular.push(`${p}:${i + 1}: ${l.trim().slice(0, 80)}`);
+    for (const r of yasak) if (r.test(l) && !izinli.has(p.replace(/\\/g, "/")) && !/upstream|MIT/.test(l)) bulgular.push(`${p}:${i + 1}: ${l.trim().slice(0, 80)}`);
   });
 };
 roots.forEach(r => { try { gez(r); } catch {} });
@@ -719,8 +719,8 @@ process.exit(bulgular.length ? 1 : 0);
 ```
 
 - [ ] **Adım 2:** `node scripts/denetim.mjs` → bulguları temizle (upstream atıf satırları ve `LICENSE` dosyası hariç) → `denetim temiz`.
-- [ ] **Adım 3:** Derle: `npm run build` ve `CARGO_NET_OFFLINE=true npx tauri build --no-bundle`. Kopyala: `target/release/afunobet-ui.exe` → `dist/afunobet-ui-coucou.exe`. Kilitliyse `dist/afunobet-ui-coucou-yeni.exe`. İki SHA256 eşit olmalı. Ardından `powershell -File ../kisayol_guncelle.ps1`.
-- [ ] **Adım 3b (Madde 7 kalıcı kuralı):** Tek hareketle geri alma güvencesi: Yeni exe doğrulanıp kısayol güncellenmeden önce önceki çalışan sürüm mutlaka `dist/onceki/afunobet-ui-coucou.exe` altına yedeklenir. Sorun çıkarsa tek komutla geri dönüş sağlanır (`powershell -NoProfile -File dist/onceki/GERI_AL.ps1` kalıcı kural olarak işletilir). Yeni exe doğrulanmadan eski çalışan kopya silinmez veya üzerine yazılmaz.
+- [ ] **Adım 3:** Derle: `npm run build` ve `CARGO_NET_OFFLINE=true npx tauri build --no-bundle`. Kopyala: `target/release/afunobet-ui.exe` → `dist/afunobet-ui.exe`. Kilitliyse `dist/afunobet-ui-yeni.exe`. İki SHA256 eşit olmalı. Ardından `powershell -File ../kisayol_guncelle.ps1`.
+- [ ] **Adım 3b (Madde 7 kalıcı kuralı):** Tek hareketle geri alma güvencesi: Yeni exe doğrulanıp kısayol güncellenmeden önce önceki çalışan sürüm mutlaka `dist/onceki/afunobet-ui.exe` altına yedeklenir. Sorun çıkarsa tek komutla geri dönüş sağlanır (`powershell -NoProfile -File dist/onceki/GERI_AL.ps1` kalıcı kural olarak işletilir). Yeni exe doğrulanmadan eski çalışan kopya silinmez veya üzerine yazılmaz.
 - [ ] **Adım 4:** `AFU_CHANGES.md`: korunan upstream dosyaları, değişenler ve gerekçe, kaldırılan varlıklar, `UNVERIFIED` listesi. `KULLANIM_REHBERI.html`: doğrulama tablosunu yeni durumlarla güncelle; yeni özellikler yalnızca test geçtiyse "görüldü/headless" etiketiyle.
 - [ ] **Adım 5:** **A3 checkpoint ve Faz A son raporu**: her özellik `PASS (headless)` / `FAIL` / `PARTIAL` / `UNVERIFIED (kullanıcı)`.
 
@@ -1503,7 +1503,7 @@ it("boş çeviri gönderilmez, kullanıcıya tek cümle döner", async () => {
 
 - [ ] **Adım 7:** FAIL → `voice.ts` uygula (düğmeye basılı tutunca `voice_start`, bırakınca `voice_stop` → metin → `codex_send` → akış bitince TTS açıksa `voice_speak`) → PASS.
 - [ ] **Adım 8:** `winrt.rs`: `SpeechSynthesizer` ile TTS (Türkçe ses varsa `tr-TR`, yoksa varsayılan); `dinle_yedek` `SpeechRecognizer` dikte. Birim testte yalnız `voice_supported()` dönüş türü. Gerçek mikrofon/hoparlör kullanıcı testidir.
-- [ ] **Adım 9:** `THIRD_PARTY.md`: Coucou (MIT, Louis Raillé) ve MurMur (README'ye göre MIT; depoda LICENSE yok; commit `0be0d1b`; uyarlanan dosyalar). `capture.rs` ve `whisper.rs` başına: `// Uyarlama: Mr-ABX/MurMur src-tauri/src/audio.rs ve transcriber.rs @0be0d1b (MIT, README).`
+- [ ] **Adım 9:** `THIRD_PARTY.md`: upstream (MIT) ve MurMur (README'ye göre MIT; depoda LICENSE yok; commit `0be0d1b`; uyarlanan dosyalar). `capture.rs` ve `whisper.rs` başına: `// Uyarlama: Mr-ABX/MurMur src-tauri/src/audio.rs ve transcriber.rs @0be0d1b (MIT, README).`
 - [ ] **Adım 10:** Performans: boşta CPU %0; bas-konuş bitince `Recorder` düşer (Windows mikrofon simgesi kapanır). Exe boyutu ve RAM (model yüklü/yüksüz) `ILERLEME_MASTER.md`'ye.
 - [ ] **Adım 11 (Madde 5 kabul ölçütü):** Ses önce metin: Konuşma metne çevrildiğinde girdi alanına yazılır, otomatik ateşlenmez; kullanıcı metni inceleyip düzeltebilir; eylem/devam komutlarında gerçekleştirilecek işlem kartta net gösterilir ve onay mekanizması işletilir.
 
@@ -1552,7 +1552,7 @@ it("sesli bildirim metni ve sessiz olaylar", () => {
 ### Görev R2: Sürüm (Claude, kullanıcı onayıyla)
 
 - [ ] Faz B commit'i, `afu/faz-b` dalı, push.
-- [ ] `main`'e birleştirme ve `v0.3.0` etiketi kullanıcı onayıyla. GitHub Release başlığı ve ilk açıklama İngilizce, ayrıntı Türkçe; ek olarak `afunobet-ui-coucou.exe` ve SHA256.
+- [ ] `main`'e birleştirme ve `v0.3.0` etiketi kullanıcı onayıyla. GitHub Release başlığı ve ilk açıklama İngilizce, ayrıntı Türkçe; ek olarak `afunobet-ui.exe` ve SHA256.
 - [ ] Hafızaya proje durumu notu (Claude).
 
 ---
@@ -1636,9 +1636,9 @@ Her birinin bir varsayılanı var; cevap gelmezse varsayılanla ilerlenir. "Enge
 
 ---
 
-## Faz E — coucou'dan çekirdek paket: çoklu-ajan kontrol katmanı (2 Eki 2026, kullanıcı onaylı)
+## Faz E — upstream'dan çekirdek paket: çoklu-ajan kontrol katmanı (2 Eki 2026, kullanıcı onaylı)
 
-Amaç: AFU Ada'yı görsel bir pet olmaktan çıkarıp gerçek bir çoklu-ajan kontrol katmanına dönüştürmek. Kaynak: upstream coucou (Louis-CFM/coucou), analiz `_gorev/20261002/SONUC_COUCOU_ESITLIK.md`. Öncelik (en kritik 5): **E1 genel ajan protokolü, E2 ajan pill sistemi, E3 alt ajan takibi, E4 fail-open köprü, E5 güvenli IPC**.
+Amaç: AFU Ada'yı görsel bir pet olmaktan çıkarıp gerçek bir çoklu-ajan kontrol katmanına dönüştürmek. Kaynak: upstream, analiz `_gorev/20261002/SONUC_UPSTREAM_ESITLIK.md`. Öncelik (en kritik 5): **E1 genel ajan protokolü, E2 ajan pill sistemi, E3 alt ajan takibi, E4 fail-open köprü, E5 güvenli IPC**.
 
 ```
 AFU ADA
@@ -1661,7 +1661,7 @@ AFU ADA
 | **E6 Dosyayı Ada'ya sürükleme** | Dosya AFU karakterine/adaya bırakılır → ilgili aktif ajana bağlam olarak gider | Sürükle-bırak testi (bkz. GOREV_CANLI_SURUKLE) |
 | **E7 Servis pill'leri** | GitHub, Vercel, n8n, Stripe, Notion vb. küçük durum göstergeleri (GitHub ✓, Vercel Deploying, n8n Error) | Panel açıkken sorgular; kapalıyken ağ/CPU yok |
 | **E7b İhtiyaç oldukça çalışma** | Servis izleyicileri yalnız panel açıkken/gerektiğinde sorgu | Panel kapalıyken sıfır istek (test) |
-| **E8 Olaylara bağlı ses** | Görev başladı/tamamlandı/hata/onay bekleniyor için 5–8 kısa, ayrı ses (coucou 28 kullanıyor) | Olay→ses eşlemesi; tekrar etmeyen bildirim |
+| **E8 Olaylara bağlı ses** | Görev başladı/tamamlandı/hata/onay bekleniyor için 5–8 kısa, ayrı ses (upstream 28 kullanıyor) | Olay→ses eşlemesi; tekrar etmeyen bildirim |
 | **E9 Gizlilik odaklı log** | Tam komut, API anahtarı, tam URL, hassas payload loglanmaz; 1–5 MB sınır + rotation | Maskeleme ve rotation testleri |
 | **E10 Bağımsız UI geliştirme modu** | Gerçek ajan/kota tüketmeden sahte olaylarla ada testi (fake Codex → working → permission → finished) | Tek komutla senaryo oynatılır |
 | **E11 Credential Manager** | İleride API anahtarı gerekirse .env/JSON yerine Windows Credential Manager | Anahtar diske düz yazılmaz (test) |

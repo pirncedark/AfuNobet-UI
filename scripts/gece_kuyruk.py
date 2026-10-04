@@ -134,10 +134,10 @@ def calistir(gorev, sonuc):
 def paketle():
     yaz("Exe paketleme başladı")
     onceki = KOK / "dist" / "onceki"
-    exe = KOK / "dist" / "afunobet-ui-coucou.exe"
+    exe = KOK / "dist" / "afunobet-ui.exe"
     if exe.exists():
         damga = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        (onceki / f"afunobet-ui-coucou-{damga}.exe").write_bytes(exe.read_bytes())
+        (onceki / f"afunobet-ui-{damga}.exe").write_bytes(exe.read_bytes())
     kod, cikti = kos(["npm.cmd" if os.name == "nt" else "npm", "--offline", "run", "pack"], WIN, 1800)
     if kod != 0:
         yaz("Exe paketleme BAŞARISIZ ❌ (pack log: gece_kuyruk/pack.txt)")

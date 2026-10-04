@@ -5,11 +5,11 @@ isterse soru **adada** görünür; kullanıcı tek tıkla ya da kısa metinle ce
 cevap ajana geri gider. Kanal yalnız **yerel dosyalardır**: ağ yok, model çağrısı
 yok.
 *(İstisna - 2026-10-03: Kullanıcı isteğiyle Claude Code için yalnız bildirim/soru köprüsü (hook) serbest bırakıldı. Ancak Claude'un otomatik iş yapması hâlâ yasaktır.)*
-## Örnek aldığımız akış (coucou, upstream/main)
+## Örnek aldığımız akış (upstream, upstream/main)
 
-| Konu | coucou | Bizde |
+| Konu | upstream | Bizde |
 |---|---|---|
-| Kanal | Claude Code `PermissionRequest` hook'u → `coucou-hook` → adlandırılmış boru (`windows/hook/src/main.rs:13-15`, `windows/src-tauri/src/pipe.rs:1-20`) | Ajan köprüsü → `sorular/<id>.json`, ada → `cevaplar/<id>.json` |
+| Kanal | Claude Code `PermissionRequest` hook'u → `upstream hook` → adlandırılmış boru (`windows/hook/src/main.rs:13-15`, `windows/src-tauri/src/pipe.rs:1-20`) | Ajan köprüsü → `sorular/<id>.json`, ada → `cevaplar/<id>.json` |
 | Veri | hook JSON'u (`tool_name`, `tool_input`, `request_id`), cevap yalın `allow`/`deny` (`pipe.rs:288-296`, `hook/src/main.rs:73-86`) | Aşağıdaki soru/cevap kayıtları |
 | Arayüz | Tek onay kartı: hedef metni + `Deny`/`Allow` (`windows/src/views/views.ts:289-316`), hedef metni `approvalTarget` ile seçilir (`windows/src/island/hooks.ts:95-121`) | `windows/src/question/question.ts` soru kartı |
 | Tek kart | İkinci istek ilkini asla ezmez; geri çevrilir (`hooks.ts:281-289`) | Kart sırayla gösterilir; en eski soru önce |
@@ -112,5 +112,5 @@ orada olan seçenekler gösterilir.
 
 ## Zaman aşımı
 
-Varsayılan süre 110 s (coucou ile aynı). Köprü süre dolunca `varsayilan`ı uygular
+Varsayılan süre 110 s (upstream ile aynı). Köprü süre dolunca `varsayilan`ı uygular
 ve soru dosyasını siler; ada `sonGecerlilik` anında kartı kendisi kapatır.
