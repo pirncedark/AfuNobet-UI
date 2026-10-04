@@ -235,6 +235,20 @@ export function parseAjanlar(value: unknown): AjanSatiri[] {
 export function ajanDurumMetni(satir: AjanSatiri): string {
   return ({ thinking: "Düşünüyor", working: "Çalışıyor", question: "Onay bekliyor", finished: "Bitti", error: "Tamamlanamadı", rate_limit: "Kota doldu, bekliyor" } as const)[satir.durum];
 }
+const AJAN_STATUS: Record<AjanDurum, Status> = { thinking: "Calisiyor", working: "Calisiyor", question: "Duraklatildi", finished: "Tamamlandi", error: "Hata", rate_limit: "Duraklatildi" };
+/** Ajan borusundaki ana oturumlar (ör. Claude Code kancası) salt okunur görev olarak listelenir.
+ *  Yalnız gösterimdir: Claude'a iş verilmez, KORUNUYOR rozeti aynen kalır. */
+export function ajanGorevleri(satirlar: AjanSatiri[]): Task[] {
+  return satirlar.filter(s => !s.alt).map(s => {
+    const agent = AGENTS.includes(s.ajan as Agent) ? s.ajan as Agent : null;
+    const status = s.bitti ? "Tamamlandi" : AJAN_STATUS[s.durum];
+    return { id: `ajan:${s.oturum}`, agent, status, task: s.gorev ?? `${s.ad} oturumu`, title: s.gorev ?? `${s.ad} oturumu`,
+      model: null, currentAction: ajanDurumMetni(s), startedAt: s.baslangic, repo: null, file: null,
+      progress: status === "Tamamlandi" ? 100 : null, quota: { remaining_percent: null, reset_at: null, checked_at: null },
+      quotaPaused: s.durum === "rate_limit", updatedAt: s.guncelleme ?? s.baslangic,
+      ...(agent === null ? { ajanAdi: s.ajan } : {}) };
+  });
+}
 class AppState {
   notificationsPaused = false;
   private codexQuota: Quota | null = null;
@@ -309,8 +323,8 @@ get tasks() { return this.snapshot.tasks; }
   }
   apply(value: unknown) {
     const next = parseState(value);
-    this.snapshot = next.connected && !next.sourceUnavailable ? next : { ...this.snapshot, sourceUnavailable: true };
-    if (this.codexQuota) this.snapshot.quotas = { ...this.snapshot.quotas, codex: this.codexQuota };
+    this.dosya = next.connected && !next.sourceUnavailable ? next : { ...this.dosya, sourceUnavailable: true };
+    this.birlestir();
     if (this.pendingOrkestra) {
       if (this.current.some(t => t.startedAt !== null && t.startedAt >= this.pendingOrkestra!.time - 5000)) {
         this.pendingOrkestra = null;
@@ -324,7 +338,21 @@ get tasks() { return this.snapshot.tasks; }
   }
   ajanlar: AjanSatiri[] = [];
   get altAjanlar() { return this.ajanlar.filter(r => r.alt); }
-  applyAjanlar(value: unknown) { this.ajanlar = parseAjanlar(value); this.notify(); }
+  applyAjanlar(value: unknown) {
+    this.ajanlar = parseAjanlar(value);
+    this.birlestir();
+    const odak = this.current.find(t => t.id === this.focusId);
+    if (!odak || (odak.status === "Tamamlandi" && this.current.some(t => t.status === "Calisiyor"))) this.focusId = preferredTask(this.current)?.id ?? null;
+    this.notify();
+  }
+  /** state.json görevleri + borudaki ana oturumlar; state.json kimliği önceliklidir. */
+  private dosya: Snapshot = { connected: false, tasks: [], sourceUnavailable: true };
+  private birlestir() {
+    const ids = new Set(this.dosya.tasks.map(t => t.id));
+    const boru = ajanGorevleri(this.ajanlar).filter(t => !ids.has(t.id));
+    this.snapshot = { ...this.dosya, tasks: [...this.dosya.tasks, ...boru] };
+    if (this.codexQuota) this.snapshot.quotas = { ...this.snapshot.quotas, codex: this.codexQuota };
+  }
   setFocus(id: string) { if (this.current.some(t => t.id === id)) { this.focusId = id; this.notify(); } }
   subscribe(fn: () => void) { this.listeners.add(fn); return () => this.listeners.delete(fn); }
   notify() { for (const fn of this.listeners) fn(); }

@@ -1,5 +1,11 @@
 # AfuNöbet UI değişiklik kaydı
 
+## 2026-10-04 v1.0.1 — başka bilgisayarda çalışma / running on another PC
+
+EN: Default data folder is portable (existing `Desktop\afuproject\AfuNobet`, else `%LOCALAPPDATA%\AfuNobet`). Agent-pipe main sessions (Claude Code hooks) are listed read-only; Claude still gets no work. Voice cancel stops the whole Python launcher tree and clears a stale GPU lock. Folder timestamp events no longer wake the app-status watcher. The Claude health pill recognises afu_ajan_koprusu.py, and tool names no longer replace prompt titles. New `scripts/gorev-cubugu-guncelle.ps1` and README new-PC guide. Tests (merged with the 2026-10-04 upstream release): Vitest 891 PASS (screenshot files run sequentially), Cargo 287 PASS. `island.rs` not touched by this change.
+
+TR: Varsayılan veri klasörü taşınabilir (mevcut `Desktop\afuproject\AfuNobet`, yoksa `%LOCALAPPDATA%\AfuNobet`). Ajan borusundaki ana oturumlar (Claude Code kancaları) salt okunur listelenir; Claude'a yine iş verilmez. Ses iptali Python başlatıcı ağacının tamamını durdurur ve kalan GPU kilidini temizler. Klasör zaman damgası olayları uygulama durum izleyicisini artık uyandırmaz. Claude sağlık rozeti afu_ajan_koprusu.py kancasını tanır; araç adları istem başlığının yerine geçmez. Yeni `scripts/gorev-cubugu-guncelle.ps1` ve README yeni bilgisayar rehberi. Test (2026-10-04 upstream sürümüyle birleşik): Vitest 891 PASS (ekran görüntüsü dosyaları sırayla), Cargo 287 PASS. `island.rs` bu değişiklikte elle değiştirilmedi.
+
 ## 2026-10-03 W7 — arada ifade
 
 Mini pet boştayken 20–60 sn arası rastgele aralıkla kısa bir ifade yapar (göz kırpma, sağa/sola bakış, mutlu, şaşkın, esneme) ve bekleme pozuna döner; aynı ifade arka arkaya gelmez. İş çalışırken, soru/balon açıkken, sürükleme/tutma, uygulama menüsü, kart açıkken, tam ekranda ve hareket azaltma tercihinde yapmaz. Yalnız mevcut kareler kullanılır; yeni görsel yok. Saf mantık `windows/src/afu/ifade.ts`, pet.ts'e küçük bağlantı (STÜDYO blokları değişmedi). Durum panelinde varsayılan açık "Arada ifade yap" anahtarı yerel saklanır. Test: `tests/pet-ifade.test.ts`.

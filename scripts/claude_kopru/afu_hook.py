@@ -16,7 +16,11 @@ def default_root():
     for key in ('AFUNOBET_UI_STATE', 'AFUNOBET_DB'):
         if os.environ.get(key):
             return Path(os.environ[key]).parent
-    return Path('C:/Users/afuuu/Desktop/afuproject/AfuNobet')
+    # Mevcut AfuNobet kurulumu korunur; yoksa kullanici veri klasoru.
+    eski = Path.home() / 'Desktop' / 'afuproject' / 'AfuNobet'
+    if eski.is_dir():
+        return eski
+    return Path(os.environ.get('LOCALAPPDATA') or Path.home() / 'AppData' / 'Local') / 'AfuNobet'
 
 
 def mask(text):

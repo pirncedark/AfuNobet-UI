@@ -78,8 +78,13 @@ fn relevant(event: &Event, files: &[PathBuf]) -> bool {
             || event.paths.iter().any(|changed| {
                 files
                     .iter()
-                    .any(|file| changed == file || file.starts_with(changed))
+                    .any(|file| changed == file || (file.starts_with(changed) && !dir_touch(&event.kind)))
             }))
+}
+// Writing any file bumps its folder's timestamp (Windows reports it on the ancestor watch);
+// only create/remove/rename of a folder affects the files below it.
+fn dir_touch(kind: &EventKind) -> bool {
+    matches!(kind, EventKind::Modify(modify) if !matches!(modify, notify::event::ModifyKind::Name(_)))
 }
 
 /// Tek OS izleyicisi; yeni kayıt durum yolları gelince abonelikleri yenilenir.
