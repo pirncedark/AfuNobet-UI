@@ -1,12 +1,31 @@
-# AfuNobet-UI project guidance
+# Coucou — guide for AI coding agents
 
-Read GOREV_COUCOU_AFU.md and AFU_CHANGES.md before editing.
-Keep windows/src-tauri/src/island.rs unchanged except for the user-authorized top-edge wake fix recorded in docs/kanit/edge_wake_authorized_patch.json. Preserve the historical recovery baseline and require the exact audited patch hash plus native edge regression tests.
-The application only reads AfuNobet state.json via directory events.
-Do not add model APIs, hook installation, process control (exception: AfuNöbet CLI windowless for Orkestra), uploads or secrets.
-Claude appears only as the locked Claude KORUNUYOR badge.
-Use existing offline dependencies, headless tests and no visible windows.
+Coucou is a native macOS app (`NotchBuddy/`); `windows/` is the Tauri version for Windows and Linux. Mochi, a small animated character living in the MacBook notch, shows AI coding agent sessions (Claude Code, Gemini CLI, Antigravity and more) and a few integrations, and lets the user approve, answer, chat and drop files from the notch.
 
-Exception (user-approved 2026-10-02): agent question flow reads <AfuNobet>/sorular/*.json and writes only cevaplar/<id>.json (docs/SORU_SOZLESMESI.md); for codex/gemini/opencode only.
-Exception (user-approved 2026-10-03): Claude Code hook is allowed ONLY for notification/question bridge (Afu reads messages and answers questions). Claude automatic task execution remains FORBIDDEN (KORUNUYOR badge stays).
-Exception (user-approved 2026-10-04, v1.0.1): agent-pipe main sessions, including Claude Code, are listed read-only in the island (state.ts ajanGorevleri). Claude still gets no automatic work and keeps the KORUNUYOR badge; no Claude pill or notifications.
+## Where things are
+- `NotchBuddy/Sources/App/` — all Swift code. `NotchBuddy/Resources/sounds/` — the 28 WAV sounds. `NotchBuddy/project.yml` — XcodeGen project (never edit the `.xcodeproj` by hand).
+- `NotchBuddy/Sources/App/PillCatalog.swift` — single source of truth for all declared pills (workspace tools, agents, AI providers, services). Every pill ID, color, category and subtitle lives here.
+- `docs/SPEC.md`, `docs/INTEGRATIONS.md` — behaviour, views, states, integrations (in French).
+- `design/prototype/notch-buddy.html` — original prototype, the visual source of truth. `design/captures/` — target screenshots.
+- `windows/` — the Tauri app for Windows and Linux: Rust in `src-tauri/`, TypeScript in `src/`, the `coucou-hook` relay in `hook/`. `windows/README.md` lists what differs from the Mac.
+- `docs/*.html` — the GitHub Pages site (privacy, terms, support, legal notice).
+
+## Build
+```
+cd NotchBuddy && xcodegen && xcodebuild -scheme NotchBuddy -configuration Debug build
+```
+Windows and Linux: `cd windows && npm install && npm run tauri dev`
+
+## Rules
+- Swift 6, SwiftUI + AppKit. No third-party dependencies unless truly unavoidable. The character is drawn in code (`Canvas` + `TimelineView`), no Rive/Lottie/images.
+- Secrets live in the Keychain, never on disk or in git.
+- No telemetry. Network calls only to services the user configured.
+- Never block Claude Code: if the app doesn't answer, the hook exits immediately.
+- Never overwrite `~/.claude/settings.json`: dated backup, merge, show the diff, write only after the user confirms.
+- Never send an email or approve a Claude Code or Codex permission without an explicit click.
+- Performance: 0 % CPU when the island is hidden.
+- Keep the bundle identifier `fr.louisraille.NotchBuddy` (Keychain items, preferences and permissions depend on it).
+- Never restyle what already ships (pills, cards, Settings, chat…): existing views stay exactly as they are in `main`, which is the App Store build. Change the look of an existing view only when explicitly asked.
+- Pill IDs are stable contract values (Keychain, UserDefaults, hook routing): never rename an existing pill ID.
+- New views follow the existing app style. `design/prototype/notch-buddy.html` and `design/captures/` are references for new work, not a reason to change existing views.
+- Every release adds its CHANGELOG.md section, a row in the README Versions table, and commits the regenerated Info.plist with the new version.

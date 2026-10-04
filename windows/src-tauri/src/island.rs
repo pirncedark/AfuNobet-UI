@@ -12,16 +12,7 @@ use std::time::Duration;
 use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, Monitor, PhysicalPosition, PhysicalSize, WebviewWindow};
 
-use windows::Win32::Foundation::{HWND, POINT};
-use windows::core::BOOL;
-use windows::Win32::Foundation::LPARAM;
-use windows::Win32::System::Ole::RevokeDragDrop;
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON};
-use windows::Win32::UI::WindowsAndMessaging::{EnumChildWindows, GetClassNameW};
-use windows::Win32::UI::WindowsAndMessaging::{
-    GetCursorPos, GetWindowLongPtrW, SetWindowLongPtrW, GWL_EXSTYLE, WS_EX_NOACTIVATE,
-    WS_EX_TOOLWINDOW,
-};
+use crate::platform::{self, cursor_physical, left_button_down};
 
 /// Logical size of the full window — the largest island view, like the macOS panel.
 pub const PANEL_W: f64 = 720.0;
@@ -62,13 +53,13 @@ pub struct IslandRect {
     pub h: f64,
 }
 
-/// Keeps the active cursor poll fast and the hidden edge wake poll inexpensive.
+/// Wakes / parks the cursor poll thread so a hidden island costs literally nothing.
 pub struct PollGate {
     active: Mutex<bool>,
     cv: Condvar,
     pub collapsed: AtomicBool,
     pub rect: Mutex<IslandRect>,
-    /// Mirrors the window flag so we only call into Win32 when it changes.
+    /// Mirrors the window flag so we only call into the OS when it changes.
     ignoring: AtomicBool,
 }
 
@@ -98,65 +89,20 @@ impl PollGate {
         self.cv.notify_all();
     }
 
-    fn wait_for_poll(&self) -> bool {
-        let guard = self.active.lock().unwrap();
-        let guard = if !*guard {
-            self.cv.wait_timeout(guard, Duration::from_millis(100)).unwrap().0
-        } else {
-            guard
-        };
-        *guard
+    fn wait_until_active(&self) {
+        let mut guard = self.active.lock().unwrap();
+        while !*guard {
+            guard = self.cv.wait(guard).unwrap();
+        }
     }
 
+    fn is_active(&self) -> bool {
+        *self.active.lock().unwrap()
+    }
 }
 
 pub fn window(app: &AppHandle) -> Option<WebviewWindow> {
     app.get_webview_window(WINDOW_LABEL)
-}
-
-fn cursor_physical() -> Option<(f64, f64)> {
-    let mut p = POINT::default();
-    unsafe { GetCursorPos(&mut p).ok()? };
-    Some((p.x as f64, p.y as f64))
-}
-
-/// Lets dropped files reach the app again.
-///
-/// wry installs its drop target by walking the webview's child windows **once**,
-/// when the webview is created. WebView2 creates `Chrome_RenderWidgetHostHWND`
-/// later and registers its own target on it; being the innermost window, that one
-/// wins, and since the page has no HTML5 drop handler it refuses everything — the
-/// "no drop" cursor, with nothing reaching Tauri. Revoking it makes OLE fall
-/// through to the target wry registered on the parent widget, which is the one
-/// that feeds Tauri's drag events.
-///
-/// Cheap and idempotent, so it is simply re-run whenever a drag might be starting.
-pub fn unblock_webview_drops(app: &AppHandle) {
-    for label in [WINDOW_LABEL, "settings"] {
-        let Some(win) = app.get_webview_window(label) else { continue };
-        let Some(hwnd) = hwnd_of(&win) else { continue };
-        unsafe {
-            let _ = EnumChildWindows(Some(hwnd), Some(revoke_render_widget), LPARAM(0));
-        }
-    }
-}
-
-unsafe extern "system" fn revoke_render_widget(hwnd: HWND, _: LPARAM) -> BOOL {
-    let mut name = [0u16; 64];
-    let len = unsafe { GetClassNameW(hwnd, &mut name) };
-    if len > 0 {
-        let class = String::from_utf16_lossy(&name[..len as usize]);
-        if class == "Chrome_RenderWidgetHostHWND" {
-            let _ = unsafe { RevokeDragDrop(hwnd) };
-        }
-    }
-    true.into()
-}
-
-/// True while the left mouse button is held — the only signal we get that a
-/// drag might be in flight before it reaches the window.
-fn left_button_down() -> bool {
-    unsafe { (GetAsyncKeyState(VK_LBUTTON.0 as i32) as u16 & 0x8000) != 0 }
 }
 
 fn monitor_contains(m: &Monitor, x: f64, y: f64) -> bool {
@@ -217,44 +163,18 @@ pub fn apply_geometry(app: &AppHandle, pref: &str, collapsed: bool) {
     let x = mp.x + (ms.width as i32 - pw as i32) / 2;
     let y = mp.y;
 
+    // GTK never sizes a non-resizable window below its natural size (200 px
+    // here), so on Linux the 6 px wake strip would stay a 200 px block. tao
+    // re-applies the config's `resizable: false` after the first configure, so
+    // this is asked every time, just before the resize. Undecorated, the window
+    // still offers the user nothing to resize it by. (Found by @YossiYad, #44.)
+    #[cfg(target_os = "linux")]
+    let _ = win.set_resizable(true);
     let _ = win.set_size(PhysicalSize::new(pw, ph));
     let _ = win.set_position(PhysicalPosition::new(x, y));
     // Moving across displays can rescale the window: re-assert the physical size.
     let _ = win.set_size(PhysicalSize::new(pw, ph));
     let _ = win.set_always_on_top(true);
-}
-
-fn hwnd_of(win: &WebviewWindow) -> Option<HWND> {
-    let raw = win.hwnd().ok()?.0 as isize;
-    if raw == 0 {
-        return None;
-    }
-    Some(HWND(raw as *mut _))
-}
-
-/// WS_EX_NOACTIVATE keeps clicks from stealing focus; WS_EX_TOOLWINDOW keeps the
-/// island out of Alt-Tab.
-pub fn make_non_activating(win: &WebviewWindow) {
-    let Some(hwnd) = hwnd_of(win) else { return };
-    unsafe {
-        let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-        let want = ex | WS_EX_NOACTIVATE.0 as isize | WS_EX_TOOLWINDOW.0 as isize;
-        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, want);
-    }
-}
-
-/// Temporarily allow activation so a text field inside the island can be typed in.
-pub fn set_activating(win: &WebviewWindow, activating: bool) {
-    let Some(hwnd) = hwnd_of(win) else { return };
-    unsafe {
-        let ex = GetWindowLongPtrW(hwnd, GWL_EXSTYLE);
-        let want = if activating {
-            ex & !(WS_EX_NOACTIVATE.0 as isize)
-        } else {
-            ex | WS_EX_NOACTIVATE.0 as isize
-        };
-        SetWindowLongPtrW(hwnd, GWL_EXSTYLE, want);
-    }
 }
 
 /// Position, size and scale of the monitor the island lives on. Any change here
@@ -270,161 +190,136 @@ fn current_screen_key(app: &AppHandle) -> Option<(i32, i32, u32, u32, u64)> {
     Some((p.x, p.y, size.width, size.height, m.scale_factor().to_bits()))
 }
 
-/// Physical top-centre wake area, independent of the island window (including pet mode).
-fn in_edge(screen: (i32, i32, u32, u32, u64), x: f64, y: f64) -> bool {
-    let (sx, sy, width, _, scale) = screen;
-    let scale = f64::from_bits(scale);
-    let half = (STRIP_W * scale).min(width as f64) / 2.0;
-    let centre = sx as f64 + width as f64 / 2.0;
-    x >= centre - half && x < centre + half
-        && y >= sy as f64 && y < sy as f64 + STRIP_H * scale
-}
-
-#[derive(Default)]
-struct EdgeEntry { inside: bool }
-impl EdgeEntry {
-    fn update(&mut self, inside: bool, down: bool) -> bool {
-        let entered = inside && !self.inside;
-        // A drag entering the edge consumes the entry: releasing there must not open it.
-        self.inside = inside;
-        entered && !down
-    }
-}
-
-/// Emits cursor at ~60 Hz while active and checks the global wake edge at ~10 Hz otherwise.
+/// Emits `cursor` (window-logical coordinates) at ~60 Hz while the island is
+/// visible. Parked on a condvar the rest of the time.
 pub fn spawn_cursor_poll(app: AppHandle, gate: Arc<PollGate>) {
     std::thread::spawn(move || {
         let mut was_down = false;
-        // Refreshed in hidden mode too, so wake follows display origin and DPI changes.
+        // Remembered across wakes so a display change while hidden is noticed the
+        // moment the island comes back.
         let mut last_screen: Option<(i32, i32, u32, u32, u64)> = None;
-        let mut edge = EdgeEntry::default();
-        let mut last = (f64::MIN, f64::MIN);
-        let mut ticks: u32 = 0;
+        // Without a cursor to read (Linux) the loop only watches the display
+        // layout, and twice a second is plenty for that: waking at 60 Hz just to
+        // find no cursor costs CPU for nothing.
+        let (period, screen_every) = if platform::CURSOR_POLL { (16, 30) } else { (500, 1) };
         loop {
-            let active = gate.wait_for_poll();
-            if active { std::thread::sleep(Duration::from_millis(16)); }
-            let Some((cx, cy)) = cursor_physical() else { continue };
-            let down = left_button_down();
+            gate.wait_until_active();
+            let mut last = (f64::MIN, f64::MIN);
+            let mut ticks: u32 = 0;
+            while gate.is_active() {
+                std::thread::sleep(Duration::from_millis(period));
 
-            // Monitors get plugged in, unplugged, rearranged and rescaled, and
-            // an island pinned to coordinates that no longer exist is an island
-            // nobody can reach. Checked about twice a second — the cursor poll
-            // is already running, so this costs one monitor query.
-            ticks = ticks.wrapping_add(1);
-            if last_screen.is_none() || !active || ticks % 30 == 0 {
-                let now = current_screen_key(&app);
-                if now.is_some() && now != last_screen {
-                    let first = last_screen.is_none();
-                    last_screen = now;
-                    if !first {
-                        crate::log::line("display layout changed — repositioning".to_string());
-                        let _ = app.emit_to(WINDOW_LABEL, "screen-changed", ());
+                // Monitors get plugged in, unplugged, rearranged and rescaled, and
+                // an island pinned to coordinates that no longer exist is an island
+                // nobody can reach. Checked about twice a second — the cursor poll
+                // is already running, so this costs one monitor query.
+                ticks = ticks.wrapping_add(1);
+                if ticks % screen_every == 0 {
+                    let now = current_screen_key(&app);
+                    if now.is_some() && now != last_screen {
+                        let first = last_screen.is_none();
+                        last_screen = now;
+                        if !first {
+                            crate::log::line("display layout changed — repositioning".to_string());
+                            let _ = app.emit_to(WINDOW_LABEL, "screen-changed", ());
+                        }
                     }
                 }
-            }
 
-            let inside = last_screen.map(|screen| in_edge(screen, cx, cy)).unwrap_or(false);
-            if edge.update(inside, down) {
-                let _ = app.emit_to(WINDOW_LABEL, "edge-wake", ());
-            }
-            if !active {
-                last = (f64::MIN, f64::MIN);
-                continue;
-            }
-            let Some(win) = window(&app) else { continue };
-            let Ok(origin) = win.outer_position() else { continue };
-            let scale = win.scale_factor().unwrap_or(1.0);
-            let x = (cx - origin.x as f64) / scale;
-            let y = (cy - origin.y as f64) / scale;
-            let size = match win.inner_size() {
-                Ok(s) => (s.width as f64 / scale, s.height as f64 / scale),
-                Err(_) => (PANEL_W, PANEL_H),
-            };
-            if (x - last.0).abs() < 1.0 && (y - last.1).abs() < 1.0 {
-                continue;
-            }
-            last = (x, y);
+                let Some(win) = window(&app) else { continue };
+                let Ok(origin) = win.outer_position() else { continue };
+                let scale = win.scale_factor().unwrap_or(1.0);
+                let Some((cx, cy)) = cursor_physical() else { continue };
+                let x = (cx - origin.x as f64) / scale;
+                let y = (cy - origin.y as f64) / scale;
+                let size = match win.inner_size() {
+                    Ok(s) => (s.width as f64 / scale, s.height as f64 / scale),
+                    Err(_) => (PANEL_W, PANEL_H),
+                };
+                if (x - last.0).abs() < 1.0 && (y - last.1).abs() < 1.0 {
+                    continue;
+                }
+                last = (x, y);
 
-            // Click-through: the window only takes the mouse over the island
-            // shape. A small entry margin means the flag is already off by the
-            // time a moving cursor reaches a button.
-            let r = *gate.rect.lock().unwrap();
-            let on_island = r.w > 0.0
-                && x >= r.x - HIT_MARGIN
-                && x <= r.x + r.w + HIT_MARGIN
-                && y >= r.y - HIT_MARGIN
-                && y <= r.y + r.h + HIT_MARGIN;
+                // Click-through: the window only takes the mouse over the island
+                // shape. A small entry margin means the flag is already off by the
+                // time a moving cursor reaches a button.
+                let r = *gate.rect.lock().unwrap();
+                let on_island = r.w > 0.0
+                    && x >= r.x - HIT_MARGIN
+                    && x <= r.x + r.w + HIT_MARGIN
+                    && y >= r.y - HIT_MARGIN
+                    && y <= r.y + r.h + HIT_MARGIN;
 
-            // A file being dragged has to be able to find us. WS_EX_TRANSPARENT
-            // — what click-through is on Windows — hides the window from
-            // WindowFromPoint, so OLE finds no drop target and shows the "no
-            // drop" cursor. macOS has no such problem: AppKit delivers drags to
-            // registered destinations whatever ignoresMouseEvents says. So while
-            // a button is held anywhere over the panel, the whole panel takes
-            // the mouse, which also makes the drop zone as forgiving as the Mac's.
-            // A press may be the start of a drag: make sure the drop target is
-            // ours before the file arrives.
-            if down && !was_down {
-                let handle = app.clone();
-                let _ = app.run_on_main_thread(move || unblock_webview_drops(&handle));
+                // A file being dragged has to be able to find us. WS_EX_TRANSPARENT
+                // — what click-through is on Windows — hides the window from
+                // WindowFromPoint, so OLE finds no drop target and shows the "no
+                // drop" cursor. macOS has no such problem: AppKit delivers drags to
+                // registered destinations whatever ignoresMouseEvents says. So while
+                // a button is held anywhere over the panel, the whole panel takes
+                // the mouse, which also makes the drop zone as forgiving as the Mac's.
+                // A press may be the start of a drag: make sure the drop target is
+                // ours before the file arrives.
+                let down = left_button_down();
+                if down && !was_down {
+                    let handle = app.clone();
+                    let _ = app.run_on_main_thread(move || platform::unblock_webview_drops(&handle));
+                }
+                was_down = down;
+
+                let dragging = down
+                    && x >= 0.0
+                    && x <= size.0
+                    && y >= 0.0
+                    && y <= size.1;
+
+                let accept = on_island || dragging;
+                if gate.ignoring.load(Ordering::Relaxed) == accept {
+                    gate.ignoring.store(!accept, Ordering::Relaxed);
+                    let _ = win.set_ignore_cursor_events(!accept);
+                }
+
+                let _ = win.emit("cursor", CursorPayload { x, y });
             }
-            was_down = down;
-
-            let dragging = down
-                && x >= 0.0
-                && x <= size.0
-                && y >= 0.0
-                && y <= size.1;
-
-            let accept = on_island || dragging;
-            if gate.ignoring.load(Ordering::Relaxed) == accept {
-                gate.ignoring.store(!accept, Ordering::Relaxed);
-                let _ = win.set_ignore_cursor_events(!accept);
-            }
-
-            let _ = win.emit("cursor", CursorPayload { x, y });
         }
     });
+}
+
+/// Re-applies click-through after the window or the island changed shape.
+///
+/// With the cursor poll (Windows) the window takes the mouse again and the next
+/// tick decides from the cursor. Without it (Linux) the input region is set to
+/// the island itself, or to the whole wake strip while collapsed.
+pub fn refresh_click_through(app: &AppHandle, gate: &PollGate) {
+    if platform::CURSOR_POLL {
+        set_ignore_cursor(app, false);
+        gate.forget_ignore_state();
+        return;
+    }
+    let Some(win) = window(app) else { return };
+    let region = if gate.collapsed.load(Ordering::Relaxed) {
+        // The wake strip itself, never "the whole window": if the window ever
+        // fails to shrink to the strip, the rest of it must not swallow clicks
+        // meant for whatever sits under the top of the screen.
+        Some((0.0, 0.0, STRIP_W, STRIP_H))
+    } else {
+        let r = *gate.rect.lock().unwrap();
+        if r.w <= 0.0 {
+            // Nothing drawn yet: nothing takes the mouse.
+            Some((0.0, 0.0, 0.0, 0.0))
+        } else {
+            let x0 = (r.x - HIT_MARGIN).max(0.0);
+            let y0 = (r.y - HIT_MARGIN).max(0.0);
+            let x1 = r.x + r.w + HIT_MARGIN;
+            let y1 = r.y + r.h + HIT_MARGIN;
+            Some((x0, y0, x1 - x0, y1 - y0))
+        }
+    };
+    platform::set_input_region(&win, region);
 }
 
 pub fn set_ignore_cursor(app: &AppHandle, ignore: bool) {
     if let Some(win) = window(app) {
         let _ = win.set_ignore_cursor_events(ignore);
-    }
-}
-
-#[cfg(test)]
-mod edge_tests {
-    use super::*;
-
-    #[test]
-    fn edge_physical_origin_dpi_and_boundaries() {
-        let screen = (-2560, -200, 2560, 1440, 2.0_f64.to_bits());
-        assert!(in_edge(screen, -1280.0, -200.0));
-        assert!(in_edge(screen, -1520.0, -188.01));
-        assert!(!in_edge(screen, -1520.01, -200.0));
-        assert!(!in_edge(screen, -1040.0, -200.0));
-        assert!(!in_edge(screen, -1280.0, -188.0));
-        assert!(!in_edge(screen, -1280.0, -200.01));
-    }
-
-    #[test]
-    fn edge_entry_rearms_only_after_exit_and_suppresses_drag() {
-        let mut edge = EdgeEntry::default();
-        assert!(edge.update(true, false));
-        assert!(!edge.update(true, false));
-        assert!(!edge.update(false, false));
-        assert!(!edge.update(true, true));
-        assert!(!edge.update(true, false));
-        assert!(!edge.update(false, false));
-        assert!(edge.update(true, false));
-    }
-
-    #[test]
-    fn inactive_poll_returns_without_activation() {
-        let gate = PollGate::new();
-        let (tx, rx) = std::sync::mpsc::channel();
-        std::thread::spawn(move || { tx.send(gate.wait_for_poll()).unwrap(); });
-        assert!(!rx.recv_timeout(Duration::from_secs(2)).expect("hidden edge polling must stay live"));
     }
 }

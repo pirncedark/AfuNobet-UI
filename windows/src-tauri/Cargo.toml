@@ -1,13 +1,13 @@
 [package]
-name = "afunobet-ui"
-description = "AfuNobet durumunu salt okunur izleyen masaustu adasi"
-authors = ["Afu", "Louis Raille (upstream)"]
+name = "coucou"
+description = "Coucou for Windows and Linux — Mochi lives at the top of your screen"
+authors = ["Louis Raille"]
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [lib]
-name = "afunobet_ui_lib"
+name = "coucou_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]
@@ -16,43 +16,29 @@ tauri-build = { version = "2", features = [] }
 [dependencies]
 tauri = { version = "2", features = ["tray-icon"] }
 tauri-plugin-single-instance = "2"
+tauri-plugin-autostart = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["preserve_order"] }
-notify = "8.2.0"
+tokio = { version = "1", features = ["net", "io-util", "sync", "time", "rt"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
 windows = { version = "0.61", features = [
-  "Win32_Security_Credentials",
-  "Data_Xml_Dom",
-  "UI_Notifications",
-  "ApplicationModel",
-  "Globalization",
-  "Foundation",
-  "Foundation_Collections",
-  "Media_SpeechSynthesis",
-  "Media_SpeechRecognition",
-  "Media_Playback",
-  "Media_Core",
-  "Storage_Streams",
   "Win32_Foundation",
-  "Win32_System_Ole",
-  "Win32_Storage_FileSystem",
-  "Win32_UI_Input_KeyboardAndMouse",
-  "Win32_UI_WindowsAndMessaging",
-  "Win32_UI_Shell",
-  "Win32_UI_Accessibility",
-  "Win32_System_WinRT",
-  "Win32_System_Com",
-  "Win32_System_Variant",
-  "Win32_Graphics_Gdi",
-  "Win32_System_Pipes",
-  "Win32_System_IO",
-  "Win32_System_Threading",
   "Win32_Security",
   "Win32_Security_Authorization",
+  "Win32_System_Ole",
+  "Win32_System_SystemInformation",
+  "Win32_System_Threading",
+  "Win32_UI_Input_KeyboardAndMouse",
+  "Win32_UI_WindowsAndMessaging",
 ] }
 
-whisper-rs = '=0.11.1'
-cpal = '0.15'
-hound = '3.5'
-tauri-build = "2"
-
-
+[target.'cfg(target_os = "linux")'.dependencies]
+# Secret Service (GNOME Keyring, KWallet) over D-Bus, encrypted in transit.
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }
+libc = "0.2"
+# The GTK that Tauri already runs on, to reach its window for layer-shell and
+# the input region. libgtk-layer-shell itself is called directly (platform/linux.rs).
+gtk = "0.18"

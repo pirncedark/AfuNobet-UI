@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "AfuNobet-UI ada penceresi ve salt okunur durum komutlari.",
-  "windows": ["island"],
-  "permissions": ["core:default", "core:window:allow-set-always-on-top", "core:window:allow-show", "core:window:allow-hide"]
+  "description": "What Coucou's windows are allowed to do. Everything that touches the OS goes through Coucou's own commands.",
+  "windows": ["island", "settings"],
+  "permissions": ["core:default", "autostart:default"]
 }
