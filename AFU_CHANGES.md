@@ -1,5 +1,11 @@
 # AfuNöbet UI değişiklik kaydı
 
+## 2026-10-04 v1.0.3 — Google anahtarı maskesi / Google key masking
+
+EN: A Gemini API key pasted into the Gemini CLI prompt was shown as an island task title. `questions::maskele` (Rust) and `maskele` (scripts/codex_soru_koprusu.py) now also mask `AIza`, `AQ.`, `ya29.`, `4/0A`, `hf_`, `glpat-`, `sk_` prefixes and any 32+ character slash-free token mixing upper/lower case and digits; `protokol::gorev_metni` already drops masked titles. Tests: Cargo 287 PASS, Python 288 PASS (new cases use fake keys only). `island.rs` not touched.
+
+TR: Gemini CLI istemine yapıştırılan bir Gemini API anahtarı adada görev başlığı olarak göründü. `questions::maskele` (Rust) ve `maskele` (scripts/codex_soru_koprusu.py) artık `AIza`, `AQ.`, `ya29.`, `4/0A`, `hf_`, `glpat-`, `sk_` öneklerini ve büyük/küçük harf + rakam içeren, `/` içermeyen 32+ karakterlik dizeleri de maskeler; `protokol::gorev_metni` maskelenen başlığı zaten atar. Test: Cargo 287 PASS, Python 288 PASS (yeni örnekler yalnız uydurma anahtar). `island.rs` değişmedi.
+
 ## 2026-10-04 v1.0.2 — küçük ve sabit boy pet, portable / smaller same-size pet, portable
 
 EN: The mini pet is half the size (head ~72 px instead of ~145 px) and every animation is drawn at the same head size: frames get a measured head width (`PET_KAFA`, `petKafaOlcegi` in pet.ts) instead of being fitted to one visible height, which made the head vary ~35–220 px. Releases ship a setup installer and a portable zip. Leftover upstream names were removed (`GOREV_AFU_*`, `afunobet-ui.exe`, templates, docs, metadata); the MIT notice in LICENSE stays. Tests: Vitest 994+ PASS sequentially. `island.rs` not touched.

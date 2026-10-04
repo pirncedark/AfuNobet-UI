@@ -406,6 +406,9 @@ mod tests {
 
     #[test]
     fn gorev_metni_temizlenir() {
+        // 1.0.3: istem olarak yapıştırılan Google anahtarı görev başlığı olmaz (uydurma örnek).
+        let g = coz(r#"{"ajan":"gemini","olay":"BeforeAgent","gorev":"AQ.FakeKey0123456789-abcdef_GHIJ"}"#, T).unwrap();
+        assert_eq!(g.gorev, None);
         let o = coz(r#"{"ajan":"codex","olay":"working","gorev":"C:\\gizli\\yol"}"#, T).unwrap();
         assert_eq!(o.gorev, None);
         let o = coz(r#"{"ajan":"codex","olay":"working","gorev":"token=abcdef123456 ile dene"}"#, T).unwrap();

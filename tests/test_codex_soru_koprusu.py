@@ -90,6 +90,12 @@ class Maskeleme(unittest.TestCase):
         self.assertIn("&a=1", m)
         self.assertEqual(k.maskele("npm test --watch risk-free"), "npm test --watch risk-free")
         self.assertEqual(k.maskele("PASSWORD=hunter2 npm test"), "PASSWORD=••• npm test")
+        # 1.0.3: Google anahtarları ve öneki bilinmeyen uzun gizli dizeler (uydurma örnekler).
+        for gizli in ["AIzaSyFAKEfake0123456789abcdefGHIJKLM", "AQ.FakeKey0123456789-abcdef_GHIJ", "ya29.a0FAKEtoken123456", "4/0AFAKEcode123456789", "hf_FAKEtoken0123456789", "Zx9QwErTy7UiOpAs4DfGhJkL2ZxCvBnM8"]:
+            self.assertEqual(k.maskele(f"bu {gizli} anahtar"), "bu ••• anahtar", gizli)
+        karma = "0fa7e6012ab34cd56ef78901234567890abcdef1"
+        self.assertEqual(k.maskele(karma), karma)
+        self.assertEqual(k.maskele("windows/src/afu/PetKafaOlcegi2Test.ts"), "windows/src/afu/PetKafaOlcegi2Test.ts")
 
 
 class SoruOlusturma(unittest.TestCase):
