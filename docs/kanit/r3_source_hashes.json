@@ -1,9 +1,0 @@
-{
-  "windows/src/message/notifications.ts": "d19d36b30863657d4cf128cd4440e6dbdd5764054605714439e8cf71206f2063",
-  "windows/src/message/message.ts": "e4b7333d3aad60df0797053aa76b5f7d4e05f34b3f174126ad69ee4342aa7672",
-  "windows/src/message/message.css": "18c04db98ec484b6c77523aee967b0b6ef924b66f66b8e44a457844c6673a21b",
-  "windows/src/question/question.ts": "7cd7909be38abe607f7f3881d4c9254aad21d26b25edc03ca1e4946659ec7a38",
-  "windows/src/island/island.ts": "0021e83745c294b5769d297f68df94ba0d0a0643e03e14f991ef19e940a6225b",
-  "windows/src/island/fsm.ts": "606ec85d3f424e150d736c8d21ffa861ff452c1fe57ba0e601a80c95923693be",
-  "windows/src/message/bicim.ts": "461bf052396e5c1af0ca1be4a4b17895592e3ac5d26a3b9febe3c961ce3d4eda"
-}

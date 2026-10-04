@@ -1,32 +1,21 @@
-# Local/build artefacts
-windows/node_modules/
-windows/dist/
-windows/target/
-windows/target-voice-final/
-windows/release/
-windows/src-tauri/gen/schemas/
-dist/
-*.tsbuildinfo
-.env
-.env.*
-!.env.example
+# Build artefacts
+NotchBuddy/build/
+NotchBuddy/NotchBuddy.xcodeproj/project.xcworkspace/xcuserdata/
+NotchBuddy/NotchBuddy.xcodeproj/xcuserdata/
+NotchBuddy/NotchBuddy.xcodeproj/xcshareddata/
+*.xcuserstate
+
+# Xcode DerivedData (outside repo — listed for clarity)
+DerivedData/
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
 
+# iCloud stubs
+*.icloud
 
-# Local backups and test outputs
-*.yedek-*
-*.yedek
-*_output.log
-
-# Sahte test modu (docs/SAHTE_TEST_MODU.md) - her calistirmada yeniden uretilir
-test_durum/
-
-# kurtarma: yerel gorev/log dosyalari depoya girmez
-/~/
-/_gorev/
-
-__pycache__/
-*.pyc
-ses_deneme/.gpu.lock
-ses_deneme/numba_cache/
-ses_deneme/cikti/
+# Local only (never published)
+.claude/
+_prive/

@@ -1,8 +1,0 @@
-# Bu dosya yalnız yerel çevrimdışı Whisper derleme ortamını tamamlar.
-# Kullanıcı ortamı tanımlıysa force=false ile korunur.
-[env]
-CARGO_NET_OFFLINE = "true"
-LIBCLANG_PATH = { value = "C:/Users/afuuu/AppData/Roaming/Python/Python311/site-packages/clang/native", force = false }
-CMAKE_GENERATOR = { value = "Visual Studio 17 2022", force = false }
-CMAKE_TOOLCHAIN_FILE = { value = "scripts/whisper_windows_x64.cmake", relative = true, force = false }
-CMAKE = { value = "C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/Common7/IDE/CommonExtensions/Microsoft/CMake/CMake/bin/cmake.exe", force = false }

@@ -1,13 +1,14 @@
 [workspace]
-members = ["src-tauri"]
+members = ["src-tauri", "hook"]
 resolver = "2"
 
 [workspace.package]
-version = "1.0.1"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
 
-# Compact standalone application build.
+# Release profile shared by the app and the hook relay: the hook must start fast
+# (Claude Code spawns it on every event), so we optimise for size and speed.
 [profile.release]
 opt-level = "s"
 lto = true

@@ -1,4 +1,0 @@
-SONUC: TAMAM - vitest 716 gecti 0 kaldi
-
-- p8_kart_buyut.test.ts onarıldı: `style.css` dosyasına `.health-strip`, `.health-pill.ok`, `.health-pill.kapali`, `.more-menu .menu-item` ve `footer .page-button` stilleri eklendi. Ayrıca `.task-eyebrow` ve `.row-status` yazı boyutları 9px'e yükseltilerek ölçekli hesaplamada 13px alt sınırı aşıldı ve `#island` kapsayıcısına `zoom:var(--kart-olcek,1)` eklendi.
-- pet-kirpma.test.ts onarıldı: `#afu-pet` kutusu `position:absolute; top:0; left:0; width:100%; height:100%` yapılarak kırpma davranışı iptal edildi, böylece testin beklediği eski EXE çerçevesiyle (0,0,256,256) eşleşmesi sağlandı.
