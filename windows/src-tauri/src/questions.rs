@@ -72,9 +72,20 @@ fn token_karakteri(c: char) -> bool {
     c.is_ascii_alphanumeric() || c == '_' || c == '-' || c == '.' || c == '/' || c == '+' || c == '='
 }
 
+/// Boşluksuz, en az 32 karakter, büyük + küçük harf + rakam içeren ve `/` içermeyen dize:
+/// öneki bilinmeyen anahtar/belirteç sayılır (1.0.3). Commit karması (küçük harf) ve yollar geçer.
+fn uzun_gizli_mi(parca: &[char]) -> bool {
+    parca.len() >= 32
+        && !parca.contains(&'/')
+        && parca.iter().any(char::is_ascii_uppercase)
+        && parca.iter().any(char::is_ascii_lowercase)
+        && parca.iter().any(char::is_ascii_digit)
+}
+
 /// Bilinen gizli bilgi kalıplarını `•••` yapar. Regex yok: küçük bir tarayıcı.
 pub fn maskele(girdi: &str) -> String {
-    const ONEKLER: &[&str] = &["sk-", "ghp_", "gho_", "ghs_", "ghu_", "github_pat_", "xoxb-", "xoxp-", "xoxa-", "AKIA"];
+    // 1.0.3: Google (AIza, AQ., ya29., 4/0A), Hugging Face, GitLab ve Stripe önekleri eklendi.
+    const ONEKLER: &[&str] = &["sk-", "sk_", "ghp_", "gho_", "ghs_", "ghu_", "github_pat_", "xoxb-", "xoxp-", "xoxa-", "AKIA", "AIza", "AQ.", "ya29.", "4/0A", "hf_", "glpat-"];
     const ANAHTARLAR: &[&str] = &["password", "passwd", "token", "secret", "api_key", "apikey", "bearer"];
     let karakterler: Vec<char> = girdi.chars().collect();
     let kucuk: Vec<char> = girdi.to_lowercase().chars().collect();
@@ -88,6 +99,17 @@ pub fn maskele(girdi: &str) -> String {
         i + k.len() <= kaynak.len() && kaynak[i..i + k.len()] == k[..]
     };
     while i < karakterler.len() {
+        if i == 0 || !token_karakteri(karakterler[i - 1]) {
+            let mut j = i;
+            while j < karakterler.len() && token_karakteri(karakterler[j]) {
+                j += 1;
+            }
+            if uzun_gizli_mi(&karakterler[i..j]) {
+                cikti.push_str(MASKE);
+                i = j;
+                continue;
+            }
+        }
         if sinir(i) {
             if let Some(onek) = ONEKLER.iter().find(|o| esit(i, o, &karakterler)) {
                 let mut j = i + onek.chars().count();
@@ -444,6 +466,16 @@ mod tests {
         assert_eq!(maskele("api_key: \"abc\""), "api_key: \"•••\"");
         assert_eq!(maskele("npm test --watch"), "npm test --watch");
         assert_eq!(maskele("risk-free task"), "risk-free task", "kısa sk- maskelenmez");
+        // 1.0.3: Google anahtarları ve öneki bilinmeyen uzun gizli dizeler (uydurma örnekler).
+        for gizli in ["AIzaSyFAKEfake0123456789abcdefGHIJKLM", "AQ.FakeKey0123456789-abcdef_GHIJ", "ya29.a0FAKEtoken123456", "4/0AFAKEcode123456789", "hf_FAKEtoken0123456789"] {
+            let m = maskele(&format!("bu {gizli} anahtar"));
+            assert_eq!(m, "bu ••• anahtar", "{gizli}");
+        }
+        assert_eq!(maskele("Zx9QwErTy7UiOpAs4DfGhJkL2ZxCvBnM8"), "•••", "öneksiz uzun gizli dize");
+        let karma = "0fa7e6012ab34cd56ef78901234567890abcdef1";
+        assert_eq!(maskele(karma), karma, "commit karması (büyük harfsiz) geçer");
+        assert_eq!(maskele("windows/src/afu/PetKafaOlcegi2Test.ts"), "windows/src/afu/PetKafaOlcegi2Test.ts", "yol geçer");
+        assert_eq!(maskele("Internationalization hazırlığı"), "Internationalization hazırlığı");
         let mut v = ornek("a1", 5000);
         v["metin"] = json!("export OPENAI_API_KEY=sk-abcdefghijklmnop1234");
         let s = soru_coz(v.to_string().as_bytes(), "a1", 2000).unwrap();

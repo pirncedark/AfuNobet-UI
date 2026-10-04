@@ -32,14 +32,24 @@ MAX_AYRINTI = 4000
 MASKE = "•••"
 
 _KALIPLAR = [
-    re.compile(r"(?<![A-Za-z0-9])(?:sk-|ghp_|gho_|ghs_|ghu_|github_pat_|xox[bpa]-|AKIA)[A-Za-z0-9_\-./+=]{8,}"),
+    re.compile(r"(?<![A-Za-z0-9])(?:sk-|sk_|ghp_|gho_|ghs_|ghu_|github_pat_|xox[bpa]-|AKIA|AIza|AQ\.|ya29\.|4/0A|hf_|glpat-)[A-Za-z0-9_\-./+=]{8,}"),
     re.compile(r"(?i)(?<![A-Za-z0-9])(bearer\s+)([^\s\"'&,;]+)"),
     re.compile(r"(?i)(?<![A-Za-z0-9])((?:password|passwd|token|secret|api_key|apikey)[A-Za-z0-9_]*\s*[=:]\s*[\"']?)([^\s\"'&,;]+)"),
 ]
 
 
+# 1.0.3: öneki bilinmeyen gizli dize: boşluksuz, >= 32 karakter, büyük + küçük harf + rakam, `/` yok.
+_UZUN_GIZLI = re.compile(r"(?<![A-Za-z0-9_\-./+=])[A-Za-z0-9_\-.+=]{32,}(?![A-Za-z0-9_\-./+=])")
+
+
+def _uzun_gizli(m: re.Match) -> str:
+    s = m.group(0)
+    return MASKE if re.search(r"[A-Z]", s) and re.search(r"[a-z]", s) and re.search(r"[0-9]", s) else s
+
+
 def maskele(metin: str) -> str:
     """Bilinen gizli bilgi kalıplarını `•••` yapar (ada okurken bir kez daha maskeler)."""
+    metin = _UZUN_GIZLI.sub(_uzun_gizli, metin)
     metin = _KALIPLAR[0].sub(MASKE, metin)
     metin = _KALIPLAR[1].sub(lambda m: m.group(1) + MASKE, metin)
     return _KALIPLAR[2].sub(lambda m: m.group(1) + MASKE, metin)

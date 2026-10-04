@@ -1,6 +1,19 @@
 ﻿# Changes
 
 
+## 1.0.3 — 2026-10-04
+
+Secret masking now recognises Google keys and other long secrets, so a key pasted into an agent never shows up as a task title.
+Gizli bilgi maskesi artık Google anahtarlarını ve diğer uzun gizli dizeleri tanıyor; bir ajana yapıştırılan anahtar görev başlığı olarak görünmez.
+
+### Fixed
+- **Google API keys were shown as task titles:** A Gemini API key pasted into the Gemini CLI prompt appeared in the island as the task title, because the mask only knew OpenAI/GitHub/Slack/AWS formats. The mask (Rust core and Python bridge) now also covers `AIza…` and `AQ.…` Google keys, `ya29.…` Google access tokens, `4/0A…` Google sign-in codes, `hf_` (Hugging Face), `glpat-` (GitLab) and `sk_` (Stripe).
+- **Unknown secret formats:** Any single word of 32+ characters that mixes upper case, lower case and digits (and has no `/`) is now masked too. Commit hashes and file paths are not affected. A masked prompt is never used as a task title.
+
+### Düzeltildi
+- **Google API anahtarları görev başlığı olarak görünüyordu:** Gemini CLI'ye yapıştırılan bir Gemini API anahtarı adada görev başlığı olarak çıktı, çünkü maske yalnız OpenAI/GitHub/Slack/AWS biçimlerini tanıyordu. Maske (Rust çekirdeği ve Python köprüsü) artık `AIza…` ve `AQ.…` Google anahtarlarını, `ya29.…` Google erişim belirteçlerini, `4/0A…` Google giriş kodlarını, `hf_` (Hugging Face), `glpat-` (GitLab) ve `sk_` (Stripe) öneklerini de kapsıyor.
+- **Bilinmeyen gizli bilgi biçimleri:** Büyük harf, küçük harf ve rakamı birlikte içeren, `/` içermeyen 32+ karakterlik tek parça dizeler de artık maskelenir. Commit karmaları ve dosya yolları etkilenmez. Maskelenen bir istem asla görev başlığı yapılmaz.
+
 ## 1.0.2 — 2026-10-04
 
 Smaller mini pet that keeps the same size in every animation, a portable download, and a clean-up of leftover upstream names.
