@@ -9,7 +9,7 @@ import { Modal } from "./modal";
 import { Katman, kapatDugmesi } from "./overlay";
 import { kopruDurumu, type KopruMesaj } from "../core/kopru";
 import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, pillAgentOf, stageSteps, taskInsight, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
-import { PET_IFADE_OLAYI, loadPetIfade, savePetIfade, saveMessageAlert } from "../core/settings";
+import { HAREKET_OLAYI, PET_IFADE_OLAYI, loadHareketZorla, loadPetIfade, saveHareketZorla, savePetIfade, saveMessageAlert } from "../core/settings";
 import { ajanKimlik } from "../core/ajan_kimlik";
 
 function createPill(id: string, state: string) {
@@ -111,6 +111,7 @@ export class AfuViews {
     this.menu = h("div", { class: "more-menu", role: "menu", "aria-label": UI_TR.more, hidden: true },
       h("h2", { class: "menu-heading", text: "Ayarlar" }),
       this.petButton, h("small", { class: "menu-description", text: "Afu küçük karakter olarak görünür." }), this.settingToggle("ifade-toggle", "Arada ifade yap", "Afu boştayken kısa ifadeler yapar.", loadPetIfade, enabled => { if (!savePetIfade(enabled)) return false; window.dispatchEvent(new Event(PET_IFADE_OLAYI)); return true; }),
+      this.settingToggle("hareket-toggle", "Hep hareketli", "Windows animasyonları kapalı olsa da Afu hareket eder.", loadHareketZorla, enabled => { if (!saveHareketZorla(enabled)) return false; window.dispatchEvent(new Event(HAREKET_OLAYI)); return true; }),
       this.settingToggle("alert-toggle", "Mesaj gelince öne gel", "Yeni mesaj geldiğinde Afu görünür.", () => State.settings.messageAlert !== false, enabled => { if (!saveMessageAlert(enabled)) return false; State.settings.messageAlert = enabled; window.dispatchEvent(new Event("afu-message-setting")); return true; }),
       h("details", { class: "menu-advanced" }, h("summary", { text: "Gelişmiş" }), item("studio-open", "Animasyon stüdyosunu aç", () => { void Bridge.studioOpen().catch(() => this.flash("Stüdyo açılamadı; kurulumunu kontrol et.")); })), this.menuClose);
     this.menu.addEventListener("keydown", (e: Event) => this.onMenuKey(e as KeyboardEvent));
@@ -146,7 +147,7 @@ export class AfuViews {
     const paint = () => { button.setAttribute("aria-checked", String(read())); button.replaceChildren(h("span", { text: label }), h("small", { text: description })); };
     paint();
     button.addEventListener("click", () => { if (!save(!read())) this.flash("Ayar kaydedilemedi; yeniden dene."); paint(); });
-    if (typeof window !== "undefined") { window.addEventListener(PET_IFADE_OLAYI, paint); window.addEventListener("afu-message-setting", paint); }
+    if (typeof window !== "undefined") { window.addEventListener(PET_IFADE_OLAYI, paint); window.addEventListener(HAREKET_OLAYI, paint); window.addEventListener("afu-message-setting", paint); }
     return button;
   }
   private fromButton(e: Event) {

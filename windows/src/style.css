@@ -80,6 +80,9 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 .afu-effect{position:absolute;right:6px;top:2px;width:24px;height:30px;animation:effect-float 2.8s ease-in-out infinite}
 #afu-character.compact{left:9px;top:3px;width:26px;height:26px}
 #afu-character.compact .afu-image, #afu-character.compact .afu-anim {object-position:center}
+/* 1.0.4: kompakt animasyon yüze yakınlaşır; daire dışı kırpılır. */
+#afu-character.compact{overflow:hidden;border-radius:50%}
+#afu-character.compact .afu-anim{object-fit:cover;object-position:50% 0;transform-origin:50% 25%;scale:1.3}
 /* greeting view handled below */
 #afu-character[data-expression=thinking] .afu-image{animation:afu-think 6s ease-in-out infinite}
 #afu-character[data-expression=happy] .afu-image{animation:afu-celebrate .7s cubic-bezier(.2,.8,.3,1) both}
@@ -107,7 +110,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
 @keyframes effect-float{50%{transform:translateY(-3px) rotate(5deg)}}
 @keyframes sparkle-pop{0%{opacity:0;transform:scale(.3)}45%{opacity:1;transform:scale(1.2)}100%{opacity:1;transform:scale(1)}}
 @keyframes focus-pulse{50%{opacity:.35;transform:scale(1.04)}}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+@media(prefers-reduced-motion:reduce){:root:not(.afu-hareket-zorla) *,:root:not(.afu-hareket-zorla) *::before,:root:not(.afu-hareket-zorla) *::after{animation:none!important;transition:none!important}}
  .agent-pill[data-state="active"] { opacity: 1; box-shadow: inset 0 0 0 1px #6ddbfa; }
  .agent-pill[data-state="idle"] { opacity: .65; }
  .agent-pill[data-state="disabled"] { opacity: .28; cursor: default; }
@@ -182,7 +185,7 @@ footer{margin-top:auto;display:flex;justify-content:space-between;align-items:ce
  }
  
  @media(prefers-reduced-motion: reduce) {
-  #island, #afu-character, #afu-pet, #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image { transition: none !important; }
+  :root:not(.afu-hareket-zorla) :is(#island, #afu-character, #afu-pet, #afu-character .afu-image, #afu-character .afu-anim, #afu-pet .pet-image) { transition: none !important; }
  }
  
 /* Proje eylemi sabit kartın üst satırında kalır; uzun açıklama altında kırpılmaz. */

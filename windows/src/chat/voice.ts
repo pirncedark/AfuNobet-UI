@@ -84,6 +84,7 @@ export class VoiceController {
  }
 }
 export function announcement(e:AfuEvent):string|null {
+ if(e.agent==="claude")return e.kind==="JOB_FINISHED"?"Claude işini bitirdi.":e.kind==="WAITING"?"Claude onayını bekliyor.":e.kind==="RATE_LIMIT"?"Claude kota bekliyor.":e.kind==="JOB_FAILED"?"Claude işi tamamlayamadı.":null;
  const name=e.agent==="codex"?"Codex":e.agent==="opencode"?"OpenCode":e.agent==="gemini"?"Gemini":e.agent==="glm"?"GLM":null;
  if (!name)return null;
  return e.kind==="JOB_FINISHED"?`${name} görevi tamamladı.`:e.kind==="RATE_LIMIT"?`${name} kota bekliyor.`:e.kind==="JOB_FAILED"?`${name} görevi hata verdi.`:null;

@@ -1,6 +1,27 @@
 ﻿# Changes
 
 
+## 1.0.4 — 2026-10-05
+
+Afu now reacts to Claude Code sessions, keeps moving in the collapsed bar and stays animated even when Windows animation effects are off.
+Afu artık Claude Code oturumlarına tepki veriyor, kapalı şeritte de hareket ediyor ve Windows animasyon efektleri kapalıyken bile hareketli kalıyor.
+
+### Added
+- **"Always animated" setting:** With Windows *Animation effects* turned off, Afu used to stop every animation (island, collapsed bar and mini pet), so it looked frozen. A new setting, *Hep hareketli*, keeps Afu animated anyway. It is on by default; turn it off in Settings to follow the Windows setting again.
+- **Afu reacts to Claude Code:** A Claude Code session on the agent pipe now drives Afu like the other agents: working, waiting for your approval, done and failed each show their own animation, the mini pet reacts, a speech bubble appears and (when voice alerts are on) Afu says it aloud. Claude events never open the card or steal focus, and Claude still gets no automatic work (the KORUNUYOR badge stays).
+- **Animation in the collapsed bar:** The small Afu at the left of the collapsed bar used to be a still icon. It now plays the current state's animation, cropped to the face.
+
+### Fixed
+- **Approval questions counted as quota pauses:** An agent-pipe session waiting for approval was reported as a quota pause (`!`). It is now a question (`?`); only sessions marked as rate-limited count as quota pauses.
+
+### Eklendi
+- **"Hep hareketli" ayarı:** Windows'ta *Animasyon efektleri* kapalıyken Afu tüm animasyonlarını (ada, kapalı şerit ve mini pet) durduruyordu, bu yüzden donmuş görünüyordu. Yeni *Hep hareketli* ayarı Afu'yu yine de hareketli tutar. Varsayılan açıktır; Windows ayarına yeniden uymak için Ayarlar'dan kapatılabilir.
+- **Afu Claude Code'a tepki veriyor:** Ajan borusundaki bir Claude Code oturumu artık Afu'yu diğer ajanlar gibi yönetir: çalışıyor, onayını bekliyor, bitti ve hata durumlarının her biri kendi animasyonunu gösterir, mini pet tepki verir, konuşma balonu çıkar ve (sesli bildirim açıksa) Afu bunu sesli söyler. Claude olayları kartı açmaz, odağı çalmaz; Claude'a yine otomatik iş verilmez (KORUNUYOR rozeti kalır).
+- **Kapalı şeritte animasyon:** Kapalı şeridin solundaki küçük Afu eskiden sabit bir simgeydi. Artık o anki durumun animasyonunu yüze kırpılmış olarak oynatır.
+
+### Düzeltildi
+- **Onay soruları kota duraklaması sayılıyordu:** Onay bekleyen bir ajan borusu oturumu kota duraklaması (`!`) olarak bildiriliyordu. Artık soru (`?`) olarak gösterilir; yalnız kotası dolmuş olarak işaretlenen oturumlar kota duraklaması sayılır.
+
 ## 1.0.3 — 2026-10-04
 
 Secret masking now recognises Google keys and other long secrets, so a key pasted into an agent never shows up as a task title.

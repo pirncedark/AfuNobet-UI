@@ -18,6 +18,7 @@ describe("panel client fit", () => {
   it("uses the actual Tauri height route with zoom and deduplicates", async () => {
     (window as any).__TAURI_INTERNALS__ = {};
     vi.stubGlobal("matchMedia", () => ({ matches: true }));
+    vi.stubGlobal("localStorage", { getItem: (k: string) => k === "afunobet-hareket-zorla-v1" ? "false" : null, setItem() {} }); // "Hep hareketli" kapalı
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
     const { Island } = await import("../src/island/island");
     const island = Object.create(Island.prototype) as any;

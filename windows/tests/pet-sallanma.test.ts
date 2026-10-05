@@ -209,6 +209,7 @@ describe("P4 enseden tutma — hareket azaltma tercihi", () => {
       removeEventListener: vi.fn(),
     });
     vi.stubGlobal("matchMedia", () => ({ get matches() { return reduced; }, addEventListener: vi.fn(), removeEventListener: vi.fn() }));
+    vi.stubGlobal("localStorage", { getItem: (k: string) => k === "afunobet-hareket-zorla-v1" ? "false" : null, setItem() {} }); // "Hep hareketli" kapalı
     vi.stubGlobal("Image", class { src = ""; });
     vi.stubGlobal("requestAnimationFrame", (cb: () => void) => globalThis.setTimeout(cb, 16) as unknown as number);
     vi.stubGlobal("cancelAnimationFrame", (id: number) => globalThis.clearTimeout(id));

@@ -3,6 +3,7 @@ import { KART_OLCEK, MASCOT_VISIBLE_H, mascotScale } from "../core/layout";
 import { h } from "../views/dom";
 import type { Expression } from "../core/state";
 import { Gestures } from "./gestures";
+import { hareketAzalt } from "../core/settings";
 
 /** Durum -> /afu/durum/ animasyonu. Bos dize = statik PNG gosterilir. */
 export const ANIM_HARITASI: Partial<Record<Expression, string>> = {
@@ -48,7 +49,7 @@ export class AfuCharacter {
   private gestures = new Gestures();
   private hoverTimer: number | null = null;
   private active = false;
-  private motion = matchMedia("(prefers-reduced-motion: reduce)");
+  private motion = hareketAzalt;
   private animations = new Set<Animation>();
   constructor() {
     for (const file of ["front", "thinking", "alert", "happy", "mini-icon", "main-34"]) { const image = new Image(); image.src = `/afu/${file}.png`; }
@@ -60,6 +61,7 @@ export class AfuCharacter {
       this.hoverTimer = window.setTimeout(() => { this.hoverTimer = null; if (this.gestures.hoverTick(Date.now()) === "cheer") this.react("cheer"); }, 2000);
     });
     this.el.addEventListener("mouseleave", () => this.endHover());
+    this.motion.addEventListener("change", () => { this.key = ""; if (this.lastSync) this.sync(...this.lastSync); });
     document.addEventListener("visibilitychange", () => { if (document.hidden) { this.endHover(); for (const animation of this.animations) animation.cancel(); this.animations.clear(); } });
   }
   private endHover() { this.gestures.hoverEnd(); if (this.hoverTimer !== null) clearTimeout(this.hoverTimer); this.hoverTimer = null; }
@@ -103,10 +105,8 @@ export class AfuCharacter {
     if (visible && !this.motion.matches) {
       if (greeting) animFile = Math.random() > 0.5 ? "kitap_selam.webp" : "selam_masa.webp";
       else if (compact && expression === "success") animFile = "gulumseme.webp";
-      else if (compact) animFile = "";
-      else {
-        animFile = ANIM_HARITASI[expression] ?? "";
-      }
+      // 1.0.4: kompakt şeritte de durum animasyonu oynar (yüz daireye kırpılır, CSS).
+      else animFile = ANIM_HARITASI[expression] ?? "";
     }
     
     if (animFile) {

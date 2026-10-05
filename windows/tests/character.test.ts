@@ -109,5 +109,12 @@ describe("AfuCharacter animasyon eşleme ve statik yedek", () => {
     expect(character.animImage.src).toMatch(/gulumseme\.webp$/);
     expect(character.animImage.style.scale).toBe("");
     expect(character.animImage.style.transformOrigin).toBe("");
+
+    // 1.0.4: kompakt şeritte diğer durumlar da animasyon oynatır
+    character.sync("studying", true, false, true);
+    expect(character.animImage.src).toMatch(/calisma_yazma\.webp$/);
+    expect(character.animImage.style.display).toBe("block");
+    character.sync("awaiting", true, false, true);
+    expect(character.animImage.src).toMatch(/onay_bekleme\.webp$/);
   });
 });

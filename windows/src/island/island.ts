@@ -1,5 +1,5 @@
 // Adapted upstream shell: same geometry, spring, wake strip and hit testing.
-import { nextDiscoveryHint } from "../core/settings";
+import { hareketAzalt, nextDiscoveryHint } from "../core/settings";
 import { Tracked } from "../core/anim";
 import { Bridge, IS_TAURI } from "../core/bridge";
 import { EXPANDED_CORNER, KART_OLCEK, NOTCH_W, PANEL_H, PANEL_W, PET_PENCERE, ROUNDED_CORNER, fitScale, panelScale, panelHeight, mascotDesignHeight, contentWidth, islandSize, petBalonKutusu, petBalonUst, petPencereYuksekligi, PANEL_MAX_H_RATIO, type IslandMode, type IslandViewName } from "../core/layout";
@@ -202,7 +202,7 @@ export class Island {
   attachFiles(paths: string[]) {
     this.chat.attach(paths); this.setView("chat"); this.fsm.pinned = true;
     void Bridge.focusWindow(true); void this.chat.refresh(); State.announce("happy");
-    if (!matchMedia("(prefers-reduced-motion: reduce)").matches) this.character.image.animate([{transform:"scale(1)"},{transform:"scale(1.08)"},{transform:"scale(1)"}], {duration:300});
+    if (!hareketAzalt.matches) this.character.image.animate([{transform:"scale(1)"},{transform:"scale(1.08)"},{transform:"scale(1)"}], {duration:300});
   }
   async openApp(id: string): Promise<string | void> {
     try { await Bridge.appOpen(id); }
@@ -318,7 +318,7 @@ export class Island {
     const previous = State.tasks;
     State.apply(value);
     if (State.snapshot.sourceUnavailable || !State.shouldAnnounce()) return;
-    const events = deriveEvents(previous, State.current).filter(event => this.events.accept(event, Date.now()));
+    let events = deriveEvents(previous, State.current).filter(event => this.events.accept(event, Date.now()));
     for (const event of events) void this.chat.notifications?.announce(event, State.shouldAnnounce() && !this.chat.responses?.speaking && !this.chat.voice?.active);
     for (const event of events) {
       const mesaj = olayMesaji(event, State.snapshot.tasks, Date.now(), State.snapshot.quotas);
@@ -328,6 +328,11 @@ export class Island {
     if (messageNotifications.isOpen) return;
     if (this.mode === "tray") return;
     if (this.mode === "pet") { for (const event of events) this.pet.onEvent(event); return; }
+    // Claude (1.0.4): kartı açmaz, odağı çalmaz; yalnız Afu'nun ifadesi kısa süre değişir.
+    const claude = events.filter(event => event.agent === "claude");
+    const sonClaude = claude.find(event => event.kind === "JOB_FAILED") ?? claude.find(event => event.kind === "JOB_FINISHED");
+    if (sonClaude) State.announce(sonClaude.kind === "JOB_FINISHED" ? "success" : "error");
+    events = events.filter(event => event.agent !== "claude");
     const important = events.find(event => event.kind === "RATE_LIMIT" || event.kind === "JOB_FAILED") ?? events.find(event => event.kind === "JOB_FINISHED");
     if (important) {
       State.setFocus(important.taskId);
@@ -453,7 +458,7 @@ export class Island {
       }
     }
     const r = this.mode === "expanded" ? EXPANDED_CORNER : ROUNDED_CORNER;
-    const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches || !("__TAURI_INTERNALS__" in window);
+    const reduced = hareketAzalt.matches || !("__TAURI_INTERNALS__" in window);
     if (reduced) {
       this.width.jump(w); this.height.jump(height); this.radius.jump(r);
     } else if (shrinking) {
