@@ -23,7 +23,7 @@
 .afu-mesaj-detayi>button:focus-visible,.afu-balon-kapat:focus-visible{outline:2px solid #ffd97a;outline-offset:2px}
 .afu-konusuyor .pet-image,.afu-konusuyor .afu-image{animation:afu-konusma-tepkisi .45s ease-in-out infinite!important}
 @keyframes afu-konusma-tepkisi{50%{transform:translateY(-1px) rotate(.7deg)}}
-@media(prefers-reduced-motion:reduce){.afu-konusuyor .pet-image,.afu-konusuyor .afu-image{animation:none!important}}
+@media(prefers-reduced-motion:reduce){:root:not(.afu-hareket-zorla) :is(.afu-konusuyor .pet-image,.afu-konusuyor .afu-image){animation:none!important}}
 /* P10 — mini pet modundayken balon karakterin BAŞININ ÜSTÜNDE çizgi-roman
    balonu olarak durur. `#afu-pet` `overflow:hidden` olduğu için balon ayrı bir
    kutuya (pet kutusu + balon şeridi) çizilir; konumu core/layout.ts

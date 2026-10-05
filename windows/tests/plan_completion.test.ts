@@ -8,4 +8,5 @@ it('Codex gerçek hesap kotası eski önbelleği aşar ve sonraki durum yenileme
   State.setCodexLimits({});
   expect(quotaRows(State.snapshot)[0].percent).toBe('—');
 });
+it('Claude sonuç ve onay olaylarını sesli söyler (1.0.4)',()=>{expect(announcement({kind:'JOB_FINISHED',taskId:'a',agent:'claude'})).toBe('Claude işini bitirdi.');expect(announcement({kind:'WAITING',taskId:'a',agent:'claude'})).toBe('Claude onayını bekliyor.');expect(announcement({kind:'COMMAND',taskId:'a',agent:'claude'})).toBeNull();});
 it('planın sessiz başlangıç olayı konuşmaz',()=>{expect(announcement({kind:'JOB_STARTED',taskId:'a',agent:'codex'})).toBeNull();});

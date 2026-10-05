@@ -18,6 +18,9 @@ vi.mock("@tauri-apps/api/event", () => ({ listen: async (name: string, cb: (even
 } }));
 vi.mock("../src/core/settings", () => ({
   PET_IFADE_OLAYI: "afu-pet-ifade",
+  HAREKET_OLAYI: "afu-hareket",
+  loadHareketZorla: () => true,
+  saveHareketZorla: () => true,
   loadMessageAlert: () => ayarlar.messageAlert,
   loadPetIfade: () => ayarlar.ifade,
   saveMessageAlert: ayarlar.saveMessageAlert,
@@ -104,10 +107,10 @@ it("panel yüksekliği içeriğe göre: üstte sabit, boş alan yok, taşarsa ka
   expect(css).toMatch(/\.sistem-ayar-not\s*\{[^}]*font-size:\s*11px[^}]*color:\s*#a7bbd5/);
 });
 
-it("üç ayar satırı anahtar görünümünde, ana karttaki Ayarlar menüsüyle aynı metni kullanır", async () => {
+it("dört ayar satırı anahtar görünümünde, ana karttaki Ayarlar menüsüyle aynı metni kullanır", async () => {
   const { panel } = await panelAc();
   const satirlar = bul(panel, sinif("sistem-ayar"));
-  expect(satirlar).toHaveLength(3);
+  expect(satirlar).toHaveLength(4);
   const metinler = satirlar.map(row => {
     expect(row.getAttribute("role")).toBe("switch");
     expect(row.getAttribute("aria-checked")).not.toBeNull();
@@ -119,9 +122,10 @@ it("üç ayar satırı anahtar görünümünde, ana karttaki Ayarlar menüsüyle
   });
   expect(metinler).toContain("Mesaj gelince öne gel|Yeni mesaj geldiğinde Afu görünür.");
   expect(metinler).toContain("Arada ifade yap|Afu boştayken kısa ifadeler yapar.");
+  expect(metinler).toContain("Hep hareketli|Windows animasyonları kapalı olsa da Afu hareket eder.");
   // Aynı metinler ana kartta da durur (views.ts): iki yüzey ayrışmaz.
   const views = readFileSync(fileURLToPath(new URL("../src/views/views.ts", import.meta.url)), "utf8");
-  for (const satir of metinler.slice(0, 2)) for (const parca of satir.split("|")) expect(views).toContain(parca);
+  for (const satir of metinler.slice(0, 3)) for (const parca of satir.split("|")) expect(views).toContain(parca);
 });
 
 it("anahtar tıklanınca değer değişir ve ana metin sabit kalır", async () => {
@@ -132,7 +136,7 @@ it("anahtar tıklanınca değer değişir ve ana metin sabit kalır", async () =
   expect(ayarlar.saveMessageAlert).toHaveBeenCalledWith(false);
   expect(bul(alert, sinif("sistem-ayar-ad"))[0].textContent).toBe("Mesaj gelince öne gel");
   // Aynı olay dışarıdan gelirse satır kendini yeniler.
-  expect(tum.filter(el => el.className === "sistem-ayar")).toHaveLength(3);
+  expect(tum.filter(el => el.className === "sistem-ayar")).toHaveLength(4);
 });
 
 it("ses satırı ana listede, Gelişmiş içinde yalnız GitHub durumu var", async () => {

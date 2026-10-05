@@ -7,7 +7,7 @@ import type { AfuEvent } from "../core/events";
 import { Bridge, onEvent } from "../core/bridge";
 import { TUVAL_BOYUTU, WebpOynatici, tuvalCizici } from "./oynatma";
 import { IfadeZamanlayici } from "./ifade";
-import { PET_IFADE_OLAYI, loadPetIfade } from "../core/settings";
+import { PET_IFADE_OLAYI, hareketAzalt, loadPetIfade } from "../core/settings";
 export type PetPose = "donus" | "bekleme" | "gecis" | "uyanma" | "dusunme" | "uyari" | "hata" | "mutlu" | "basari" | "uyku" | "yuzme" | "etkilesim" | "surukleme" | "geri_donus" | "yaslanma" | "ense_hover";
 export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "donus": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_gorunme", ms: 200 }, { kare: "akis_suzulme", ms: 250 }, { kare: "akis_kuculme", ms: 180 }, { kare: "durum/masa_cikis", ms: 1000 }],
@@ -1135,7 +1135,7 @@ export class AfuPet {
   }
   private frame = "idle_normal";
   private dragPending: Promise<boolean> | null = null;
-  private reduced = matchMedia("(prefers-reduced-motion: reduce)");
+  private reduced = hareketAzalt;
   private readonly oynatici: WebpOynatici;
   // W7: boştayken arada kısa ifade. Meşgul bilgisi (iş, soru, balon) adadan gelir.
   readonly ifade = new IfadeZamanlayici();

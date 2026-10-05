@@ -3,7 +3,7 @@ import { listen } from "@tauri-apps/api/event";
 import { mountGitHubPanel } from "./sistem/servis";
 import "./sistem/sistem.css";
 import { State } from "./core/state";
-import { PET_IFADE_OLAYI, loadMessageAlert, loadPetIfade, saveMessageAlert, savePetIfade } from "./core/settings";
+import { HAREKET_OLAYI, PET_IFADE_OLAYI, loadHareketZorla, loadMessageAlert, loadPetIfade, saveHareketZorla, saveMessageAlert, savePetIfade } from "./core/settings";
 import { showNotification } from "./message/notifications";
 
 interface AyarSatiri {
@@ -102,6 +102,18 @@ async function startSystemPanel() {
     window.dispatchEvent(new Event(PET_IFADE_OLAYI));
   });
 
+  // 1.0.4: Windows animasyonları kapalıyken de Afu hareket etsin (varsayılan açık).
+  let hareketAcik = loadHareketZorla();
+  const hareket = ayarSatiri(document, "Hep hareketli", "Windows animasyonları kapalı olsa da Afu hareket eder.",
+    dugme => dugme.setAttribute("aria-checked", String(hareketAcik)));
+  hareket.dugme.title = "Windows animasyonları kapalı olsa da Afu hareket eder.";
+  window.addEventListener(HAREKET_OLAYI, () => { hareketAcik = loadHareketZorla(); hareket.koy(hareketAcik); });
+  hareket.dugme.addEventListener("click", () => {
+    if (!saveHareketZorla(!hareketAcik)) { message.textContent = "Ayar kaydedilemedi; yeniden dene."; return; }
+    hareketAcik = !hareketAcik; hareket.koy(hareketAcik);
+    window.dispatchEvent(new Event(HAREKET_OLAYI));
+  });
+
   // Ses: aynı anahtar satırı, ana listede; "Gelişmiş" yalnız GitHub'ı tutar.
   let muted = false;
   const mute = ayarSatiri(document, "Afu'nun sesi", "Ses açık.", dugme => dugme.setAttribute("aria-checked", "true"));
@@ -121,7 +133,7 @@ async function startSystemPanel() {
     finally { mute.dugme.disabled = false; }
   });
 
-  satirlar.append(alert.dugme, ifade.dugme, mute.dugme);
+  satirlar.append(alert.dugme, ifade.dugme, hareket.dugme, mute.dugme);
   panel.append(head, message, satirlar, advanced);
   let disposeService: (() => void) | undefined;
   const attach = () => {

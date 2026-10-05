@@ -54,6 +54,6 @@ describe("Premium görünüm bağlantısı: durum -> sınıf/değişken", () => 
   it("sürekli animasyon yok; hareket azaltmada geçişler kapanır", () => {
     const blok = css.slice(css.indexOf("Premium Gorunum Degiskenleri"), css.indexOf("Proje eylemi sabit"));
     expect(blok).not.toMatch(/animation\s*:/);
-    expect(blok).toMatch(/prefers-reduced-motion: reduce\)\s*\{\s*#island, #afu-character, #afu-pet[^}]*transition: none/);
+    expect(blok).toMatch(/prefers-reduced-motion: reduce\)\s*\{\s*:root:not\(\.afu-hareket-zorla\) :is\(#island, #afu-character, #afu-pet[^}]*transition: none/);
   });
 });

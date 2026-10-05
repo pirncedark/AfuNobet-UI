@@ -1,5 +1,11 @@
 # AfuNöbet UI değişiklik kaydı
 
+## 2026-10-05 v1.0.4 — Claude tepkileri, kompakt animasyon / Claude reactions, compact animation
+
+EN: `deriveEvents` no longer skips Claude; Claude rows emit only WAITING/RATE_LIMIT/JOB_FINISHED/JOB_FAILED. Agent-pipe `Duraklatildi` without `quotaPaused` is WAITING (was RATE_LIMIT); `effectiveState` shows `awaiting` for it. Claude events only set a short badge (no focus, forceHome or pin); speech bubble (`olayMesaji`) and voice (`announcement`) now include Claude. The compact bar plays `ANIM_HARITASI` animations, cropped to a circle in CSS. New "Hep hareketli" setting (`core/settings` `hareketAzalt`, `afu-hareket-zorla` root class; default on) replaces direct `prefers-reduced-motion` checks in character, pet, island and CSS. Tests: Vitest 84 files / 1000 PASS (m8_pet_balon real-window test timed out once under load, passed on rerun). `island.rs` not touched.
+
+TR: `deriveEvents` artık Claude'u atlamıyor; Claude satırları yalnız WAITING/RATE_LIMIT/JOB_FINISHED/JOB_FAILED üretir. Ajan borusunda `quotaPaused` olmayan `Duraklatildi` WAITING sayılır (eskiden RATE_LIMIT); `effectiveState` bunu `awaiting` gösterir. Claude olayları yalnız kısa bir rozet koyar (odak, forceHome, sabitleme yok); konuşma balonu (`olayMesaji`) ve ses (`announcement`) artık Claude'u da kapsar. Kompakt şerit `ANIM_HARITASI` animasyonlarını oynatır, CSS ile daireye kırpılır. Yeni "Hep hareketli" ayarı (`core/settings` `hareketAzalt`, `afu-hareket-zorla` kök sınıfı; varsayılan açık) karakter, pet, ada ve CSS'teki doğrudan `prefers-reduced-motion` kontrollerinin yerini alır. Test: Vitest 84 dosya / 1000 PASS (gerçek pencereli m8_pet_balon testi yük altında bir kez zaman aşımına uğradı, tekrarında geçti). `island.rs` değişmedi.
+
 ## 2026-10-04 v1.0.3 — Google anahtarı maskesi / Google key masking
 
 EN: A Gemini API key pasted into the Gemini CLI prompt was shown as an island task title. `questions::maskele` (Rust) and `maskele` (scripts/codex_soru_koprusu.py) now also mask `AIza`, `AQ.`, `ya29.`, `4/0A`, `hf_`, `glpat-`, `sk_` prefixes and any 32+ character slash-free token mixing upper/lower case and digits; `protokol::gorev_metni` already drops masked titles. Tests: Cargo 287 PASS, Python 288 PASS (new cases use fake keys only). `island.rs` not touched.

@@ -100,6 +100,7 @@ describe("W3 ajan devri — pet balonu", () => {
   });
   it("kota duraklaması balonda bekliyor + açılış saati olarak görünür", () => {
     const tasks = snap([satir({ agent: "codex", status: "Duraklatildi", message: "kota", quota: { remaining_percent: 0, reset_at: saat(14, 55) } })]).tasks;
+    expect(olayMesaji({ kind: "JOB_FINISHED", taskId: "yok", agent: "claude" }, tasks, NOW)?.metin).toBe("Görev tamamlandı.");
     const m = olayMesaji({ kind: "RATE_LIMIT", taskId: "task-1", agent: "codex" }, tasks, NOW);
     expect(m?.metin).toBe("Codex kotası doldu · bekliyor (14:55'te açılır)");
     // Yeni duraklama RATE_LIMIT ile bildirildiği için devir balonu ikinci kez çıkmaz.

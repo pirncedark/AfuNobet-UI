@@ -319,7 +319,7 @@ get tasks() { return this.snapshot.tasks; }
   get effectiveState() {
     if (this.notificationsPaused) return "paused";
     if (this.focusTask?.status === "Duraklatildi" && this.focusTask.quotaPaused) return "quota_paused";
-    return this.badge ?? (this.focusTask?.status === "Tamamlandi" || this.focusTask?.status === "Hata" ? "idle" : this.focusTask?.status === "Duraklatildi" ? "paused" : expressionFor(this.focusTask?.status));
+    return this.badge ?? (this.focusTask?.status === "Tamamlandi" || this.focusTask?.status === "Hata" ? "idle" : this.focusTask?.status === "Duraklatildi" ? (this.focusTask.id.startsWith("ajan:") ? "awaiting" : "paused") : expressionFor(this.focusTask?.status));
   }
   apply(value: unknown) {
     const next = parseState(value);

@@ -284,7 +284,8 @@ export function petBalonMetniniSigdir(host: HTMLElement) {
 }
 
 export function olayMesaji(olay: AfuEvent, tasks: Task[], now: number, quotas?: Snapshot["quotas"]): Mesaj | null {
-  if (!AJANLAR.includes(olay.agent as MesajAjan) || olay.agent === "claude") return null;
+  // 1.0.4: Claude oturumu da balon düşer (kullanıcı onayı); devir satırı Claude için yok.
+  if (!AJANLAR.includes(olay.agent as MesajAjan)) return null;
   if (olay.kind === "RATE_LIMIT") {
     // W3: kota yüzünden duraklayan iş balonda tek satır: "Codex kotası doldu · bekliyor (14:55'te açılır)".
     const devir = handoffText(tasks.find(t => t.id === olay.taskId), now, quotas);

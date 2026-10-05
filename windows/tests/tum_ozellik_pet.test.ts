@@ -370,7 +370,8 @@ describe("7) Pet animasyon iyileştirmesi", () => {
     expect(oynatma).toMatch(/kapat|close\(\)/);
     expect(oynatma).toContain("ImageDecoder");
     // Hareket azaltma tercihi pete uygulanır: oynatıcı açılmaz, <img> çalışır.
-    expect(pet).toMatch(/prefers-reduced-motion/);
+    // 1.0.4: tercih "Hep hareketli" ayarı üzerinden okunur (core/settings hareketAzalt).
+    expect(pet).toContain("hareketAzalt");
     expect(pet).toContain("pet-gizli");
     expect(pet).toContain("this.reduced.matches");
   });

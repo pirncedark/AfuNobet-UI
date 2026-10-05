@@ -20,6 +20,7 @@ describe("consistent visible mascot alpha", () => {
   });
   it.each([{ w: 818, dpr: 1.32, native: 1 }, { w: 420, dpr: 1.5, native: 1.5 }])("matches native height under fit and DPI mismatch %j", ({w,dpr,native}) => {
     vi.stubGlobal("matchMedia", () => ({ matches: true, addEventListener: vi.fn() }));
+    vi.stubGlobal("localStorage", { getItem: (k: string) => k === "afunobet-hareket-zorla-v1" ? "false" : null, setItem() {} }); // "Hep hareketli" kapalı
     const hitK = dpr / native, drawK = panelScale(w) * KART_OLCEK * hitK;
     const character = new AfuCharacter(); character.sync("idle", false, false); character.setDisplayScale(drawK);
     expect(parseFloat(character.image.style.height) * drawK).toBeCloseTo(MASCOT_VISIBLE_H);
