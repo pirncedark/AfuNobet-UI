@@ -47,7 +47,7 @@ Arayüzün sahte durumu okuması için `AFUNOBET_UI_STATE` ortam değişkenini t
 
 **PowerShell ile:**
 ```powershell
-$env:AFUNOBET_UI_STATE = "C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\test_durum\state.json"
+$env:AFUNOBET_UI_STATE = "$PWD\test_durum\state.json"
 # Arayüzü normal şekilde başlatın (örneğin npm run tauri dev)
 ```
 
@@ -56,8 +56,8 @@ uygulama kendisi `state.json` klasörünü kullanır.
 
 **Komut Satırı (cmd) ile:**
 ```cmd
-set AFUNOBET_UI_STATE=C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\test_durum\state.json
-set AFUNOBET_SORU_DIZINI=C:\Users\afuuu\Desktop\afuproject\AfuNobet-UI\test_durum
+set AFUNOBET_UI_STATE=%CD%\test_durum\state.json
+set AFUNOBET_SORU_DIZINI=%CD%\test_durum
 # Arayüzü normal şekilde başlatın
 ```
 

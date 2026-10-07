@@ -62,7 +62,7 @@ Gerçek Windows always-on-top, Alt-Tab dışı görünüm, click-through, DPI/mo
 
 ## B/C üretim entegrasyonu
 
-Uygulama kaydı, sınırlı taze durum okuma, dosya izleyicisi, dinamik tepsi menüsü ve mevcut pet penceresinde liste bağlı. Sohbet köprüsü yalnız kullanıcı eylemiyle başlar; ek dosyalar açık Gönder eyleminde işlenir. Canlı hesap kotası görünümü günceller. Yerel bas-konuş metni kullanıcı denetiminden sonra gönderilir. Sesli bildirim varsayılan kapalı; görev başlangıcı sessiz ve bildirim arası en az30 saniye. Gerçek hesap/mikrofon/pencere kabulü UNVERIFIED. Son paket ve kanıtlar docs/DEVAM_2026-10-01.md içinde izlenir.
+Uygulama kaydı, sınırlı taze durum okuma, dosya izleyicisi, dinamik tepsi menüsü ve mevcut pet penceresinde liste bağlı. Sohbet köprüsü yalnız kullanıcı eylemiyle başlar; ek dosyalar açık Gönder eyleminde işlenir. Canlı hesap kotası görünümü günceller. Yerel bas-konuş metni kullanıcı denetiminden sonra gönderilir. Sesli bildirim varsayılan kapalı; görev başlangıcı sessiz ve bildirim arası en az30 saniye. Gerçek hesap/mikrofon/pencere kabulü UNVERIFIED. 
 
 ## B4 tamamlanma denetimi sonrası
 

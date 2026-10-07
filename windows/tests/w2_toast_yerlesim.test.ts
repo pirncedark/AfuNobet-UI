@@ -120,8 +120,8 @@ describe("W2: bildirimde yol/komut maskelenir", () => {
     expect(maskeleBildirim("Codex oturumu yok, 'Afu'ya sor' kısmından giriş yap.")).toBe("Codex oturumu yok, 'Afu'ya sor' kısmından giriş yap.");
   });
   it("Windows/Unix yolu, adres ve e-posta maskelenir", () => {
-    const a = maskeleBildirim("Görev gönderilemedi: C:\\Users\\afuuu\\gizli\\job.json bulunamadı.");
-    expect(a).not.toMatch(/C:|afuuu|job\.json/);
+    const a = maskeleBildirim("Görev gönderilemedi: C:\\Users\\kullanici\\gizli\\job.json bulunamadı.");
+    expect(a).not.toMatch(/C:|kullanici|job\.json/);
     expect(a).toContain("…");
     const b = maskeleBildirim("Kayıt /home/afu/.config/x.toml okunamadı");
     expect(b).not.toContain("/home");
