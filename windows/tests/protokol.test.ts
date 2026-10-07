@@ -65,7 +65,7 @@ describe("ajan-olaylari protokolü (E3)", () => {
   });
   it("görevde yol veya gizli bilgi null olur", () => {
     const sonuc = parseAjanlar(yuk(
-      satir({ oturum: "a", gorev: "C:\\Users\\afuuu\\gizli.txt oku" }),
+      satir({ oturum: "a", gorev: "C:\\Users\\kullanici\\gizli.txt oku" }),
       satir({ oturum: "b", gorev: "token=abc123" }),
       satir({ oturum: "c", gorev: "git push --force" }),
       satir({ oturum: "d", gorev: 42 }),
