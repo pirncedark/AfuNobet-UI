@@ -14,7 +14,7 @@ Windows deposunun kökünden, görünür pencere açmadan:
 Güvenli WAV dosyasını açıkça seçerek gerçek yerel model testi:
 
 ```powershell
-$env:AFUNOBET_TEST_WAV = "C:/Users/afuuu/Desktop/afuproject/_deneme/whisper/merhaba_16k.wav"
+$env:AFUNOBET_TEST_WAV = ""C:\yol\merhaba_16k.wav""
 & windows/scripts/derlemehelper.cmd test --test voice_backend turkce_ornek_ses_cevrilir -- --ignored
 ```
 

@@ -30,7 +30,7 @@ try {
       tur: "soru",
       baslik: "Kullanıcı Onayı Gerekiyor",
       metin: "src-tauri ve windows dizinlerindeki derleme ayarlarını güncelleyip eski önbellek dosyalarını temizlemek üzeresiniz. Bu işlem bağımlılıkları yeniden indirebilir (yaklaşık 150 karakterlik uzun soru metni).",
-      ayrinti: "cargo clean && npm cache clean --force\nHedef dizin: C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI",
+      ayrinti: "cargo clean && npm cache clean --force\nHedef dizin: C:\\Users\\kullanici\\Projeler\\AfuNobet-UI",
       secenekler: [
         { id: "opt1", etiket: "Tüm bağımlılıkları ve önbellek dosyalarını temizleyip devam et" },
         { id: "opt2", etiket: "Yalnızca yapılandırma dosyalarını güncelle ve temizliği atla" }
@@ -61,7 +61,7 @@ try {
       tur: "soru",
       baslik: "Kullanıcı Onayı Gerekiyor",
       metin: "src-tauri ve windows dizinlerindeki derleme ayarlarını güncelleyip eski önbellek dosyalarını temizlemek üzeresiniz. Bu işlem bağımlılıkları yeniden indirebilir (yaklaşık 150 karakterlik uzun soru metni).",
-      ayrinti: "cargo clean && npm cache clean --force\nHedef dizin: C:\\Users\\afuuu\\Desktop\\afuproject\\AfuNobet-UI",
+      ayrinti: "cargo clean && npm cache clean --force\nHedef dizin: C:\\Users\\kullanici\\Projeler\\AfuNobet-UI",
       secenekler: [
         { id: "opt1", etiket: "Tüm bağımlılıkları ve önbellek dosyalarını temizleyip devam et" },
         { id: "opt2", etiket: "Yalnızca yapılandırma dosyalarını güncelle ve temizliği atla" }

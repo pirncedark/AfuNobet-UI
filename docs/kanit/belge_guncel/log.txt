@@ -1,8 +1,0 @@
-[2026-10-02 23:25:00] ADIM: Belge güncelleme görevi başladı. GOREV_BELGE_GUNCEL.md ve kaynaklar incelendi.
-[2026-10-02 23:25:30] ADIM: Kaynak dosyalar (SONUC_TESLIM_TOPLU.md, SONUC_T_SISTEM.md, SONUC_T_ETKILESIM.md, SONUC_T_PROTOKOL.md, SONUC_EXE_BOYUT_TASIMA.md, docs/KAPI1_KONTROL_LISTESI.md, docs/KABUL_FAZ_B_C.md) başarıyla okundu.
-[2026-10-02 23:26:00] ADIM: docs/ILERLEME_MASTER.md güncellendi (2 Eki 23:25 durumu eklendi: E1-E7, F1-F18, 353 TS, 231 Rust, SHA256 2C14A8F5..., sıradaki işler).
-[2026-10-02 23:27:00] ADIM: docs/DEVAM_2026-10-02.md güncellendi (Kaldığın Yerden bölümü 7 maddelik net özet olarak eklendi).
-[2026-10-02 23:28:00] ADIM: CHANGELOG.md güncellendi (Unreleased bölümü kullanıcıya görünen yeniliklerle sürümsüz olarak eklendi).
-[2026-10-02 23:29:00] ADIM: docs/TOPLU_TEST.md oluşturuldu (19 maddelik, teknik terimsiz, her birinde beklenen davranış bulunan kontrol listesi).
-[2026-10-02 23:30:00] ADIM: SONUC_BELGE_GUNCEL.md oluşturuluyor.
-[2026-10-02 23:30:30] SON: Tüm adımlar eksiksiz tamamlandı. Kod dosyalarına dokunulmadı, git çalıştırılmadı, uydurma bilgi eklenmedi.

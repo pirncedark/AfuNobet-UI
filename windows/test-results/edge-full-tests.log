@@ -1,9 +1,0 @@
-
- RUN  v4.1.10 C:/Users/afuuu/Desktop/afuproject/AfuNobet-UI/windows
-
-
- Test Files  78 passed (78)
-      Tests  931 passed (931)
-   Start at  08:33:17
-   Duration  26.69s (transform 1.58s, setup 0ms, import 7.94s, tests 28.97s, environment 1.59s)
-
