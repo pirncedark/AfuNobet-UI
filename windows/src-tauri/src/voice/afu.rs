@@ -65,6 +65,12 @@ pub fn job_directory() -> PathBuf {
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_nanos();
     std::env::temp_dir().join(format!("afu-voice-{}-{stamp}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::Relaxed)))
 }
+/// Geçici tanı: iptal kaynağını %TEMP%\afu-ses-iptal.log dosyasına yazar.
+pub fn kayit(kaynak: &str) {
+    use std::io::Write;
+    let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+    if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(std::env::temp_dir().join("afu-ses-iptal.log")) { let _ = writeln!(f, "{t} {kaynak}"); }
+}
 pub fn cancel(directory: &Path) { let _ = fs::write(directory.join("cancel"), b""); }
 fn resolve_interpreter(root: &Path, configured: Option<&Path>, exe: Option<&Path>) -> Option<PathBuf> {
     let mut candidates = Vec::new();

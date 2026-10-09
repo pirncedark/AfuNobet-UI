@@ -75,6 +75,32 @@ class GpuLock:
         self.path, self.timeout, self.owned = path, timeout, False
         self.cancelled = cancelled or (lambda: False)
 
+    def stale(self):
+        """Sahibi ölmüş kilidi kaldırır (çöken/öldürülen işçiden kalan); canlı sahibin kilidine dokunmaz."""
+        try:
+            pid = int(self.path.read_text().strip())
+        except (OSError, ValueError):
+            return False
+        try:
+            import ctypes
+            kernel = ctypes.windll.kernel32
+            handle = kernel.OpenProcess(0x1000, False, pid)
+            if not handle:
+                alive = False
+            else:
+                code = ctypes.c_ulong()
+                alive = bool(kernel.GetExitCodeProcess(handle, ctypes.byref(code))) and code.value == 259
+                kernel.CloseHandle(handle)
+        except Exception:
+            return False
+        if alive:
+            return False
+        try:
+            self.path.unlink()
+            return True
+        except OSError:
+            return False
+
     def acquire(self):
         deadline = time.monotonic() + self.timeout
         while True:
@@ -87,6 +113,8 @@ class GpuLock:
                     stream.write(str(os.getpid()))
                 return
             except FileExistsError:
+                if self.stale():
+                    continue
                 if time.monotonic() >= deadline:
                     raise TimeoutError('Ses üretimi meşgul; biraz sonra yeniden dene.')
                 time.sleep(1)
