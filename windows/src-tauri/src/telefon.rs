@@ -363,6 +363,30 @@ fn baglanti_isle(mut akis: TcpStream) {
         yanit_yaz(&mut akis, 200, &json!({ "kod": yeni_eslestirme_kodu() }));
         return;
     }
+    // Sesli yanıt: metni Afu sesiyle WAV olarak üretip telefona verir.
+    if istek.yontem == "POST" && istek.yol == "/api/ses-oku" {
+        let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, &istek.token)).unwrap_or(false);
+        if !gecerli {
+            yanit_yaz(&mut akis, 401, &json!({ "hata": "Yetkisiz." }));
+            return;
+        }
+        let v = serde_json::from_slice::<Value>(&istek.govde).unwrap_or(Value::Null);
+        let metin: String = v.get("metin").and_then(|m| m.as_str()).unwrap_or("").chars().take(600).collect();
+        let tarz = if v.get("tarz").and_then(|t| t.as_str()) == Some("okuma") { "okuma" } else { "sohbet" };
+        if metin.trim().is_empty() {
+            yanit_yaz(&mut akis, 400, &json!({ "hata": "Okunacak metin yok." }));
+            return;
+        }
+        match crate::voice::afu::uret_wav(&metin, tarz) {
+            Ok(bayt) => {
+                let _ = akis.set_write_timeout(Some(Duration::from_secs(60)));
+                let _ = write!(akis, "HTTP/1.1 200 OK\r\nContent-Type: audio/wav\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", bayt.len());
+                let _ = akis.write_all(&bayt);
+            }
+            Err(e) => yanit_yaz(&mut akis, 400, &json!({ "hata": e })),
+        }
+        return;
+    }
     // APK indirme: token ister, dosya olduğu gibi gönderilir.
     if istek.yontem == "GET" && istek.yol == "/api/apk" {
         let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, &istek.token)).unwrap_or(false);
