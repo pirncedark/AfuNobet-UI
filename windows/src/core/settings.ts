@@ -16,6 +16,20 @@ export function loadPetIfade(storage?: StorageRead): boolean {
 export function savePetIfade(enabled: boolean, storage?: StorageWrite): boolean {
   try { (storage ?? localStorage).setItem(IFADE_KEY, String(enabled)); return true; } catch { return false; }
 }
+// Maskot boyutu (yüzde). Pencere sabit kalır; Afu pencerenin içinde küçülür/büyür, ayaklar görev çubuğunda kalır.
+const BOYUT_KEY = "afunobet-pet-boyut-v1";
+export const PET_BOYUT_OLAYI = "afu-pet-boyut-setting";
+export const PET_BOYUT_MIN = 50;
+export const PET_BOYUT_MAX = 130;
+export function loadPetBoyut(storage?: StorageRead): number {
+  try {
+    const n = Number((storage ?? localStorage).getItem(BOYUT_KEY));
+    return Number.isFinite(n) && n > 0 ? Math.min(PET_BOYUT_MAX, Math.max(PET_BOYUT_MIN, Math.round(n))) : 100;
+  } catch { return 100; }
+}
+export function savePetBoyut(percent: number, storage?: StorageWrite): boolean {
+  try { (storage ?? localStorage).setItem(BOYUT_KEY, String(Math.min(PET_BOYUT_MAX, Math.max(PET_BOYUT_MIN, Math.round(percent))))); return true; } catch { return false; }
+}
 // 1.0.4: Windows "Animasyon efektleri" kapalıyken (prefers-reduced-motion) Afu yine
 // de hareket etsin mi. Varsayılan açık; kapatılırsa Windows ayarına uyulur.
 const HAREKET_KEY = "afunobet-hareket-zorla-v1";

@@ -7,7 +7,7 @@ import type { AfuEvent } from "../core/events";
 import { Bridge, onEvent } from "../core/bridge";
 import { TUVAL_BOYUTU, WebpOynatici, tuvalCizici } from "./oynatma";
 import { IfadeZamanlayici } from "./ifade";
-import { PET_IFADE_OLAYI, hareketAzalt, loadPetIfade } from "../core/settings";
+import { PET_BOYUT_OLAYI, PET_IFADE_OLAYI, hareketAzalt, loadPetBoyut, loadPetIfade } from "../core/settings";
 export type PetPose = "donus" | "bekleme" | "gecis" | "uyanma" | "dusunme" | "uyari" | "hata" | "mutlu" | "basari" | "uyku" | "yuzme" | "etkilesim" | "surukleme" | "geri_donus" | "yaslanma" | "ense_hover";
 export const SEKANSLAR: Record<PetPose, { kare: string; ms: number }[]> = {
   "donus": [{ kare: "akis_tutunma", ms: 120 }, { kare: "akis_gorunme", ms: 200 }, { kare: "akis_suzulme", ms: 250 }, { kare: "akis_kuculme", ms: 180 }, { kare: "durum/masa_cikis", ms: 1000 }],
@@ -1140,6 +1140,7 @@ export class AfuPet {
   // W7: boştayken arada kısa ifade. Meşgul bilgisi (iş, soru, balon) adadan gelir.
   readonly ifade = new IfadeZamanlayici();
   private ifadeAcik = loadPetIfade();
+  private boyut = loadPetBoyut() / 100;
   private mesgul: (() => boolean) | null = null;
   readonly appsMenu = h("div", { class: "pet-apps-menu", hidden: true, role: "dialog", "aria-label": "Afu uygulamaları" });
   private appsSnapshot: AppsSnapshot = { apps: [], durumlar: {} };
@@ -1229,6 +1230,8 @@ export class AfuPet {
     this.reduced.addEventListener("change", () => { this.stopTimer(); this.sallanmaDurdur(); if (this.active) this.run(); });
     // W7: "Arada ifade yap" ayarı değişince hemen uygulanır.
     const ifadeAyari = () => { this.ifadeAcik = loadPetIfade(); };
+    const boyutAyari = () => { this.boyut = loadPetBoyut() / 100; this.paint(); };
+    if (typeof window !== "undefined") window.addEventListener(PET_BOYUT_OLAYI, boyutAyari);
     if (typeof window !== "undefined" && typeof window.addEventListener === "function") {
       window.addEventListener(PET_IFADE_OLAYI, ifadeAyari);
       window.addEventListener("storage", ifadeAyari);
@@ -1374,7 +1377,7 @@ export class AfuPet {
       const olculu = PET_BOYUT[kare];
       const n = PET_NORMALIZE.includes(this.model.pose) ? (olculu || { olcek: 1, x: 0, y: 0 }) : { olcek: 1, x: 0, y: 0 };
       const isDraggingNow = this.dragRaf !== null || isDragging;
-      const rawScale = petKafaOlcegi(kare, olculu?.kutu ?? [0, 0, 1, 1], held ? (window.innerWidth || PET_PENCERE) : PET_PENCERE, this.displayScale) * ayar.olcek / 100;
+      const rawScale = petKafaOlcegi(kare, olculu?.kutu ?? [0, 0, 1, 1], held ? (window.innerWidth || PET_PENCERE) : PET_PENCERE, this.displayScale) * ayar.olcek / 100 * this.boyut;
       const rawTx = ayar.x + (isDraggingNow ? n.x * PET_PENCERE * ayar.olcek / 100 : (0.5 - ((olculu?.kutu[0] ?? 0) + (olculu?.kutu[2] ?? 1)) / 2) * PET_PENCERE * rawScale);
       const rawTy = ayar.y + (isDraggingNow ? n.y * PET_PENCERE * ayar.olcek / 100 : (1 - (olculu?.kutu[3] ?? 1)) * PET_PENCERE * rawScale);
       // Ölçülmüş alfa kutusu her kare için geçerli; kare yoksa tüm çerçeve sayılır.

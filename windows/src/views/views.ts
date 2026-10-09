@@ -9,7 +9,7 @@ import { Modal } from "./modal";
 import { Katman, kapatDugmesi } from "./overlay";
 import { kopruDurumu, type KopruMesaj } from "../core/kopru";
 import { EMPTY_FILTER, PILL_STATE_TR, agentPills, clipText, contextText, costText, emptyState, filterTasks, filterVisible, handoffText, modelText, pillAgentOf, stageSteps, taskInsight, subagentRows, topLevel, type Filter, type PillId, type PillRow, type RichTask } from "./model";
-import { HAREKET_OLAYI, PET_IFADE_OLAYI, loadHareketZorla, loadPetIfade, saveHareketZorla, savePetIfade, saveMessageAlert } from "../core/settings";
+import { HAREKET_OLAYI, PET_IFADE_OLAYI, loadHareketZorla, loadPetIfade, loadPetBoyut, savePetBoyut, PET_BOYUT_OLAYI, PET_BOYUT_MIN, PET_BOYUT_MAX, saveHareketZorla, savePetIfade, saveMessageAlert } from "../core/settings";
 import { ajanKimlik } from "../core/ajan_kimlik";
 
 function createPill(id: string, state: string) {
@@ -111,6 +111,7 @@ export class AfuViews {
     this.menu = h("div", { class: "more-menu", role: "menu", "aria-label": UI_TR.more, hidden: true },
       h("h2", { class: "menu-heading", text: "Ayarlar" }),
       this.petButton, h("small", { class: "menu-description", text: "Afu küçük karakter olarak görünür." }), this.settingToggle("ifade-toggle", "Arada ifade yap", "Afu boştayken kısa ifadeler yapar.", loadPetIfade, enabled => { if (!savePetIfade(enabled)) return false; window.dispatchEvent(new Event(PET_IFADE_OLAYI)); return true; }),
+      this.boyutAyari(),
       this.settingToggle("hareket-toggle", "Hep hareketli", "Windows animasyonları kapalı olsa da Afu hareket eder.", loadHareketZorla, enabled => { if (!saveHareketZorla(enabled)) return false; window.dispatchEvent(new Event(HAREKET_OLAYI)); return true; }),
       this.settingToggle("alert-toggle", "Mesaj gelince öne gel", "Yeni mesaj geldiğinde Afu görünür.", () => State.settings.messageAlert !== false, enabled => { if (!saveMessageAlert(enabled)) return false; State.settings.messageAlert = enabled; window.dispatchEvent(new Event("afu-message-setting")); return true; }),
       h("details", { class: "menu-advanced" }, h("summary", { text: "Gelişmiş" }), item("studio-open", "Animasyon stüdyosunu aç", () => { void Bridge.studioOpen().catch(() => this.flash("Stüdyo açılamadı; kurulumunu kontrol et.")); })), this.menuClose);
@@ -141,6 +142,17 @@ export class AfuViews {
     this.el = h("div", { id: "content" }, this.header, this.overview, this.quota, this.apps, this.chat, this.sor, this.orkestra, this.greeting, this.bildirim, this.menu, this.footer, this.modal.el);
     setInterval(() => this.updateHealth(), 5000);
     this.updateHealth();
+  }
+  /** Maskot boyutu kaydırıcısı: %50–%130, bırakınca kaydedilir, sürerken canlı görünür. */
+  private boyutAyari() {
+    const deger = h("span", { class: "boyut-deger", text: `%${loadPetBoyut()}` });
+    const alan = h("input", { type: "range", class: "boyut-kaydirici", min: String(PET_BOYUT_MIN), max: String(PET_BOYUT_MAX), step: "5", value: String(loadPetBoyut()), "aria-label": "Maskot boyutu" }) as HTMLInputElement;
+    alan.addEventListener("input", () => {
+      deger.textContent = `%${alan.value}`;
+      if (!savePetBoyut(Number(alan.value))) this.flash("Ayar kaydedilemedi; yeniden dene.");
+      window.dispatchEvent(new Event(PET_BOYUT_OLAYI));
+    });
+    return h("label", { class: "menu-item menu-boyut", title: "Maskotun boyutunu ayarla" }, h("span", { text: "Maskot boyutu" }), alan, deger);
   }
   private settingToggle(cls: string, label: string, description: string, read: () => boolean, save: (enabled: boolean) => boolean) {
     const button = h("button", { class: `text-button menu-item ${cls}`, type: "button", role: "menuitemcheckbox", title: description, "aria-label": `${label}. ${description}` });
