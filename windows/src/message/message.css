@@ -54,3 +54,11 @@
 .afu-cevap-satir .soru-dugme{flex:0 0 auto}
 /* Soru/cevap içeren balon kesilmez: içerik tam görünür, kaydırma çubuğu çıkmaz. */
 #afu-pet-balon>.afu-konusma-balonu:has(.soru-alan){overflow:visible;max-height:none}
+/* Seçenek düğmeleri küçük: "1 = ... / 2 = ..." satırı sıkışık, yan yana durur. */
+.afu-konusma-balonu .soru-secenekler,.afu-mesaj-detayi .soru-secenekler{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.afu-konusma-balonu .soru-secenekler .soru-dugme,.afu-mesaj-detayi .soru-secenekler .soru-dugme{flex:0 0 auto;min-height:22px;padding:2px 9px;font-size:11px;line-height:1.2;border-radius:9px}
+/* Komut balonu: ajan seçici + yazı kutusu + Gönder tek satırda. */
+.afu-komut-balonu{cursor:default}
+.afu-komut-balonu .afu-komut-ajan{flex:0 0 auto;width:auto;max-width:84px}
+.afu-komut-durum{min-height:0;margin-top:4px;font-size:11px;color:#ffb4a8}
+.afu-komut-durum:empty{display:none}

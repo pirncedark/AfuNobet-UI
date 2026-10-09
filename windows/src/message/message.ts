@@ -11,7 +11,7 @@ import "./message.css";
 
 export const AJANLAR = ["claude", "codex", "gemini", "opencode"] as const;
 export type MesajAjan = typeof AJANLAR[number];
-export interface Mesaj { surum: 1; id: string; ajan: MesajAjan; tur: "bitti" | "bilgi" | "uyari"; metin: string; zaman: number }
+export interface Mesaj { surum: 1; id: string; ajan: MesajAjan; tur: "bitti" | "bilgi" | "uyari" | "komut"; metin: string; zaman: number }
 export const ad = (ajan: MesajAjan) => ({ claude: "Claude", codex: "Codex", gemini: "Gemini", opencode: "OpenCode" })[ajan];
 
 /** Balonda görünen gövde en fazla bu kadar karakter; kesilirse "…" eklenir. */
@@ -175,6 +175,39 @@ export function cevapKutusu(belge: Pick<Document, "createElement">, m: Mesaj, bi
   return satir;
 }
 
+/** Maskotun üstündeki komut balonu: ajan seç, görevi yaz, Gönder → AfuNöbet'e iş verilir. */
+export const KOMUT_ONEK = "komut-";
+function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void): HTMLElement {
+  const e = belge.createElement("span"); e.className = "afu-konusma-balonu afu-komut-balonu";
+  const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket"; etiket.textContent = "Afu'ya komut ver";
+  const satir = belge.createElement("div"); satir.className = "afu-cevap-satir";
+  const ajan = belge.createElement("select"); ajan.className = "soru-alan afu-komut-ajan"; ajan.setAttribute("aria-label", "Ajan");
+  for (const a of ["codex", "gemini", "opencode"]) { const o = belge.createElement("option"); o.value = a; o.textContent = ad(a as MesajAjan); ajan.append(o); }
+  const alan = belge.createElement("input"); alan.type = "text"; alan.placeholder = "Ne yapılsın?"; alan.className = "soru-alan";
+  const gonder = belge.createElement("button"); gonder.type = "button"; gonder.className = "soru-dugme"; gonder.textContent = "Gönder";
+  const durum = belge.createElement("div"); durum.className = "afu-komut-durum";
+  const yolla = () => {
+    const gorev = alan.value.trim(); if (!gorev) return;
+    gonder.disabled = true;
+    invoke("orkestra_send", { agent: ajan.value, project: "AfuNobet-UI", task: gorev })
+      .then(() => { if (kapat) kapat(); })
+      .catch(err => { gonder.disabled = false; durum.textContent = typeof err === "string" && err ? err : "Komut gönderilemedi. Yeniden dene."; });
+  };
+  for (const el of [e, ajan, alan, gonder]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
+  alan.addEventListener("keydown", x => { x.stopPropagation(); if (x.key === "Enter") yolla(); });
+  gonder.addEventListener("click", yolla);
+  satir.append(ajan, alan, gonder);
+  e.append(etiket, satir, durum);
+  if (kapat) {
+    const k = belge.createElement("span"); k.className = "afu-balon-kapat"; k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");
+    k.setAttribute("aria-label", "Komut balonunu kapat"); k.textContent = "Kapat";
+    k.addEventListener("pointerdown", x => x.stopPropagation());
+    k.addEventListener("click", x => { x.stopPropagation(); kapat(); });
+    e.append(k);
+  }
+  return e;
+}
+
 export function balonOlustur(
   belge: Pick<Document, "createElement">,
   mesaj: Mesaj,
@@ -182,6 +215,7 @@ export function balonOlustur(
   kapat?: () => void,
   ekSayisi = 0
 ): HTMLElement {
+  if (mesaj.tur === "komut") return komutBalonu(belge, kapat);
   // Pet zaten bir düğme: içine ikinci bir button yerleştirmiyoruz.
   const e = belge.createElement("span"); e.className = "afu-konusma-balonu";
   e.setAttribute("role", "button"); e.setAttribute("tabindex", "0");
@@ -227,8 +261,10 @@ export function balonOlustur(
     alt.style.marginTop = "4px"; alt.style.display = "flex";
     alt.style.flexDirection = "column"; alt.style.gap = "4px";
 
-    const cevapla = (secim: string | null, text: string | null) => {
-      invoke("answer_question", { id: mesaj.id, secim, metin: text }).catch(() => {});
+    const cevapla = (secim: string | null, text: string | null, etiket?: string) => {
+      // Claude "bitti" mesajı gerçek bir soru kaydı değildir: cevap Stop hook'una gider.
+      if (claudeCevapMi(mesaj)) cevapGonder(mesaj, text ?? (etiket ? `${secim} = ${etiket}` : secim));
+      else invoke("answer_question", { id: mesaj.id, secim, metin: text }).catch(() => {});
       if (kapat) kapat();
     };
 
@@ -238,7 +274,8 @@ export function balonOlustur(
       for (const sec of bicim.secenekler) {
         const btn = belge.createElement("button"); btn.className = "soru-dugme";
         btn.textContent = sec.etiket;
-        btn.addEventListener("click", ev => { ev.stopPropagation(); cevapla(sec.id, null); });
+        btn.addEventListener("pointerdown", ev => ev.stopPropagation());
+        btn.addEventListener("click", ev => { ev.stopPropagation(); cevapla(sec.id, null, sec.etiket); });
         secKap.append(btn);
       }
       alt.append(secKap);
@@ -425,7 +462,19 @@ export class KonusanAfu {
     const bitir = () => { this.detay.hidden = true; if (hariciKapat) hariciKapat(); else { this.model.okundu(m.id); this.ciz(); } };
     kapat.addEventListener("click", () => cevapGonder(m, null));
     this.detay.append(baslik, metin);
-    if (claudeCevapMi(m)) this.detay.append(cevapKutusu(document, m, bitir));
+    if (claudeCevapMi(m)) {
+      const secenekler = bicimle(m.metin).secenekler ?? [];
+      if (secenekler.length) {
+        const kap = document.createElement("div"); kap.className = "soru-secenekler";
+        for (const sec of secenekler) {
+          const b = document.createElement("button"); b.type = "button"; b.className = "soru-dugme"; b.textContent = sec.etiket;
+          b.addEventListener("click", () => { cevapGonder(m, `${sec.id} = ${sec.etiket}`); bitir(); });
+          kap.append(b);
+        }
+        this.detay.append(kap);
+      }
+      this.detay.append(cevapKutusu(document, m, bitir));
+    }
     this.detay.append(kapat); this.detay.hidden = false; this.ac();
   }
   setHarici(mesaj: Mesaj | null, kapat?: () => void) {
