@@ -190,13 +190,43 @@ export class Island {
   private sesliId: string | null = null;
   private sesliOkunan = new Set<string>();
   private sesDalga = sesDalga;
+  /** Sohbet açıkken gelen mesaj okunur ve cevap dinlenir; "tamam yeterli" kapatır, "AfuNöbet" tekrar açar. */
+  private sohbetAcik = true;
+  private uyanikBekle = false;
+  private static sade(t: string) {
+    return t.toLowerCase().replace(/ö/g, "o").replace(/ü/g, "u").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g").replace(/[^a-z0-9]/g, "");
+  }
+  private async uyanmaDongusu() {
+    if (this.uyanikBekle) return;
+    this.uyanikBekle = true;
+    const bekle = (ms: number) => new Promise(r => window.setTimeout(r, ms));
+    try {
+      while (!this.sohbetAcik) {
+        if (this.sesliId) { await bekle(600); continue; }
+        let duyulan = "";
+        try { duyulan = await Bridge.voiceListenTurn(6000); } catch { await bekle(1500); continue; }
+        if (!/afu.{0,3}(bet|bed|pet|bat)/.test(Island.sade(duyulan))) continue;
+        this.sohbetAcik = true;
+        try { await Bridge.voiceResponse("Buradayım."); } catch { /* ses yoksa sessiz devam */ }
+        const acik = messageNotifications.current();
+        if (acik?.raw && claudeCevapMi(acik.raw)) { this.sesliOkunan.delete(acik.id); void this.sesliCevap(acik); }
+      }
+    } finally { this.uyanikBekle = false; }
+  }
+  private async sohbetiKapat(message: { id: string; raw?: import("../message/message").Mesaj }) {
+    this.sohbetAcik = false;
+    if (message.raw) cevapGonder(message.raw, null);
+    messageNotifications.close(message.id);
+    void this.uyanmaDongusu();
+    try { await Bridge.voiceResponse("Tamam, çağırmanı bekliyorum."); } catch { /* ses yoksa sessiz devam */ }
+  }
   private sesliBitir() { this.sesliId = null; this.sesDalga(null); void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
   private async sesliCevap(message: { id: string; raw?: import("../message/message").Mesaj }) {
     const raw = message.raw;
     if (!raw || this.sesliOkunan.has(message.id)) return;
     this.sesliOkunan.add(message.id);
     try { if (localStorage.getItem("afuSesliMesaj") === "0") return; } catch { /* ayar yoksa açık */ }
-    if (this.chat.voice?.active || this.chat.responses?.speaking) return;
+    if (!this.sohbetAcik || this.chat.voice?.active || this.chat.responses?.speaking) return;
     this.sesliId = message.id;
     const hala = () => messageNotifications.current()?.id === message.id && this.sesliId === message.id;
     try {
@@ -209,6 +239,7 @@ export class Island {
       mikSeviyesiniBagla(); this.sesDalga("dinliyor");
       const duyulan = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
       if (!duyulan || !hala()) return;
+      if (/tamam.{0,3}yeter/.test(Island.sade(duyulan))) { this.sesliId = null; this.sesDalga(null); void this.sohbetiKapat(message); return; }
       const bicim = bicimle(raw.metin);
       const sayilar: Record<string, string> = { bir: "1", iki: "2", "üç": "3", "uc": "3", "dört": "4", "dort": "4" };
       const kelime = duyulan.toLowerCase().replace(/[^\p{L}\d ]/gu, "").trim();
@@ -343,10 +374,9 @@ export class Island {
   }
   launch() {
     if (messageNotifications.isOpen && State.settings.messageAlert !== false) return;
-    let first = true, pendingHints = false;
-    try { first = localStorage.getItem("afunobet-orientation-v1") !== "seen"; pendingHints = Number(localStorage.getItem("afunobet-discovery-v1") ?? 0) < 4; localStorage.setItem("afunobet-orientation-v1", "seen"); } catch { /* Optional orientation persistence. */ }
-    if (first || pendingHints) this.fsm.launch();
-    else this.fsm.reveal();
+    // Uygulama her açılışta pet olarak başlar; büyük karşılama ekranı açılmaz.
+    try { localStorage.setItem("afunobet-orientation-v1", "seen"); } catch { /* Optional orientation persistence. */ }
+    this.fsm.collapse();
   }
   applySettings() { this.fsm.homeToPetitDelay = State.settings.autoCloseInterval; this.setPetEnabled(State.settings.pet); }
   setPetEnabled(on: boolean) {
