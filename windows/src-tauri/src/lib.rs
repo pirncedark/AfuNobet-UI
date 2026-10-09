@@ -148,7 +148,7 @@ fn sol_voice_silence(sol: tauri::State<'_, SolVoiceState>, state: tauri::State<'
     sol.silence();voice::voice_silence(state);
 }
 #[tauri::command]
-async fn sol_voice_response(sol: tauri::State<'_, SolVoiceState>, text: String) -> Result<Value, String> {
+async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoiceState>, text: String) -> Result<Value, String> {
     use std::sync::atomic::Ordering;
     let generation=sol.generation.clone();
     let ticket=generation.fetch_add(1,Ordering::AcqRel)+1;

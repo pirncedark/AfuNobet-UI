@@ -21,6 +21,7 @@ import { soruAkisiniBagla } from "../question/question";
 import { bicimle } from "../message/bicim";
 import { messageNotifications, showNotification } from "../message/notifications";
 import { loadMessageAlert } from "../core/settings";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { cursorToCss, dismissAction, hitRect, hitScale, toWindow } from "../core/hit";
 
@@ -207,8 +208,8 @@ export class Island {
     try {
       const destek = await Bridge.voiceSupported();
       if (!destek.tts && !destek.afu_tts) return;
-      this.sesDalga("konusuyor");
-      await Bridge.voiceResponse(kisalt(temizMetin(raw.metin), 240));
+      const calmaDinle = await listen("afu-voice-playing", () => this.sesDalga("konusuyor"));
+      try { await Bridge.voiceResponse(kisalt(temizMetin(raw.metin), 240)); } finally { calmaDinle(); this.sesDalga(null); }
       if (!hala()) return;
       // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
       const duyulan = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
