@@ -115,6 +115,14 @@ export class AfuViews {
       this.settingToggle("hareket-toggle", "Hep hareketli", "Windows animasyonları kapalı olsa da Afu hareket eder.", loadHareketZorla, enabled => { if (!saveHareketZorla(enabled)) return false; window.dispatchEvent(new Event(HAREKET_OLAYI)); return true; }),
       this.settingToggle("alert-toggle", "Mesaj gelince öne gel", "Yeni mesaj geldiğinde Afu görünür.", () => State.settings.messageAlert !== false, enabled => { if (!saveMessageAlert(enabled)) return false; State.settings.messageAlert = enabled; window.dispatchEvent(new Event("afu-message-setting")); return true; }),
       h("details", { class: "menu-advanced" }, h("summary", { text: "Gelişmiş" }), item("studio-open", "Animasyon stüdyosunu aç", () => { void Bridge.studioOpen().catch(() => this.flash("Stüdyo açılamadı; kurulumunu kontrol et.")); })), this.menuClose);
+    // Gelişmiş > Telefon: APK'nın bağlanacağı adres ve eşleştirme kodu.
+    const telefonYazi = h("small", { class: "menu-description", text: "" });
+    const telefonGoster = (bilgi: { adres: string; token: string }) => { telefonYazi.textContent = bilgi.adres ? `Adres: ${bilgi.adres}  Kod: ${bilgi.token}` : "Telefon adresi bulunamadı. Aynı Wi-Fi'da olduğundan emin ol."; };
+    const telefonDugme = h("button", { class: "text-button menu-item phone-info", type: "button", title: "Telefondaki AfuNöbet uygulaması bu adres ve kodla bağlanır.", text: "Telefon bağlantısını göster",
+      onclick: () => { void Bridge.telefonBilgi().then(telefonGoster).catch(() => this.flash("Telefon bilgisi alınamadı; yeniden dene.")); } });
+    const telefonYenile = h("button", { class: "text-button menu-item phone-renew", type: "button", title: "Eski eşleştirmeler kapanır.", text: "Telefon kodunu yenile",
+      onclick: () => { void Bridge.telefonYenile().then(telefonGoster).catch(() => this.flash("Kod yenilenemedi; yeniden dene.")); } });
+    try { this.menu.querySelector(".menu-advanced")?.append(telefonDugme, telefonYenile, telefonYazi); } catch { /* ayar menüsü yoksa telefon bölümü atlanır */ }
     this.menu.addEventListener("keydown", (e: Event) => this.onMenuKey(e as KeyboardEvent));
     this.menuKatmani = new Katman(this.menu, () => this.closeMenu(true));
     this.moreButton = h("button", { class: "text-button more-button", type: "button", "aria-haspopup": "menu", "aria-expanded": "false", title: UI_TR.more, "aria-label": UI_TR.more,
