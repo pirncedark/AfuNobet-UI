@@ -73,7 +73,22 @@ def live(root, now):
         return False
 
 
+def question_line(text):
+    """Metindeki son ❓ satırını (şıklar dahil) düz metin olarak verir; özet şıkları kaybetmesin."""
+    for line in reversed(text.splitlines()):
+        if '❓' in line:
+            line = re.sub(r'[`*_~]', '', line)
+            return re.sub(r'\s+', ' ', line).strip()[:400]
+    return ''
+
+
 def simple(text):
+    soru = question_line(text)
+    ozet = _simple(text)
+    return ozet + (chr(10) + soru if soru and soru not in ozet else '')
+
+
+def _simple(text):
     text = re.sub(r'```[\s\S]*?```|~~~[\s\S]*?~~~', ' ', text)
     text = re.sub(r'!?\[([^\]]*)\]\([^)]*\)', r'\1', text)
     text = re.sub(r'(?m)^\s*(?:#{1,6}\s*|>\s*|[-*+]\s+|\d+\.\s+)', '', text)

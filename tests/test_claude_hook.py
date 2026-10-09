@@ -66,6 +66,17 @@ def test_stop_last_assistant(setup):
     assert message['metin'] == 'Done. Second!'
 
 
+def test_stop_ozet_sikli_soruyu_korur(setup):
+    root, clock = setup
+    transcript = root / 'transcript.jsonl'
+    nl = chr(10)
+    text = 'Hazir. Ikinci cumle. Ucuncu cumle.' + nl + nl + '- madde' + nl + '❓ Devam edelim mi? 1 = evet / 2 = hayir'
+    transcript.write_text(json.dumps({'type': 'assistant', 'message': {'content': [{'type': 'text', 'text': text}]}}), encoding='utf-8')
+    run(root, clock, {'hook_event_name': 'Stop', 'transcript_path': str(transcript)})
+    message = json.loads(next((root / 'mesajlar').glob('*.json')).read_text('utf-8'))
+    assert message['metin'] == 'Hazir. Ikinci cumle.' + nl + '❓ Devam edelim mi? 1 = evet / 2 = hayir'
+
+
 @pytest.mark.parametrize('free', [False, True])
 def test_question_answer_and_cleanup(setup, free):
     root, clock = setup
