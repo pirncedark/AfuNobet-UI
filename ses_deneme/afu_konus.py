@@ -219,6 +219,43 @@ def speech_chunks(text, limit=200):
     return chunks
 
 
+def trim_tail(samples, rate, text):
+    """Chatterbox bazen cümleden sonra uğultu/hırlama (uzun kuyruk) üretir: beklenen süreyi aşan son parçayı keser."""
+    import numpy as np
+    frame = int(rate * 0.05)
+    if frame <= 0 or len(samples) < frame * 4:
+        return samples
+    energy = np.array([float(np.sqrt(np.mean(samples[i:i + frame] ** 2))) for i in range(0, len(samples) - frame + 1, frame)])
+    voiced = energy > 0.012
+    limit = (0.07 * len(text) + 0.3) * 1.6
+    segments, start, gap = [], None, 0
+    for index, flag in enumerate(voiced):
+        if flag:
+            if start is None:
+                start = index
+            gap = 0
+            end = index
+        elif start is not None:
+            gap += 1
+            if gap >= 5:  # 250 ms sessizlik parçayı kapatır
+                segments.append((start, end))
+                start = None
+    if start is not None:
+        segments.append((start, end))
+    if len(segments) < 2:
+        return samples
+    keep = segments[0][1]
+    for seg_start, seg_end in segments[1:]:
+        if (seg_end + 1) * frame / rate <= limit:
+            keep = seg_end
+        else:
+            break
+    if keep == segments[-1][1]:
+        return samples
+    cut = min(len(samples), (keep + 1) * frame + int(rate * 0.12))
+    return samples[:cut]
+
+
 def chunk_quality(text, seconds, transcript=None):
     if not 0.025 * len(text) <= seconds <= max(5, 0.18 * len(text)):
         return 'duration_ratio'
@@ -444,6 +481,7 @@ class Voice:
                             raise
                         time.sleep(10)
                 samples = wav.detach().cpu().numpy().reshape(-1)
+                samples = trim_tail(samples, self.model.sr, sentence)
                 seconds = len(samples) / self.model.sr
                 reason = chunk_quality(sentence, seconds)
                 transcript = None
