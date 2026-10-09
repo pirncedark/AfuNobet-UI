@@ -139,6 +139,7 @@ struct SolVoiceState {
 }
 impl SolVoiceState {
     fn silence(&self) {
+        voice::afu::kayit("sol_silence");
         self.generation.fetch_add(1, std::sync::atomic::Ordering::AcqRel);
         if let Ok(jobs) = self.jobs.lock() { for path in jobs.iter() { voice::afu::cancel(path); } }
     }

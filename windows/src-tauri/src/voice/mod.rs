@@ -272,6 +272,7 @@ pub async fn voice_listen_turn(state: State<'_, VoiceState>, max_bekleme_ms: usi
 }
 #[tauri::command]
 pub async fn voice_cancel(state: State<'_, VoiceState>) -> Result<(), String> {
+    afu::kayit("voice_cancel");
     state.generation.fetch_add(1, Ordering::AcqRel);
     state.cancel_afu();
     state.cancel_capture();
@@ -279,6 +280,7 @@ pub async fn voice_cancel(state: State<'_, VoiceState>) -> Result<(), String> {
 }
 #[tauri::command]
 pub fn voice_silence(state: State<'_, VoiceState>) {
+    afu::kayit("voice_silence");
     state.generation.fetch_add(1, Ordering::AcqRel);
     state.cancel_afu();
 }
