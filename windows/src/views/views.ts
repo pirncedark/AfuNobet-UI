@@ -117,7 +117,7 @@ export class AfuViews {
       h("details", { class: "menu-advanced" }, h("summary", { text: "Gelişmiş" }), item("studio-open", "Animasyon stüdyosunu aç", () => { void Bridge.studioOpen().catch(() => this.flash("Stüdyo açılamadı; kurulumunu kontrol et.")); })), this.menuClose);
     // Gelişmiş > Telefon: APK'nın bağlanacağı adres ve eşleştirme kodu.
     const telefonYazi = h("small", { class: "menu-description", text: "" });
-    const telefonGoster = (bilgi: { adres: string; token: string }) => { telefonYazi.textContent = bilgi.adres ? `Adres: ${bilgi.adres}  Kod: ${bilgi.token}` : "Telefon adresi bulunamadı. Aynı Wi-Fi'da olduğundan emin ol."; };
+    const telefonGoster = (bilgi: { adres: string; kod: string }) => { telefonYazi.textContent = bilgi.adres ? `Adres: ${bilgi.adres}  Kod: ${bilgi.kod} (10 dk geçerli)` : "Telefon adresi bulunamadı. Aynı Wi-Fi'da olduğundan emin ol."; };
     const telefonDugme = h("button", { class: "text-button menu-item phone-info", type: "button", title: "Telefondaki AfuNöbet uygulaması bu adres ve kodla bağlanır.", text: "Telefon bağlantısını göster",
       onclick: () => { void Bridge.telefonBilgi().then(telefonGoster).catch(() => this.flash("Telefon bilgisi alınamadı; yeniden dene.")); } });
     const telefonYenile = h("button", { class: "text-button menu-item phone-renew", type: "button", title: "Eski eşleştirmeler kapanır.", text: "Telefon kodunu yenile",
