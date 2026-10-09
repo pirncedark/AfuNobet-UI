@@ -97,7 +97,8 @@ export class VoiceService {
   if(!this.enabled||!allowed||!text||this.seen.has(key))return;
   this.seen.add(key);if(this.seen.size>512)this.seen.delete(this.seen.values().next().value!);
   if(now-this.last<30000)return;this.last=now;
-  try { await this.actions.voiceSpeak(text); } catch { /* Bildirim hatası sohbeti kesmez. */ }
+  // Bildirimler de Afu sesiyle okunur; Windows sesi yalnız Afu sesi yoksa kullanılır.
+  try { if (this.actions.voiceResponse) await this.actions.voiceResponse(text); else await this.actions.voiceSpeak(text); } catch { /* Bildirim hatası sohbeti kesmez. */ }
  }
  async silence(){this.enabled=false;await this.actions.voiceSilence();}
 }
