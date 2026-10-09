@@ -65,7 +65,8 @@ export function bolunBaslik(metin: string): { etiket: string | null; govde: stri
   const satirlar = temizSatirlar(metin);
   if (!satirlar.length) return { etiket: null, govde: "" };
   // "Claude · klasör: metin" biçimi hangi terminalden geldiğini etikette gösterir.
-  const es = new RegExp(`^(${AJANLAR.join("|")})(?:\\s*·\\s*([\\w .\\-]{1,24}?))?\\s*[:\\-–—]\\s*(.*)$`, "i").exec(satirlar[0]);
+  // Klasör adında tire olabilir (AfuNobet-UI): "·" biçiminde ayraç yalnız ":" olur.
+  const es = new RegExp(`^(${AJANLAR.join("|")})(?:\\s*·\\s*([\\w .\\-]{1,24}?)\\s*:|\\s*[:\\-–—])\\s*(.*)$`, "i").exec(satirlar[0]);
   if (!es) return { etiket: null, govde: satirlar.join(" ") };
   return { etiket: ad(es[1].toLowerCase() as MesajAjan) + (es[2] ? " · " + es[2].trim() : ""), govde: [es[3], ...satirlar.slice(1)].filter(Boolean).join(" ") };
 }
