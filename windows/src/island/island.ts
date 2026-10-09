@@ -193,6 +193,7 @@ export class Island {
   /** Sohbet açıkken gelen mesaj okunur ve cevap dinlenir; "tamam yeterli" kapatır, "AfuNöbet" tekrar açar. */
   private sohbetAcik = true;
   private uyanikBekle = false;
+  private mikMesgul = false;
   private static sade(t: string) {
     return t.toLowerCase().replace(/ö/g, "o").replace(/ü/g, "u").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g").replace(/[^a-z0-9]/g, "");
   }
@@ -201,8 +202,9 @@ export class Island {
     this.uyanikBekle = true;
     const bekle = (ms: number) => new Promise(r => window.setTimeout(r, ms));
     try {
-      while (!this.sohbetAcik) {
-        if (this.sesliId) { await bekle(600); continue; }
+      // "Hey Google" gibi: "AfuNöbet" sözü her zaman dinlenir (sohbet açık ya da kapalı).
+      for (;;) {
+        if (this.sesliId || this.mikMesgul) { await bekle(600); continue; }
         let duyulan = "";
         try { duyulan = await Bridge.voiceListenTurn(6000); } catch { await bekle(1500); continue; }
         if (!/afu.{0,3}(bet|bed|pet|bat)/.test(Island.sade(duyulan))) continue;
@@ -210,6 +212,16 @@ export class Island {
         try { await Bridge.voiceResponse("Buradayım."); } catch { /* ses yoksa sessiz devam */ }
         const acik = messageNotifications.current();
         if (acik?.raw && claudeCevapMi(acik.raw)) { this.sesliOkunan.delete(acik.id); void this.sesliCevap(acik); }
+        else {
+          // Bekleyen Claude mesajı yoksa komut balonu açılır, söylediğin yazı kutusuna düşer.
+          this.komutBalonuAc();
+          await bekle(400);
+          this.mikMesgul = true; mikSeviyesiniBagla(); this.sesDalga("dinliyor");
+          try {
+            const komut = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
+            if (komut) window.dispatchEvent(new CustomEvent("afu-komut-yaz", { detail: komut }));
+          } catch { /* mikrofon yoksa sessiz */ } finally { this.sesDalga(null); this.mikMesgul = false; }
+        }
       }
     } finally { this.uyanikBekle = false; }
   }
@@ -253,6 +265,7 @@ export class Island {
   private bindMessages() {
     State.settings.messageAlert = loadMessageAlert();
     messageNotifications.setEnabled(State.settings.messageAlert);
+    window.setTimeout(() => void this.uyanmaDongusu(), 8000); // model yüklensin, sonra çağırma sözü dinlenir
     let raised = false;
     const unsubscribe = messageNotifications.subscribe(() => {
       const message = messageNotifications.current();
