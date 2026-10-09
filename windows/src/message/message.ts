@@ -64,9 +64,10 @@ export function temizMetin(metin: string): string { return temizSatirlar(metin).
 export function bolunBaslik(metin: string): { etiket: string | null; govde: string } {
   const satirlar = temizSatirlar(metin);
   if (!satirlar.length) return { etiket: null, govde: "" };
-  const es = new RegExp(`^(${AJANLAR.join("|")})\\s*[:\\-–—]\\s*(.*)$`, "i").exec(satirlar[0]);
+  // "Claude · klasör: metin" biçimi hangi terminalden geldiğini etikette gösterir.
+  const es = new RegExp(`^(${AJANLAR.join("|")})(?:\\s*·\\s*([\\w .\\-]{1,24}?))?\\s*[:\\-–—]\\s*(.*)$`, "i").exec(satirlar[0]);
   if (!es) return { etiket: null, govde: satirlar.join(" ") };
-  return { etiket: ad(es[1].toLowerCase() as MesajAjan), govde: [es[2], ...satirlar.slice(1)].filter(Boolean).join(" ") };
+  return { etiket: ad(es[1].toLowerCase() as MesajAjan) + (es[2] ? " · " + es[2].trim() : ""), govde: [es[3], ...satirlar.slice(1)].filter(Boolean).join(" ") };
 }
 
 /** İlk anlamlı iki cümle: balonda üçüncü cümle ve sonrası gösterilmez. */
@@ -205,7 +206,7 @@ function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void)
     if (ajan.value === "claude") {
       const acik = messageNotifications.current()?.raw;
       if (acik && claudeCevapMi(acik)) { cevapGonder(acik, gorev); if (kapat) kapat(); }
-      else durum.textContent = "Claude şu an cevap beklemiyor.";
+      else durum.textContent = "Claude şu an cevap beklemiyor. Claude bir mesaj gönderince yaz.";
       return;
     }
     gonder.disabled = true;

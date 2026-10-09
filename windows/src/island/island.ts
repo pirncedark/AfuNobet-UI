@@ -13,7 +13,7 @@ import { deriveEvents, EventDeduper } from "../core/events";
 import { AfuPet, PET_BOYUT } from "../afu/pet";
 import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
-import { KonusanAfu, KOMUT_ONEK, claudeCevapMi, cevapGonder, temizMetin, kisalt, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, KOMUT_ONEK, bolunBaslik, claudeCevapMi, cevapGonder, temizMetin, kisalt, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
@@ -203,7 +203,7 @@ export class Island {
       const destek = await Bridge.voiceSupported();
       if (!destek.tts && !destek.afu_tts) return;
       const calmaDinle = await listen("afu-voice-playing", () => this.sesDalga("konusuyor"));
-      try { await Bridge.voiceResponse(kisalt(temizMetin(raw.metin), 240)); } finally { calmaDinle(); this.sesDalga(null); }
+      try { await Bridge.voiceResponse(kisalt(bolunBaslik(raw.metin).govde || temizMetin(raw.metin), 130)); } finally { calmaDinle(); this.sesDalga(null); }
       if (!hala()) return;
       // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
       mikSeviyesiniBagla(); this.sesDalga("dinliyor");
