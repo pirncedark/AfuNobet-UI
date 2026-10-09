@@ -49,6 +49,13 @@ pub struct VoiceState {
     afu_preferences: Mutex<()>,
 }
 impl VoiceState {
+    /// Konuşma tanıma modelini uygulama açılırken yükler; ilk dinleme gecikmez.
+    pub fn motoru_hazirla(&self) {
+        let Some(path) = whisper::model_yolu().filter(|p| p.is_file()) else { return; };
+        if let Ok(mut engine) = self.motor.lock() {
+            if engine.is_none() { if let Ok(m) = whisper::Motor::yukle(&path) { *engine = Some(m); } }
+        }
+    }
     fn cancel_afu(&self) {
         if let Ok(jobs) = self.afu_jobs.lock() { for directory in jobs.iter() { afu::cancel(directory); } }
     }
@@ -244,7 +251,7 @@ pub async fn voice_listen_turn(state: State<'_, VoiceState>, max_bekleme_ms: usi
                 return Ok(String::new());
             }
             select_motor(whisper::model_yolu().map(|p| p.is_file()).unwrap_or(false), false)?;
-            let data = capture::Recorder::start_auto(signal.clone(), 0.01, 800, max_bekleme_ms)?.wait_and_stop()?;
+            let data = capture::Recorder::start_auto(signal.clone(), 0.01, 600, max_bekleme_ms)?.wait_and_stop()?;
             if signal.load(Ordering::Acquire) || epoch.load(Ordering::Acquire) != ticket || whisper::kisa_mi(&data) {
                 return Ok(String::new());
             }

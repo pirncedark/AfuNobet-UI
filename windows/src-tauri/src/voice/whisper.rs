@@ -45,9 +45,15 @@ impl Motor {
         params.set_translate(false);
         params.set_n_threads(
             std::thread::available_parallelism()
-                .map(|x| x.get().min(4) as i32)
+                .map(|x| x.get().min(6) as i32)
                 .unwrap_or(1),
         );
+        // Kısa konuşmada 30 sn'lik pencereyi doldurma: kodlayıcı süresi konuşma uzunluğuyla orantılı olur.
+        let ctx = (((ses.len() as f32 / 16_000.0) * 50.0) as i32 + 128).clamp(384, 1500) & !1;
+        params.set_audio_ctx(ctx);
+        params.set_single_segment(true);
+        params.set_no_context(true);
+        params.set_temperature_inc(0.0);
         params.set_print_progress(false);
         params.set_print_realtime(false);
         params.set_print_special(false);
