@@ -27,6 +27,7 @@ mod hook_kur;
 mod kimlik;
 mod protokol;
 mod mesajlar;
+mod telefon;
 mod ipc;
 mod claude_hook;
 
@@ -458,6 +459,8 @@ pub fn run() {
             questions::questions_list,
             questions::answer_question,
             questions::mesaj_cevapla,
+            telefon::telefon_bilgi,
+            telefon::telefon_yenile,
             mesajlar::mesajlar_list,
             ipc::ajan_listesi,
             log_ac
@@ -468,6 +471,7 @@ pub fn run() {
             ilk_kullanim::prepare(&handle);
             mesajlar::start(handle.clone());
             voice::afu::sunucu_baslat();
+            telefon::baslat(handle.clone());
             { let h = handle.clone(); std::thread::spawn(move || { h.state::<voice::VoiceState>().motoru_hazirla(); }); }
             { let h = handle.clone(); let _ = voice::capture::SEVIYE.set(Box::new(move |v| { let _ = h.emit("afu-mic-level", v); })); }
             if let Ok(path) = handle.path().app_config_dir() {

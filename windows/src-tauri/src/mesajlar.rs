@@ -114,6 +114,7 @@ pub fn mesajlar_list() -> Vec<Mesaj> {
             if yol.extension().and_then(|s| s.to_str()) == Some("json") {
                 if let Ok(bayt) = fs::read(&yol) {
                     if let Some(mesaj) = mesaj_coz(&bayt) {
+                        crate::telefon::tampona_ekle(mesaj.clone());
                         liste.push(mesaj);
                         let _ = fs::remove_file(&yol); // tüketildi
                     }
