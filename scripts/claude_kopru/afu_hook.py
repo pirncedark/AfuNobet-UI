@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 
 LIMIT = 64 * 1024
+REPLY_WAIT = 90
 
 
 def default_root():
@@ -122,6 +123,34 @@ def valid_answer(answer, q, now):
     return ' '.join(parts) if parts else None
 
 
+def wait_reply(uid, root, wall_clock, monotonic, sleep, deadline):
+    """Stop sonrası Afu balonundan gelen cevabı bekler; cevap varsa Claude devam eder.
+
+    Cevap yoksa, "Okudum" denirse ya da Afu kapanırsa sessizce biter (fail open)."""
+    answer_path = root/'cevaplar'/f'{uid}.json'
+    try:
+        while monotonic() < deadline and live(root, wall_clock):
+            try:
+                record = read_json(answer_path)
+            except FileNotFoundError:
+                record = None
+            except (OSError, ValueError, TypeError) as error:
+                log(root, error)
+                record = None
+            if isinstance(record, dict):
+                text = record.get('metin')
+                if isinstance(text, str) and text.strip():
+                    return {'decision': 'block', 'reason': f'Kullanıcı Afu balonundan cevap yazdı: {mask(text.strip())[:2000]}. Bunu kullanıcının mesajı say ve devam et.'}
+                return None
+            sleep(min(.1, max(0, deadline-monotonic())))
+    finally:
+        try:
+            answer_path.unlink(missing_ok=True)
+        except OSError as error:
+            log(root, error)
+    return None
+
+
 def process(event, root, wall_clock, monotonic, sleep, deadline):
     if not live(root, wall_clock):
         return None
@@ -131,6 +160,8 @@ def process(event, root, wall_clock, monotonic, sleep, deadline):
         if isinstance(text, str) and text.strip():
             uid = 'claude-' + uuid.uuid4().hex
             atomic(root/'mesajlar'/f'{uid}.json', dict(surum=1, id=uid, ajan='claude', tur='bitti' if kind == 'Stop' else 'bilgi', metin=mask(text.strip())[:2000], zaman=int(wall_clock()*1000)))
+            if kind == 'Stop':
+                return wait_reply(uid, root, wall_clock, monotonic, sleep, min(deadline, monotonic() + REPLY_WAIT))
         return None
     if kind != 'PreToolUse' or event.get('tool_name') != 'AskUserQuestion':
         return None

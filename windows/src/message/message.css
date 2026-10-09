@@ -30,7 +30,7 @@
    (PET_BALON_TABAN/PET_BALON_YUKSEKLIK) ile Rust tarafında aynı sayıdır. */
 #afu-pet-balon{position:absolute;left:50%;bottom:var(--pet-balon-bottom,274px);width:calc(100% - 24px);max-width:296px;height:auto;transform:translateX(-50%);pointer-events:none;z-index:12}
 #afu-pet-balon:empty{display:none}
-#afu-pet-balon>.afu-konusma-balonu{display:block;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;width:100%;overflow:visible;pointer-events:auto;border-width:2px;margin:0;padding:8px 10px;background:#17283f;border-radius:10px;box-shadow:0 3px 10px #0006;max-height:var(--pet-balon-h,220px)}
+#afu-pet-balon>.afu-konusma-balonu{display:block;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;width:100%;overflow:visible;pointer-events:auto;border-width:2px;margin:0;padding:8px 10px;background:#17283f;border-radius:10px;box-shadow:0 3px 10px #0006;max-height:var(--pet-balon-h,340px)}
 .afu-balon-etiket{display:block;min-height:26px;font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:#ffd97a;opacity:.9;padding-right:58px}
 .afu-balon-metin{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere;padding-right:16px}
 .afu-balon-ek{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:bold;color:#ffd97a;background:#0f1e30cc;border-radius:8px;padding:0 5px}
@@ -41,10 +41,16 @@
 /* P10 kesme: ekranın üstü yetmezse pet penceresi tepeden kırpılır; balon kutusu
    kalan yer kadar kısalır, kuyruk ucu karakterin başına bağlı kalır. Yükseklik
    island.ts `petBalonKutusu()` ile `--pet-balon-h` üzerinden verilir. */
-#afu-pet-balon .afu-balon-metin{padding-right:0;max-height:max(0px,calc(var(--pet-balon-h,220px) - 46px));overflow:hidden;white-space:pre-wrap;line-height:17px}
+#afu-pet-balon .afu-balon-metin{padding-right:0;max-height:max(0px,calc(var(--pet-balon-h,340px) - 46px));overflow:hidden;white-space:pre-wrap;line-height:17px}
 #afu-pet-balon:has(.afu-balon-ek) .afu-konusma-balonu{padding-bottom:24px}
-#afu-pet-balon:has(.afu-balon-ek) .afu-balon-metin{max-height:max(0px,calc(var(--pet-balon-h,220px) - 62px))}
+#afu-pet-balon:has(.afu-balon-ek) .afu-balon-metin{max-height:max(0px,calc(var(--pet-balon-h,340px) - 62px))}
 #afu-pet-balon .afu-balon-kapat{top:5px;right:6px}
 /* The expanded card owns its character; hide the separate miniature pet. */
 #island[data-mode=expanded] ~ #afu-pet,
 #island[data-mode=expanded] ~ #afu-pet-balon{display:none}
+/* Claude mesajına cevap satırı: yazı kutusu + Gönder, balon ve kartta tam sığar. */
+.afu-cevap-satir{display:flex;gap:6px;align-items:stretch;margin-top:6px;width:100%;box-sizing:border-box}
+.afu-cevap-satir .soru-alan{flex:1 1 auto;min-width:0}
+.afu-cevap-satir .soru-dugme{flex:0 0 auto}
+/* Soru/cevap içeren balon kesilmez: içerik tam görünür, kaydırma çubuğu çıkmaz. */
+#afu-pet-balon>.afu-konusma-balonu:has(.soru-alan){overflow:visible;max-height:none}

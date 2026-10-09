@@ -370,8 +370,44 @@ pub fn answer_question(id: String, secim: Option<String>, metin: Option<String>)
     cevap_yaz(&kok(), &id, secim.as_deref(), metin.as_deref(), simdi_ms())
 }
 
+/// Claude mesajına (Stop balonu) serbest cevap. `metin` boşsa "Okudum": köprü beklemeyi bırakır.
+pub fn mesaj_cevap_yaz(kok: &Path, id: &str, metin: Option<&str>, simdi: u64) -> Result<(), String> {
+    if !id.starts_with("claude-") || !gecerli_kimlik(id, 64) {
+        return Err("Bu mesaj artık geçerli değil.".into());
+    }
+    let metin = metin.map(str::trim).filter(|m| !m.is_empty());
+    if metin.is_some_and(|m| m.chars().count() > MAX_METIN) {
+        return Err("Cevap çok uzun; kısaltıp yeniden gönder.".into());
+    }
+    let cevap = cevap_yolu(kok, id);
+    if cevap.exists() {
+        return Ok(());
+    }
+    let govde = json!({"surum":1,"id":id,"metin":metin,"zaman":simdi,"kaynak":"ada"});
+    std::fs::create_dir_all(kok.join("cevaplar")).map_err(|_| "Cevap kaydedilemedi; yeniden dene.".to_owned())?;
+    atomik_yaz(&cevap, govde.to_string().as_bytes()).map_err(|_| "Cevap kaydedilemedi; yeniden dene.".to_owned())
+}
+
+#[tauri::command]
+pub fn mesaj_cevapla(id: String, metin: Option<String>) -> Result<(), String> {
+    mesaj_cevap_yaz(&kok(), &id, metin.as_deref(), simdi_ms())
+}
+
 #[cfg(test)]
 mod tests {
+    #[test]
+    fn claude_mesaj_cevabi_yazilir_okudum_metinsizdir_yabanci_kimlik_reddedilir() {
+        let kok = gecici_kok("mesaj-cevap");
+        mesaj_cevap_yaz(&kok, "claude-abc", Some("  devam et  "), 5).unwrap();
+        let v: Value = serde_json::from_str(&std::fs::read_to_string(cevap_yolu(&kok, "claude-abc")).unwrap()).unwrap();
+        assert_eq!(v["metin"], "devam et");
+        mesaj_cevap_yaz(&kok, "claude-xyz", None, 5).unwrap();
+        let v: Value = serde_json::from_str(&std::fs::read_to_string(cevap_yolu(&kok, "claude-xyz")).unwrap()).unwrap();
+        assert!(v["metin"].is_null());
+        assert!(mesaj_cevap_yaz(&kok, "codex-1", Some("x"), 5).is_err());
+        assert!(mesaj_cevap_yaz(&kok, "claude-../x", Some("x"), 5).is_err());
+    }
+
     use super::*;
     use std::time::Duration;
 

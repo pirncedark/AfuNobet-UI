@@ -455,6 +455,7 @@ pub fn run() {
             orkestra::orkestra_send,
             questions::questions_list,
             questions::answer_question,
+            questions::mesaj_cevapla,
             mesajlar::mesajlar_list,
             ipc::ajan_listesi,
             log_ac

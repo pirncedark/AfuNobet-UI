@@ -139,3 +139,32 @@ def test_invalid_answer_ignored(setup, change):
     clock.on_sleep = answer
     assert run(root, clock, question()) == ''
     assert not list((root/'cevaplar').glob('*'))
+
+
+def _stop_event(root):
+    transcript = root / 'transcript.jsonl'
+    transcript.write_text(json.dumps({'type': 'assistant', 'message': {'content': [{'type': 'text', 'text': 'Bitti.'}]}}), encoding='utf-8')
+    return {'hook_event_name': 'Stop', 'transcript_path': str(transcript)}
+
+
+def _cevap_yaz(root, clock, metin):
+    def yaz():
+        uid = next((root / 'mesajlar').glob('*.json')).stem
+        (root / 'cevaplar').mkdir(exist_ok=True)
+        (root / 'cevaplar' / f'{uid}.json').write_text(json.dumps({'surum': 1, 'id': uid, 'metin': metin}), encoding='utf-8')
+        os.utime(root / 'ada_canli', (clock.value, clock.value))
+    return yaz
+
+
+def test_stop_cevap_gelirse_claude_devam_eder(setup):
+    root, clock = setup
+    clock.on_sleep = _cevap_yaz(root, clock, 'devam et')
+    out = json.loads(run(root, clock, _stop_event(root)))
+    assert out['decision'] == 'block' and 'devam et' in out['reason']
+    assert not list((root / 'cevaplar').glob('*.json'))
+
+
+def test_stop_okudum_cevapsiz_biter(setup):
+    root, clock = setup
+    clock.on_sleep = _cevap_yaz(root, clock, None)
+    assert run(root, clock, _stop_event(root)) == ''
