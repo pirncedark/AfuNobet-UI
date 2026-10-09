@@ -82,7 +82,7 @@ for(const scale of [1,1.25,1.5]) for(const [name,text] of [
     fullHeight:text.scrollHeight,visibleHeight:text.clientHeight,value:text.textContent};
   });
   expect(metrics.w).toBeGreaterThanOrEqual(260); expect(metrics.w).toBeLessThanOrEqual(320);
-  expect(metrics.h).toBeLessThanOrEqual(220); expect(metrics.bg).toBe('rgb(23, 40, 63)');
+  expect(metrics.h).toBeLessThanOrEqual(340); expect(metrics.bg).toBe('rgb(23, 40, 63)');
   expect(metrics.top).toBeGreaterThanOrEqual(0); expect(metrics.right).toBeLessThanOrEqual(320);
   expect(metrics.textBottom).toBeLessThanOrEqual(metrics.bottom-2);
   expect(metrics.textTop).toBeGreaterThan(metrics.top); expect(metrics.petW).toBe(256);

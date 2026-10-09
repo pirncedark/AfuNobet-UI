@@ -156,6 +156,25 @@ export class BalonKuyrugu {
 /** Eski ad (P11 öncesi testler) aynı kuyruğu gösterir. */
 export { BalonKuyrugu as BalonModeli };
 
+/** Claude "bitti" mesajına serbest cevap: köprü (Stop hook) cevabı bekler ve Claude devam eder. */
+export function claudeCevapMi(m: Mesaj): boolean { return m.ajan === "claude" && m.tur === "bitti"; }
+export function cevapGonder(m: Mesaj, metin: string | null) {
+  if (!claudeCevapMi(m)) return;
+  invoke("mesaj_cevapla", { id: m.id, metin }).catch(() => {});
+}
+export function cevapKutusu(belge: Pick<Document, "createElement">, m: Mesaj, bitir: () => void): HTMLElement {
+  const satir = belge.createElement("div"); satir.className = "afu-cevap-satir";
+  const alan = belge.createElement("input"); alan.type = "text"; alan.placeholder = "Cevabını yaz"; alan.className = "soru-alan";
+  const gonder = belge.createElement("button"); gonder.type = "button"; gonder.className = "soru-dugme"; gonder.textContent = "Gönder";
+  const yolla = () => { const t = alan.value.trim(); if (!t) return; cevapGonder(m, t); bitir(); };
+  for (const ev of ["click", "pointerdown", "keyup"] as const) alan.addEventListener(ev, e => e.stopPropagation());
+  alan.addEventListener("keydown", e => { e.stopPropagation(); if (e.key === "Enter") yolla(); });
+  gonder.addEventListener("pointerdown", e => e.stopPropagation());
+  gonder.addEventListener("click", e => { e.stopPropagation(); yolla(); });
+  satir.append(alan, gonder);
+  return satir;
+}
+
 export function balonOlustur(
   belge: Pick<Document, "createElement">,
   mesaj: Mesaj,
@@ -238,13 +257,15 @@ export function balonOlustur(
     const ek = belge.createElement("span"); ek.className = "afu-balon-ek"; ek.textContent = `+${ekSayisi} mesaj`;
     e.append(ek);
   }
+  if (claudeCevapMi(mesaj) && !bicim.soru && kapat) e.append(cevapKutusu(belge, mesaj, kapat));
+  const kapatOkudum = kapat ? () => { cevapGonder(mesaj, null); kapat(); } : undefined;
   if (kapat) {
     const k = belge.createElement("span"); k.className = "afu-balon-kapat";
     k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");
     k.setAttribute("aria-label", "Mesajı kapat (Okudum)"); k.textContent = "Okudum";
     k.addEventListener("pointerdown", ev => ev.stopPropagation());
-    k.addEventListener("click", ev => { ev.stopPropagation(); kapat(); });
-    k.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); kapat(); } });
+    k.addEventListener("click", ev => { ev.stopPropagation(); kapatOkudum!(); });
+    k.addEventListener("keydown", ev => { if (ev.key === "Enter" || ev.key === " ") { ev.preventDefault(); ev.stopPropagation(); kapatOkudum!(); } });
     e.append(k);
   }
   if (!bicim.soru) {
@@ -401,7 +422,11 @@ export class KonusanAfu {
       if (hariciKapat) hariciKapat();
       else { this.model.okundu(m.id); this.ciz(); }
     });
-    this.detay.append(baslik, metin, kapat); this.detay.hidden = false; this.ac();
+    const bitir = () => { this.detay.hidden = true; if (hariciKapat) hariciKapat(); else { this.model.okundu(m.id); this.ciz(); } };
+    kapat.addEventListener("click", () => cevapGonder(m, null));
+    this.detay.append(baslik, metin);
+    if (claudeCevapMi(m)) this.detay.append(cevapKutusu(document, m, bitir));
+    this.detay.append(kapat); this.detay.hidden = false; this.ac();
   }
   setHarici(mesaj: Mesaj | null, kapat?: () => void) {
     this.hariciMesaj = mesaj; this.hariciKapatCallback = kapat; this.ciz();

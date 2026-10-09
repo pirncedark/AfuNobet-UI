@@ -39,7 +39,7 @@ export function contentWidth(textWidth: number, viewportW: number, _viewportH: n
  *  (14 px) eklediği için bu pay 14'ten büyük olmak zorunda: aksi hâlde balonun
  *  üstündeki "boş" kısım tıklamayı yutar ve tıklama masaüstüne geçmez. */
 export const PET_BALON_PAY = 24;
-export const PET_BALON_YUKSEKLIK = 220;
+export const PET_BALON_YUKSEKLIK = 340;
 export const PET_BALON_GENISLIK = 296;
 export const PET_BALON_PENCERE = 320;
 /** Balon kuyruğu ile karakterin başı arasındaki boşluk. */

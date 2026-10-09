@@ -1,7 +1,18 @@
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicI32, AtomicU64, Ordering};
 use std::sync::{Arc, Condvar, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter, PhysicalPosition, PhysicalSize};
+
+/// Kullanıcının sürükleyip bıraktığı yatay yer (petin sol kenarı, fiziksel px).
+/// i32::MIN = yok: pet Başlat düğmesinin yanındaki varsayılan yerde durur.
+/// Dikey yer hep görev çubuğu hizasında kalır; yalnız x kullanıcıdan gelir.
+static PET_X_OZEL: AtomicI32 = AtomicI32::new(i32::MIN);
+
+/// Özel x'i pet ekranının çalışma alanına sığdırır; başka ekrandaysa yok sayar.
+pub fn ozel_x(x: i32, ozel: i32, ekran: (i32, i32), calisma: (i32, i32), size: i32) -> i32 {
+    if ozel == i32::MIN || ozel < ekran.0 - size || ozel >= ekran.1 { return x; }
+    ozel.clamp(calisma.0, (calisma.1 - size).max(calisma.0))
+}
 
 pub fn yol(bas: (i32, i32), son: (i32, i32), t: f64) -> (i32, i32) {
     let t = if t.is_finite() { t.clamp(0.0, 1.0) } else { 0.0 };
@@ -89,7 +100,7 @@ pub fn pet_gizli_mi(on: bool, tam_ekran: bool, onay: bool) -> bool {
     on && tam_ekran && !onay
 }
 pub const PET_BALON_PAY: f64 = 24.0;
-pub const PET_BALON_YUKSEKLIK: f64 = 220.0;
+pub const PET_BALON_YUKSEKLIK: f64 = 340.0;
 pub const PET_BALON_BOSLUK: f64 = 8.0;
 pub fn pet_pencere_genisligi(balon: bool) -> f64 { if balon { 320.0 } else { PET_PENCERE } }
 
@@ -136,7 +147,6 @@ pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
     let scale = win.scale_factor().unwrap_or(1.0);
     let first = cursor()?;
     let Some(generation) = runtime.begin_drag() else { return Ok(false) };
-    let home = (origin.x, origin.y);
     let result = (|| {
         let mut held = false;
         let mut last_position = None;
@@ -170,6 +180,13 @@ pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
         if !held { return Ok(false); }
         let _ = app.emit("pet-drag", "returning");
         let pos = win.outer_position().map_err(|_| "Afu taşınamadı. Yeniden dene.".to_string())?;
+        // Bırakılan yer kalıcı: yatayda fare nereye çektiyse orada, dikeyde görev çubuğu hizasında.
+        let size = crate::dpi::physical_for(PET_PENCERE, scale) as i32;
+        let genislik = win.inner_size().map(|s| s.width as i32).unwrap_or(size);
+        PET_X_OZEL.store(pos.x + (genislik - size) / 2, Ordering::Release);
+        let balon = runtime.balon.load(Ordering::Acquire);
+        let (hx, hy, _, _) = hedef(&win, size, balon);
+        let home = (hx, hy);
         let started = Instant::now();
         let steps = adimlar(500, 60);
         for i in 0..=steps {
@@ -180,10 +197,7 @@ pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
             if i < steps { std::thread::sleep(Duration::from_millis(500 * (i + 1) as u64 / steps as u64).saturating_sub(started.elapsed())); }
         }
         runtime.with_current(generation, || {
-            let _ = win.set_size(original_size);
-            let _ = win.set_position(origin);
-            // P10: sürükleme sırasında balon açıldıysa ölçüyü tazele.
-            if runtime.balon.load(Ordering::Acquire) { uygula(&win, None, true); }
+            uygula(&win, None, runtime.balon.load(Ordering::Acquire));
             let _ = app.emit("pet-drag", "landed");
         });
         Ok(true)
@@ -215,7 +229,8 @@ fn destination(win: &tauri::WebviewWindow, size: i32) -> (i32, i32) {
     let bounds = screen(win);
     let calisma = calisma_alani(win).unwrap_or(bounds);
     let bar = crate::taskbar::cubuk();
-    crate::yaslanma::pet_yeri(bounds, calisma, bar.as_ref(), crate::taskbar::baslat_rect(), size, size)
+    let (x, y) = crate::yaslanma::pet_yeri(bounds, calisma, bar.as_ref(), crate::taskbar::baslat_rect(), size, size);
+    (ozel_x(x, PET_X_OZEL.load(Ordering::Acquire), (bounds.0, bounds.2), (calisma.0, calisma.2), size), y)
 }
 /// Pet penceresinin hedef ölçüsü ve konumu: (x, y, fiziksel yükseklik).
 /// Balon açıksa genişlik değişmez, yalnız YUKARI büyür ve alt kenar
@@ -434,7 +449,7 @@ mod tests {
     #[test]
     fn pet_window_grows_only_upwards_at_every_dpi() {
         assert_eq!(pet_pencere_yuksekligi(false), 256.0);
-        assert_eq!(pet_pencere_yuksekligi(true), 508.0);
+        assert_eq!(pet_pencere_yuksekligi(true), 628.0);
         for (scale, size) in [(1.0, 256), (1.25, 320), (1.5, 384)] {
             let taban = 1032i32; // 1080 piksellik ekranda 48 px'lik görev çubuğu
             let (balon, ust) = balon_olcu(true, size, taban, 0, scale);
@@ -523,6 +538,15 @@ mod tests {
 #[cfg(test)]
 mod open_speed_tests {
     use super::*;
+
+    #[test]
+    fn ozel_x_ekrana_sigar_baska_ekrani_yok_sayar() {
+        assert_eq!(ozel_x(500, i32::MIN, (0, 1920), (0, 1920), 256), 500);
+        assert_eq!(ozel_x(500, 900, (0, 1920), (0, 1920), 256), 900);
+        assert_eq!(ozel_x(500, 1900, (0, 1920), (0, 1920), 256), 1920 - 256);
+        assert_eq!(ozel_x(500, -100, (0, 1920), (0, 1920), 256), 0);
+        assert_eq!(ozel_x(500, 3000, (0, 1920), (0, 1920), 256), 500);
+    }
 
     #[test]
     fn pet_return_timing_is_three_times_faster_and_descent_unchanged() {
