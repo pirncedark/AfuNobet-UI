@@ -219,6 +219,21 @@ def speech_chunks(text, limit=200):
     return chunks
 
 
+def breath(rate, seed):
+    """Çok hafif, süzülmüş nefes sesi (≈ -36 dB, 0,3 sn)."""
+    import numpy as np
+    rng = np.random.default_rng(1000 + seed)
+    n = int(rate * 0.3)
+    noise = rng.standard_normal(n).astype(np.float32)
+    spectrum = np.fft.rfft(noise)
+    freqs = np.fft.rfftfreq(n, 1 / rate)
+    spectrum[(freqs < 300) | (freqs > 3200)] = 0
+    shaped = np.fft.irfft(spectrum, n).astype(np.float32)
+    envelope = np.sin(np.linspace(0, np.pi, n)) ** 2
+    shaped *= envelope / max(float(np.max(np.abs(shaped))), 1e-6) * 0.018
+    return shaped
+
+
 def trim_tail(samples, rate, text):
     """Chatterbox bazen cümleden sonra uğultu/hırlama (uzun kuyruk) üretir: beklenen süreyi aşan son parçayı keser."""
     import numpy as np
@@ -451,7 +466,7 @@ class Voice:
             self.ref.parent.mkdir(parents=True, exist_ok=True)
             subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(LOCAL/'2-Afu-Minik-Kiz.mp3'), '-ac', '1', '-ar', '24000', str(self.ref)], check=True, creationflags=HIDDEN)
 
-    def generate(self, text, target, preset):
+    def generate(self, text, target, preset, tarz='okuma'):
         import soundfile as sf
         name, ex, cfg = voice_preset(text)
         # The recommended 5b voice keeps its energy for all answer lengths.
@@ -461,6 +476,7 @@ class Voice:
         cfg = config['cfg_weight']
         import numpy as np
         sentences = speech_chunks(text)
+        previous_text = ''
         parts = []
         checks = []
         for sentence in sentences:
@@ -495,6 +511,12 @@ class Voice:
             checks.append(dict(text=sentence, attempts=candidates))
             if parts:
                 parts.append(np.zeros(int(self.model.sr * config.get('pause', 0.18)), dtype=np.float32))
+                if tarz == 'sohbet':
+                    # Sohbette doğal ses: cümleler arası biraz daha es, bazen hafif nefes (okumada yok, hızlı okunur).
+                    parts.append(np.zeros(int(self.model.sr * 0.2), dtype=np.float32))
+                    if len(checks) % 2 == 1 and not previous_text.rstrip().endswith('?'):
+                        parts.append(breath(self.model.sr, len(checks)))
+            previous_text = sentence
             parts.append(samples)
         raw = target.with_name(target.stem + '_ham.wav')
         if self.cancelled():

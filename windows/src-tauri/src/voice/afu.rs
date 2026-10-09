@@ -13,9 +13,12 @@ pub struct Choice {
     pub chosen: bool,
     #[serde(default)]
     pub available: Vec<String>,
+    /// "sohbet" = nefes/es eklenir; boş/"okuma" = hızlı, süssüz okuma.
+    #[serde(default, skip_serializing)]
+    pub tarz: String,
 }
 impl Default for Choice {
-    fn default() -> Self { Self { ses: "afu_5b".into(), filtre: "sicak".into(), chosen: false, available: vec!["afu_5b".into(), "notr".into()] } }
+    fn default() -> Self { Self { ses: "afu_5b".into(), filtre: "sicak".into(), chosen: false, available: vec!["afu_5b".into(), "notr".into()], tarz: String::new() } }
 }
 fn valid(ses: &str, filtre: &str) -> bool { NAMES.contains(&ses) && FILTERS.contains(&filtre) }
 pub fn runtime() -> Option<PathBuf> {
@@ -160,7 +163,7 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
     let fallback = || Answer::Fallback("Ayrıntıları ekranda görebilirsin.".into());
     if generation.load(Ordering::Acquire) != ticket { return Answer::Cancelled; }
     let (Some(root), Some(python)) = (root, python) else { return Answer::Fallback(NOT_INSTALLED.into()); };
-    let request = serde_json::json!({"text":text,"ses":choice.ses,"filtre":choice.filtre,"headless":headless});
+    let request = serde_json::json!({"text":text,"ses":choice.ses,"filtre":choice.filtre,"headless":headless,"tarz":choice.tarz});
     if fs::write(directory.join("request.json"), request.to_string()).is_err() { return fallback(); }
     let mut command = Command::new(python);
     command.args(["-B"]).arg(root.join("uygulama_sesi.py")).arg(directory)

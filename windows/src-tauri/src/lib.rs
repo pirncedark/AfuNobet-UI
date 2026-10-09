@@ -149,7 +149,7 @@ fn sol_voice_silence(sol: tauri::State<'_, SolVoiceState>, state: tauri::State<'
     sol.silence();voice::voice_silence(state);
 }
 #[tauri::command]
-async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoiceState>, text: String) -> Result<Value, String> {
+async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoiceState>, text: String, tarz: Option<String>) -> Result<Value, String> {
     use std::sync::atomic::Ordering;
     let generation=sol.generation.clone();
     let ticket=generation.fetch_add(1,Ordering::AcqRel)+1;
@@ -160,7 +160,8 @@ async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoic
     let lock=sol.lock.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let _guard=lock.lock().map_err(|_|failure.to_owned())?;
-        let result=voice::afu::speak(voice::afu::runtime().as_deref(),&directory,&voice::afu::Choice::default(),&text,&generation,ticket);
+        let mut secim=voice::afu::Choice::default(); secim.tarz=tarz.unwrap_or_default();
+        let result=voice::afu::speak(voice::afu::runtime().as_deref(),&directory,&secim,&text,&generation,ticket);
         if let Ok(mut jobs)=jobs.lock(){jobs.retain(|path|path!=&directory);}
         match result {
             voice::afu::Answer::Played|voice::afu::Answer::Cancelled=>Ok(serde_json::json!({"warning":null})),
