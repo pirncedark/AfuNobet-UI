@@ -6,7 +6,7 @@ from pathlib import Path
 import uygulama_sesi as adapter
 
 PORT = 47615
-IDLE_SECONDS = 600
+IDLE_SECONDS = 3600
 
 def main():
     server = socket.socket()
