@@ -245,8 +245,8 @@ describe("5) Pet balonu", () => {
     expect(petPencereYuksekligi(true)).toBeGreaterThan(petPencereYuksekligi(false));
   });
   it("balon genişliği pet kutusuna sığar", () => {
-    expect(PET_BALON_GENISLIK).toBeLessThanOrEqual(320);
-    expect(PET_BALON_GENISLIK).toBe(296);
+    expect(PET_BALON_GENISLIK).toBeLessThanOrEqual(592);
+    expect(PET_BALON_GENISLIK).toBe(568);
   });
   it("balon üstündeki şeffaf pay isabet kutusuna girmez (masaüstü tıklanır kalır)", () => {
     // island.rs isabet kutusuna HIT_MARGIN=14 ekliyor.

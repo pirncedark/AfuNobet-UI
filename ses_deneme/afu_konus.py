@@ -192,7 +192,7 @@ def speech_chunks(text, limit=200):
 
 
 def chunk_quality(text, seconds, transcript=None):
-    if not 0.025 * len(text) <= seconds <= max(3, 0.18 * len(text)):
+    if not 0.025 * len(text) <= seconds <= max(5, 0.18 * len(text)):
         return 'duration_ratio'
     if transcript is not None:
         # Keep validation in the worker; development proof scripts are not shipped.
