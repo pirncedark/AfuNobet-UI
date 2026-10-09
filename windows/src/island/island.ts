@@ -204,7 +204,7 @@ export class Island {
     try {
       // "Hey Google" gibi: "AfuNöbet" sözü her zaman dinlenir (sohbet açık ya da kapalı).
       for (;;) {
-        if (this.sesliId || this.mikMesgul) { await bekle(600); continue; }
+        if (this.sesliId || this.mikMesgul || this.chat.conversation?.active) { await bekle(600); continue; }
         let duyulan = "";
         try { duyulan = await Bridge.voiceListenTurn(6000); } catch { await bekle(1500); continue; }
         if (!/afu.{0,3}(bet|bed|pet|bat)/.test(Island.sade(duyulan))) continue;
@@ -212,18 +212,15 @@ export class Island {
         try { await Bridge.voiceResponse("Buradayım."); } catch { /* ses yoksa sessiz devam */ }
         const acik = messageNotifications.current();
         if (acik?.raw && claudeCevapMi(acik.raw)) { this.sesliOkunan.delete(acik.id); void this.sesliCevap(acik); }
-        else {
-          // Bekleyen Claude mesajı yoksa komut balonu açılır, söylediğin yazı kutusuna düşer.
-          this.komutBalonuAc();
-          await bekle(400);
-          this.mikMesgul = true; mikSeviyesiniBagla(); this.sesDalga("dinliyor");
-          try {
-            const komut = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
-            if (komut) window.dispatchEvent(new CustomEvent("afu-komut-yaz", { detail: komut }));
-          } catch { /* mikrofon yoksa sessiz */ } finally { this.sesDalga(null); this.mikMesgul = false; }
-        }
+        else await this.sesliSohbetAc(); // Bekleyen mesaj yoksa "tamam yeterli"ye kadar sesli sohbet
       }
     } finally { this.uyanikBekle = false; }
+  }
+  /** Sohbet penceresini açar ve sürekli sesli sohbeti başlatır ("tamam yeterli" ile biter). */
+  async sesliSohbetAc() {
+    if (this.view !== "chat") { this.setView("chat"); void this.chat.refresh(); this.fsm.pinned = true; }
+    await new Promise(r => window.setTimeout(r, 700));
+    await this.chat.sesliSohbetiBaslat();
   }
   private async sohbetiKapat(message: { id: string; raw?: import("../message/message").Mesaj }) {
     this.sohbetAcik = false;
@@ -265,6 +262,7 @@ export class Island {
   private bindMessages() {
     State.settings.messageAlert = loadMessageAlert();
     messageNotifications.setEnabled(State.settings.messageAlert);
+    window.addEventListener("afu-sesli-sohbet", () => void this.sesliSohbetAc());
     window.setTimeout(() => void this.uyanmaDongusu(), 8000); // model yüklensin, sonra çağırma sözü dinlenir
     let raised = false;
     const unsubscribe = messageNotifications.subscribe(() => {

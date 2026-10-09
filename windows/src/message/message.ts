@@ -217,10 +217,12 @@ function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void)
       .then(() => { if (kapat) kapat(); })
       .catch(err => { gonder.disabled = false; durum.textContent = typeof err === "string" && err ? err : "Komut gönderilemedi. Yeniden dene."; });
   };
-  for (const el of [e, ajan, alan, gonder, mik]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
+  const sohbet = belge.createElement("button"); sohbet.type = "button"; sohbet.className = "soru-dugme afu-komut-mik"; sohbet.textContent = "🗣"; sohbet.title = "Sesli sohbet (bitirmek için: tamam yeterli)"; sohbet.setAttribute("aria-label", "Sesli sohbet");
+  sohbet.addEventListener("click", () => { window.dispatchEvent(new Event("afu-sesli-sohbet")); if (kapat) kapat(); });
+  for (const el of [e, ajan, alan, gonder, mik, sohbet]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
   alan.addEventListener("keydown", x => { x.stopPropagation(); if (x.key === "Enter") yolla(); });
   gonder.addEventListener("click", yolla);
-  satir.append(ajan, alan, mik, gonder);
+  satir.append(ajan, alan, mik, sohbet, gonder);
   e.append(etiket, satir, durum);
   if (kapat) {
     const k = belge.createElement("span"); k.className = "afu-balon-kapat"; k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");

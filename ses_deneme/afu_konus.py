@@ -219,6 +219,29 @@ def speech_chunks(text, limit=200):
     return chunks
 
 
+def gate_silence(samples, rate):
+    """Konuşma aralarındaki hışırtıyı (yaprak/kâğıt sesi) tam sessizliğe çeker; konuşma kenarlarını korur."""
+    import numpy as np
+    frame = max(1, int(rate * 0.02))
+    count = len(samples) // frame
+    if count < 3:
+        return samples
+    energy = np.array([float(np.sqrt(np.mean(samples[i * frame:(i + 1) * frame] ** 2))) for i in range(count)])
+    voiced = energy > 0.018
+    keep = voiced.copy()
+    for index in np.flatnonzero(voiced):
+        keep[max(0, index - 2):index + 3] = True  # kelime başı/sonu 40 ms korunur
+    mask = np.zeros(len(samples), dtype=np.float32)
+    for index in range(count):
+        if keep[index]:
+            mask[index * frame:(index + 1) * frame] = 1.0
+    if count * frame < len(samples) and keep[-1]:
+        mask[count * frame:] = 1.0
+    kernel = np.ones(max(1, int(rate * 0.012)), dtype=np.float32)
+    mask = np.convolve(mask, kernel / len(kernel), mode='same')
+    return (samples * mask).astype(np.float32)
+
+
 def breath(rate, seed):
     """Çok hafif, süzülmüş nefes sesi (≈ -36 dB, 0,3 sn)."""
     import numpy as np
@@ -497,7 +520,7 @@ class Voice:
                             raise
                         time.sleep(10)
                 samples = wav.detach().cpu().numpy().reshape(-1)
-                samples = trim_tail(samples, self.model.sr, sentence)
+                samples = gate_silence(trim_tail(samples, self.model.sr, sentence), self.model.sr)
                 seconds = len(samples) / self.model.sr
                 reason = chunk_quality(sentence, seconds)
                 transcript = None
@@ -512,10 +535,8 @@ class Voice:
             if parts:
                 parts.append(np.zeros(int(self.model.sr * config.get('pause', 0.18)), dtype=np.float32))
                 if tarz == 'sohbet':
-                    # Sohbette doğal ses: cümleler arası biraz daha es, bazen hafif nefes (okumada yok, hızlı okunur).
+                    # Sohbette doğal ses: cümleler arası biraz daha sessiz es (okumada yok, hızlı okunur).
                     parts.append(np.zeros(int(self.model.sr * 0.2), dtype=np.float32))
-                    if len(checks) % 2 == 1 and not previous_text.rstrip().endswith('?'):
-                        parts.append(breath(self.model.sr, len(checks)))
             previous_text = sentence
             parts.append(samples)
         raw = target.with_name(target.stem + '_ham.wav')
