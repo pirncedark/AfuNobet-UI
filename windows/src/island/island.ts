@@ -199,7 +199,7 @@ export class Island {
     try {
       const destek = await Bridge.voiceSupported();
       if (!destek.tts && !destek.afu_tts) return;
-      await Bridge.voiceSpeak(kisalt(temizMetin(raw.metin), 240));
+      await Bridge.voiceResponse(kisalt(temizMetin(raw.metin), 240));
       if (!hala()) return;
       // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
       const duyulan = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
