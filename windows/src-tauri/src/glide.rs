@@ -7,6 +7,21 @@ use tauri::{AppHandle, Emitter, PhysicalPosition, PhysicalSize};
 /// i32::MIN = yok: pet Başlat düğmesinin yanındaki varsayılan yerde durur.
 /// Dikey yer hep görev çubuğu hizasında kalır; yalnız x kullanıcıdan gelir.
 static PET_X_OZEL: AtomicI32 = AtomicI32::new(i32::MIN);
+static PET_X_DOSYA: std::sync::OnceLock<std::path::PathBuf> = std::sync::OnceLock::new();
+
+/// Kaydedilmiş yatay yeri açılışta yükler; sonraki sürüklemeler aynı dosyaya yazılır.
+pub fn x_yukle(dosya: std::path::PathBuf) {
+    if let Some(x) = std::fs::read_to_string(&dosya).ok().and_then(|t| t.trim().parse::<i32>().ok()) {
+        PET_X_OZEL.store(x, Ordering::Release);
+    }
+    let _ = PET_X_DOSYA.set(dosya);
+}
+fn x_kaydet(x: i32) {
+    if let Some(dosya) = PET_X_DOSYA.get() {
+        if let Some(klasor) = dosya.parent() { let _ = std::fs::create_dir_all(klasor); }
+        let _ = std::fs::write(dosya, x.to_string());
+    }
+}
 
 /// Özel x'i pet ekranının çalışma alanına sığdırır; başka ekrandaysa yok sayar.
 pub fn ozel_x(x: i32, ozel: i32, ekran: (i32, i32), calisma: (i32, i32), size: i32) -> i32 {
@@ -183,7 +198,9 @@ pub fn drag(app: AppHandle, runtime: Arc<PetRuntime>) -> Result<bool, String> {
         // Bırakılan yer kalıcı: yatayda fare nereye çektiyse orada, dikeyde görev çubuğu hizasında.
         let size = crate::dpi::physical_for(PET_PENCERE, scale) as i32;
         let genislik = win.inner_size().map(|s| s.width as i32).unwrap_or(size);
-        PET_X_OZEL.store(pos.x + (genislik - size) / 2, Ordering::Release);
+        let yeni_x = pos.x + (genislik - size) / 2;
+        PET_X_OZEL.store(yeni_x, Ordering::Release);
+        x_kaydet(yeni_x);
         let balon = runtime.balon.load(Ordering::Acquire);
         let (hx, hy, _, _) = hedef(&win, size, balon);
         let home = (hx, hy);

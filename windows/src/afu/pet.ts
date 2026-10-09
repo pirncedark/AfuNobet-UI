@@ -1145,13 +1145,24 @@ export class AfuPet {
   private appsSnapshot: AppsSnapshot = { apps: [], durumlar: {} };
   private appOpener: ((id: string) => Promise<string | null | void>) | null = null;
   private gorevDurum = "bosta";
-  constructor(open: () => void, private appsRequested?: () => void, private appsVisible?: (on: boolean) => void) {
+  private tekTik: number | null = null;
+  constructor(open: () => void, private appsRequested?: () => void, private appsVisible?: (on: boolean) => void, private komutIstendi?: () => void) {
     this.el = h("button", { id: "afu-pet", hidden: true, "aria-label": "Afu kartını aç", onclick: () => {
-      const activate = () => { this.hideApps(); this.model.acknowledge(); open(); };
+      // Tek tık: komut balonu. Büyük mod YALNIZ çift tıkla açılır (aşağıdaki dblclick).
+      const tek = () => {
+        if (!this.komutIstendi) { this.hideApps(); this.model.acknowledge(); open(); return; }
+        if (this.tekTik !== null) window.clearTimeout(this.tekTik);
+        this.tekTik = window.setTimeout(() => { this.tekTik = null; this.hideApps(); this.model.acknowledge(); this.komutIstendi?.(); }, 260);
+      };
       const pending = this.dragPending;
-      if (pending) void pending.then(dragged => { if (!dragged && this.active) activate(); });
-      else activate();
+      if (pending) void pending.then(dragged => { if (!dragged && this.active) tek(); });
+      else tek();
     } }, this.previous, this.image, this.canvas, this.balloon);
+    this.el.addEventListener("dblclick", () => {
+      if (!this.komutIstendi || !this.active) return;
+      if (this.tekTik !== null) { window.clearTimeout(this.tekTik); this.tekTik = null; }
+      this.hideApps(); this.model.acknowledge(); open();
+    });
     document.body.append(this.appsMenu);
     this.el.addEventListener("pointerdown", event => {
       if (event.button !== 0 || !this.active || this.dragPending) return;

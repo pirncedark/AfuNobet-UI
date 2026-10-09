@@ -467,6 +467,7 @@ pub fn run() {
             mesajlar::start(handle.clone());
             if let Ok(path) = handle.path().app_config_dir() {
                 handle.state::<Shared>().settings.lock().unwrap().pet = settings::load(&path.join("pet.json"));
+                glide::x_yukle(path.join("pet_x.txt"));
             }
             if let Ok(registry) = apps_path(&handle) {
                 let manifest = std::path::Path::new(env!("CARGO_MANIFEST_DIR"));

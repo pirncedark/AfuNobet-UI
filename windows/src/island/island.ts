@@ -13,7 +13,7 @@ import { deriveEvents, EventDeduper } from "../core/events";
 import { AfuPet, PET_BOYUT } from "../afu/pet";
 import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
-import { KonusanAfu, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, KOMUT_ONEK, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
@@ -41,7 +41,16 @@ export class Island {
     this.konusan?.suspend(on);
     if (!IS_TAURI) { this.pet.positionApps(); return; }
     void Bridge.petAppsPopup(on).then(() => this.pet.positionApps()).catch(() => this.appsError("Uygulama menüsü açılamadı; yeniden dene."));
-  });
+  }, () => this.komutBalonuAc());
+  /** Maskota tek tık: komut balonunu aç/kapat. Büyük mod yalnız çift tıkla gelir. */
+  private komutBalonuAc() {
+    const acik = messageNotifications.current();
+    if (acik?.id.startsWith(KOMUT_ONEK)) { messageNotifications.close(acik.id); return; }
+    const id = `${KOMUT_ONEK}${Date.now()}`;
+    const zaman = Date.now();
+    showNotification({ id, type: "notification", timestamp: zaman, text: "Komut ver", ajan: "codex",
+      raw: { surum: 1, id, ajan: "codex", tur: "komut", metin: "Komut ver", zaman } });
+  }
   private appsSnapshot: AppsSnapshot = { apps: [], durumlar: {} };
   readonly chat = new ChatView(Bridge, () => buildContext(State.snapshot, State.focusTask), Bridge);
   readonly sor = new SorView({ snapshot: () => State.snapshot, codexStatus: () => Bridge.codexStatus(), codexLogin: () => Bridge.codexLogin(), codexaSor: text => this.askCodex(text) });
