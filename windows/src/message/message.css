@@ -48,6 +48,8 @@
 /* The expanded card owns its character; hide the separate miniature pet. */
 #island[data-mode=expanded] ~ #afu-pet,
 #island[data-mode=expanded] ~ #afu-pet-balon{display:none}
+/* Büyük ekranda mesaj kartta görünür; maskotun üstünde ikinci bir balon çıkmaz. */
+#island[data-mode=expanded] #afu-character>.afu-konusma-balonu{display:none!important}
 /* Claude mesajına cevap satırı: yazı kutusu + Gönder, balon ve kartta tam sığar. */
 .afu-cevap-satir{display:flex;gap:6px;align-items:stretch;margin-top:6px;width:100%;box-sizing:border-box}
 .afu-cevap-satir .soru-alan{flex:1 1 auto;min-width:0}
