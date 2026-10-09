@@ -242,6 +242,21 @@ def gate_silence(samples, rate):
     return (samples * mask).astype(np.float32)
 
 
+def trim_end(samples, rate):
+    """Cümle sonundaki gereksiz sessizliği 150 ms bırakarak kırpar (boş bekleme olmasın)."""
+    import numpy as np
+    frame = max(1, int(rate * 0.02))
+    count = len(samples) // frame
+    if count < 3:
+        return samples
+    energy = np.array([float(np.sqrt(np.mean(samples[i * frame:(i + 1) * frame] ** 2))) for i in range(count)])
+    voiced = np.flatnonzero(energy > 0.012)
+    if len(voiced) == 0:
+        return samples
+    cut = min(len(samples), (int(voiced[-1]) + 1) * frame + int(rate * 0.15))
+    return samples[:cut]
+
+
 def breath(rate, seed):
     """Çok hafif, süzülmüş nefes sesi (≈ -36 dB, 0,3 sn)."""
     import numpy as np
@@ -265,7 +280,7 @@ def trim_tail(samples, rate, text):
         return samples
     energy = np.array([float(np.sqrt(np.mean(samples[i:i + frame] ** 2))) for i in range(0, len(samples) - frame + 1, frame)])
     voiced = energy > 0.012
-    limit = (0.07 * len(text) + 0.3) * 1.6
+    limit = (0.07 * len(text) + 0.25) * 1.3
     segments, start, gap = [], None, 0
     for index, flag in enumerate(voiced):
         if flag:
@@ -284,7 +299,8 @@ def trim_tail(samples, rate, text):
         return samples
     keep = segments[0][1]
     for seg_start, seg_end in segments[1:]:
-        if (seg_end + 1) * frame / rate <= limit:
+        sessiz = float(np.mean(energy[seg_start:seg_end + 1])) < 0.05  # zayıf, boşluktan sonra gelen kuyruk = uğultu
+        if (seg_end + 1) * frame / rate <= limit and not (sessiz and seg_end == segments[-1][1]):
             keep = seg_end
         else:
             break
@@ -520,7 +536,7 @@ class Voice:
                             raise
                         time.sleep(10)
                 samples = wav.detach().cpu().numpy().reshape(-1)
-                samples = gate_silence(trim_tail(samples, self.model.sr, sentence), self.model.sr)
+                samples = gate_silence(trim_end(trim_tail(samples, self.model.sr, sentence), self.model.sr), self.model.sr)
                 seconds = len(samples) / self.model.sr
                 reason = chunk_quality(sentence, seconds)
                 transcript = None
