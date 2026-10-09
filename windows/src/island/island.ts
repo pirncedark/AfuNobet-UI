@@ -22,6 +22,7 @@ import { bicimle } from "../message/bicim";
 import { messageNotifications, showNotification } from "../message/notifications";
 import { loadMessageAlert } from "../core/settings";
 import { listen } from "@tauri-apps/api/event";
+import { sesDalga, mikSeviyesiniBagla } from "../message/sesdalga";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { cursorToCss, dismissAction, hitRect, hitScale, toWindow } from "../core/hit";
 
@@ -188,14 +189,7 @@ export class Island {
   /** Gelen Claude mesajını maskot sesiyle okur, sonra tek tur dinler; duyulan cevap Claude'a gider. */
   private sesliId: string | null = null;
   private sesliOkunan = new Set<string>();
-  /** Konuşurken/dinlerken maskotun yanında ses dalgası gösterir. */
-  private sesDalga(durum: "konusuyor" | "dinliyor" | null) {
-    let el = document.getElementById("afu-ses-dalga");
-    if (!durum) { el?.remove(); return; }
-    if (!el) { el = h("div", { id: "afu-ses-dalga", "aria-hidden": "true" }, ...[0, 1, 2, 3, 4].map(() => h("i", {}))); document.body.append(el); }
-    el.className = durum;
-    el.title = durum === "konusuyor" ? "Afu konuşuyor" : "Seni dinliyorum";
-  }
+  private sesDalga = sesDalga;
   private sesliBitir() { this.sesliId = null; this.sesDalga(null); void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
   private async sesliCevap(message: { id: string; raw?: import("../message/message").Mesaj }) {
     const raw = message.raw;
@@ -212,6 +206,7 @@ export class Island {
       try { await Bridge.voiceResponse(kisalt(temizMetin(raw.metin), 240)); } finally { calmaDinle(); this.sesDalga(null); }
       if (!hala()) return;
       // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
+      mikSeviyesiniBagla(); this.sesDalga("dinliyor");
       const duyulan = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
       if (!duyulan || !hala()) return;
       const bicim = bicimle(raw.metin);
