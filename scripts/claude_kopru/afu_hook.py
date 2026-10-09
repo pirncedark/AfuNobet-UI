@@ -173,6 +173,10 @@ def process(event, root, wall_clock, monotonic, sleep, deadline):
     if kind in ('Stop', 'Notification'):
         text = last_assistant(event['transcript_path']) if kind == 'Stop' else event.get('message')
         if isinstance(text, str) and text.strip():
+            # Hangi terminalden geldiği görünsün: etiket "Claude · klasör" olur, cevap yalnız bu mesajın oturumuna gider.
+            klasor = Path(str(event.get('cwd') or '')).name.strip()
+            if klasor and re.fullmatch(r'[\w .\-]{1,24}', klasor):
+                text = 'Claude · ' + klasor + ': ' + text
             uid = 'claude-' + uuid.uuid4().hex
             atomic(root/'mesajlar'/f'{uid}.json', dict(surum=1, id=uid, ajan='claude', tur='bitti' if kind == 'Stop' else 'bilgi', metin=mask(text.strip())[:2000], zaman=int(wall_clock()*1000)))
             if kind == 'Stop':
