@@ -21,7 +21,9 @@ def apply_filter(source, target, preset='sicak'):
     with wave.open(str(source), 'rb') as audio:
         rate = audio.getframerate()
     ratio = 2 ** (semitones / 12)
-    chain = (f'asetrate={rate}*{ratio:.10f},aresample={rate},atempo={speed/ratio:.10f},'
+    # Konuşma aralarındaki hışırtı: önce yumuşak gürültü azaltma, sonra hafif kapı (konuşmayı kesmez).
+    temizle = 'highpass=f=70,afftdn=nr=14:nf=-48:tn=1,agate=threshold=0.012:ratio=2.5:attack=8:release=160:makeup=1,'
+    chain = (temizle + f'asetrate={rate}*{ratio:.10f},aresample={rate},atempo={speed/ratio:.10f},'
              f'equalizer=f={lowfreq}:t=q:w=1:g={lowgain},'
              f'equalizer=f={highfreq}:t=q:w=1:g={highgain},volume=0.8,'
              'alimiter=limit=0.95:level=false')
