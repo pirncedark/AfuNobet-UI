@@ -97,6 +97,40 @@ def _simple(text):
     return ' '.join(re.split(r'(?<=[.!?])\s+', text)[:2])
 
 
+def tam_duz(text):
+    """Telefon için: kod blokları ve işaretler gider, satırlar ve şıklar kalır."""
+    text = re.sub(r'```[\s\S]*?```|~~~[\s\S]*?~~~', ' ', text)
+    text = re.sub(r'!?\[([^\]]*)\]\([^)]*\)', r'\1', text)
+    text = re.sub(r'(?m)^[ \t]*#{1,6}[ \t]*', '', text)
+    text = re.sub(r'[`*_~]', '', text)
+    text = re.sub(r'[ \t]+', ' ', text)
+    return re.sub(r'\n{3,}', chr(10) * 2, text).strip()
+
+
+def last_assistant_full(path):
+    with Path(path).open('rb') as stream:
+        size = stream.seek(0, 2)
+        stream.seek(max(0, size-LIMIT))
+        raw = stream.read(LIMIT)
+    lines = raw.splitlines()
+    if size > LIMIT:
+        lines = lines[1:]
+    for line in reversed(lines):
+        try:
+            row = json.loads(line)
+            if not isinstance(row, dict) or row.get('type') != 'assistant':
+                continue
+            content = row.get('message', {}).get('content', [])
+            if isinstance(content, str):
+                return tam_duz(content)
+            texts = [part['text'] for part in content if isinstance(part, dict) and part.get('type') == 'text' and isinstance(part.get('text'), str)]
+            if texts:
+                return tam_duz(chr(10).join(texts))
+        except (ValueError, AttributeError, TypeError):
+            continue
+    return ''
+
+
 def last_assistant(path):
     # Tail read bounds both memory and transcript processing, even for long sessions.
     with Path(path).open('rb') as stream:
@@ -172,13 +206,14 @@ def process(event, root, wall_clock, monotonic, sleep, deadline):
     kind = event.get('hook_event_name')
     if kind in ('Stop', 'Notification'):
         text = last_assistant(event['transcript_path']) if kind == 'Stop' else event.get('message')
+        tam_metin = (last_assistant_full(event['transcript_path']) if kind == 'Stop' else event.get('message')) or ''
         if isinstance(text, str) and text.strip():
             # Hangi terminalden geldiği görünsün: etiket "Claude · klasör" olur, cevap yalnız bu mesajın oturumuna gider.
             klasor = Path(str(event.get('cwd') or '')).name.strip()
             if klasor and re.fullmatch(r'[\w .\-]{1,24}', klasor):
                 text = 'Claude · ' + klasor + ': ' + text
             uid = 'claude-' + uuid.uuid4().hex
-            atomic(root/'mesajlar'/f'{uid}.json', dict(surum=1, id=uid, ajan='claude', tur='bitti' if kind == 'Stop' else 'bilgi', metin=mask(text.strip())[:2000], zaman=int(wall_clock()*1000)))
+            atomic(root/'mesajlar'/f'{uid}.json', dict(surum=1, id=uid, ajan='claude', tur='bitti' if kind == 'Stop' else 'bilgi', metin=mask(text.strip())[:2000], tam=mask(tam_metin)[:6000], zaman=int(wall_clock()*1000)))
             if kind == 'Stop':
                 return wait_reply(uid, root, wall_clock, monotonic, sleep, min(deadline, monotonic() + REPLY_WAIT))
         return None
