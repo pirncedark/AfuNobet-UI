@@ -64,3 +64,10 @@
 .afu-komut-balonu .afu-komut-ajan{flex:0 0 auto;width:auto;max-width:84px}
 .afu-komut-durum{min-height:0;margin-top:4px;font-size:11px;color:#ffb4a8}
 .afu-komut-durum:empty{display:none}
+
+/* Ses dalgası: Afu konuşurken turuncu, seni dinlerken yeşil oynar. */
+#afu-ses-dalga{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:3px;height:22px;padding:3px 8px;border-radius:11px;background:#17283fe6;border:1px solid #659dd5;z-index:30;pointer-events:none}
+#afu-ses-dalga i{display:block;width:4px;height:6px;border-radius:2px;background:#ffb347;animation:afu-dalga .7s ease-in-out infinite}
+#afu-ses-dalga.dinliyor i{background:#5ee08a}
+#afu-ses-dalga i:nth-child(2){animation-delay:.1s}#afu-ses-dalga i:nth-child(3){animation-delay:.2s}#afu-ses-dalga i:nth-child(4){animation-delay:.3s}#afu-ses-dalga i:nth-child(5){animation-delay:.4s}
+@keyframes afu-dalga{0%,100%{height:5px}50%{height:18px}}
