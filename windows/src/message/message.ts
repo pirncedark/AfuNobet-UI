@@ -8,6 +8,8 @@ import { clipText } from "../core/metin";
 import type { NotificationMessage } from "./notifications";
 import { bicimle } from "./bicim";
 import { messageNotifications } from "./notifications";
+import { sesDalga, mikSeviyesiniBagla } from "./sesdalga";
+import { Bridge } from "../core/bridge";
 import "./message.css";
 
 export const AJANLAR = ["claude", "codex", "gemini", "opencode"] as const;
@@ -186,7 +188,18 @@ function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void)
   for (const a of ["codex", "gemini", "opencode", "claude"]) { const o = belge.createElement("option"); o.value = a; o.textContent = ad(a as MesajAjan); ajan.append(o); }
   const alan = belge.createElement("input"); alan.type = "text"; alan.placeholder = "Ne yapılsın?"; alan.className = "soru-alan";
   const gonder = belge.createElement("button"); gonder.type = "button"; gonder.className = "soru-dugme"; gonder.textContent = "Gönder";
+  const mik = belge.createElement("button"); mik.type = "button"; mik.className = "soru-dugme afu-komut-mik"; mik.textContent = "🎤"; mik.title = "Sesle yaz"; mik.setAttribute("aria-label", "Sesle yaz");
   const durum = belge.createElement("div"); durum.className = "afu-komut-durum";
+  // Mikrofon düğmesi: yeşil dalga oynar, söylediğin yazı kutusuna düşer.
+  mik.addEventListener("click", () => {
+    if (mik.disabled) return;
+    mik.disabled = true; durum.textContent = ""; alan.placeholder = "Dinliyorum… konuş";
+    mikSeviyesiniBagla(); sesDalga("dinliyor");
+    Bridge.voiceListenTurn(10000)
+      .then(t => { const m = t.replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim(); if (m) alan.value = m; else durum.textContent = "Seni duyamadım. Yeniden dene."; })
+      .catch(() => { durum.textContent = "Mikrofon açılamadı. Mikrofon izni ve cihazı kontrol et."; })
+      .finally(() => { sesDalga(null); mik.disabled = false; alan.placeholder = "Ne yapılsın?"; });
+  });
   const yolla = () => {
     const gorev = alan.value.trim(); if (!gorev) return;
     if (ajan.value === "claude") {
@@ -200,10 +213,10 @@ function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void)
       .then(() => { if (kapat) kapat(); })
       .catch(err => { gonder.disabled = false; durum.textContent = typeof err === "string" && err ? err : "Komut gönderilemedi. Yeniden dene."; });
   };
-  for (const el of [e, ajan, alan, gonder]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
+  for (const el of [e, ajan, alan, gonder, mik]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
   alan.addEventListener("keydown", x => { x.stopPropagation(); if (x.key === "Enter") yolla(); });
   gonder.addEventListener("click", yolla);
-  satir.append(ajan, alan, gonder);
+  satir.append(ajan, alan, mik, gonder);
   e.append(etiket, satir, durum);
   if (kapat) {
     const k = belge.createElement("span"); k.className = "afu-balon-kapat"; k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");
