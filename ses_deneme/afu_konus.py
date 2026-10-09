@@ -419,8 +419,8 @@ class Voice:
                 seconds = len(samples) / self.model.sr
                 reason = chunk_quality(sentence, seconds)
                 transcript = None
-                if reason is None:
-                    transcript = self.transcribe(samples)
+                if reason is None and os.environ.get('AFU_SES_DOGRULA') == '1':
+                    transcript = self.transcribe(samples)  # yavaş; yalnız geliştirme denetiminde
                     reason = chunk_quality(sentence, seconds, transcript)
                 candidates.append(dict(attempt=quality_attempt + 1, seconds=seconds,
                                        transcript=transcript, issue=reason))
