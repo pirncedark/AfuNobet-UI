@@ -187,7 +187,15 @@ export class Island {
   /** Gelen Claude mesajını maskot sesiyle okur, sonra tek tur dinler; duyulan cevap Claude'a gider. */
   private sesliId: string | null = null;
   private sesliOkunan = new Set<string>();
-  private sesliBitir() { this.sesliId = null; void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
+  /** Konuşurken/dinlerken maskotun yanında ses dalgası gösterir. */
+  private sesDalga(durum: "konusuyor" | "dinliyor" | null) {
+    let el = document.getElementById("afu-ses-dalga");
+    if (!durum) { el?.remove(); return; }
+    if (!el) { el = h("div", { id: "afu-ses-dalga", "aria-hidden": "true" }, ...[0, 1, 2, 3, 4].map(() => h("i", {}))); document.body.append(el); }
+    el.className = durum;
+    el.title = durum === "konusuyor" ? "Afu konuşuyor" : "Seni dinliyorum";
+  }
+  private sesliBitir() { this.sesliId = null; this.sesDalga(null); void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
   private async sesliCevap(message: { id: string; raw?: import("../message/message").Mesaj }) {
     const raw = message.raw;
     if (!raw || this.sesliOkunan.has(message.id)) return;
@@ -199,6 +207,7 @@ export class Island {
     try {
       const destek = await Bridge.voiceSupported();
       if (!destek.tts && !destek.afu_tts) return;
+      this.sesDalga("konusuyor");
       await Bridge.voiceResponse(kisalt(temizMetin(raw.metin), 240));
       if (!hala()) return;
       // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
@@ -212,6 +221,7 @@ export class Island {
       cevapGonder(raw, sec ? `${sec.id} = ${sec.etiket}` : duyulan);
       messageNotifications.close(message.id);
     } catch { /* ses yoksa balon yazıyla çalışmaya devam eder */ }
+    finally { this.sesDalga(null); }
   }
   private bindMessages() {
     State.settings.messageAlert = loadMessageAlert();
