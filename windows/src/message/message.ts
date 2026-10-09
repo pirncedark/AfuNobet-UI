@@ -7,6 +7,7 @@ import { kopruDurumu, type KopruMesaj } from "../core/kopru";
 import { clipText } from "../core/metin";
 import type { NotificationMessage } from "./notifications";
 import { bicimle } from "./bicim";
+import { messageNotifications } from "./notifications";
 import "./message.css";
 
 export const AJANLAR = ["claude", "codex", "gemini", "opencode"] as const;
@@ -182,12 +183,18 @@ function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void)
   const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket"; etiket.textContent = "Afu'ya komut ver";
   const satir = belge.createElement("div"); satir.className = "afu-cevap-satir";
   const ajan = belge.createElement("select"); ajan.className = "soru-alan afu-komut-ajan"; ajan.setAttribute("aria-label", "Ajan");
-  for (const a of ["codex", "gemini", "opencode"]) { const o = belge.createElement("option"); o.value = a; o.textContent = ad(a as MesajAjan); ajan.append(o); }
+  for (const a of ["codex", "gemini", "opencode", "claude"]) { const o = belge.createElement("option"); o.value = a; o.textContent = ad(a as MesajAjan); ajan.append(o); }
   const alan = belge.createElement("input"); alan.type = "text"; alan.placeholder = "Ne yapılsın?"; alan.className = "soru-alan";
   const gonder = belge.createElement("button"); gonder.type = "button"; gonder.className = "soru-dugme"; gonder.textContent = "Gönder";
   const durum = belge.createElement("div"); durum.className = "afu-komut-durum";
   const yolla = () => {
     const gorev = alan.value.trim(); if (!gorev) return;
+    if (ajan.value === "claude") {
+      const acik = messageNotifications.current()?.raw;
+      if (acik && claudeCevapMi(acik)) { cevapGonder(acik, gorev); if (kapat) kapat(); }
+      else durum.textContent = "Claude şu an cevap beklemiyor.";
+      return;
+    }
     gonder.disabled = true;
     invoke("orkestra_send", { agent: ajan.value, project: "AfuNobet-UI", task: gorev })
       .then(() => { if (kapat) kapat(); })

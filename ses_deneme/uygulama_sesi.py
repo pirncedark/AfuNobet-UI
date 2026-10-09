@@ -61,6 +61,7 @@ def main():
     result = render(request, directory)
     if result['ok'] and result['text'] and not request.get('headless', False):
         try:
+            (directory / 'playing').write_text('1')
             play(directory / 'answer.wav', lambda: (directory / 'cancel').exists())
         except Exception:
             result['ok'] = False
