@@ -147,6 +147,23 @@ pub fn sunucu_baslat() {
         let _ = command.spawn();
     });
 }
+/// Telefon için: sesi çalmadan WAV olarak üretir (Afu sesi, ses sunucusu üzerinden).
+pub fn uret_wav(text: &str, tarz: &str) -> Result<Vec<u8>, String> {
+    let root = runtime().ok_or("Afu sesi kurulu değil.")?;
+    let python = interpreter(&root);
+    let directory = job_directory();
+    fs::create_dir_all(&directory).map_err(|_| "Ses hazırlanamadı.".to_owned())?;
+    let mut choice = Choice::default();
+    choice.tarz = tarz.into();
+    let generation = AtomicU64::new(1);
+    let sonuc = speak_worker(Some(&root), &directory, &choice, text, &generation, 1, python.as_deref(), true);
+    let bayt = fs::read(directory.join("answer.wav"));
+    let _ = fs::remove_dir_all(&directory);
+    match (sonuc, bayt) {
+        (Answer::Played, Ok(b)) => Ok(b),
+        _ => Err("Ses üretilemedi. Yeniden dene.".into()),
+    }
+}
 pub fn speak(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64) -> Answer {
     let python = root.and_then(interpreter);
     speak_with_interpreter(root, directory, choice, text, generation, ticket, python.as_deref())
