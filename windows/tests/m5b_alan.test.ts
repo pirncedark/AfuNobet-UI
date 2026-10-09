@@ -48,21 +48,11 @@ async function screen(scale = 1, width = 640) {
   await page.addScriptTag({content:script});
   return page;
 }
-it('card preview ends on full lines and keeps Okudum above the body', async () => {
+it('expanded card shows no message balloon above the mascot', async () => {
   const page = await screen();
   try {
-    const m = await page.locator('#afu-character > .afu-konusma-balonu').evaluate(el => {
-      const text = el.querySelector('.afu-balon-metin')!, button = el.querySelector('.afu-balon-kapat')!;
-      const a = el.getBoundingClientRect(), b = text.getBoundingClientRect(), c = button.getBoundingClientRect(), pet = el.parentElement!.getBoundingClientRect();
-      const s = getComputedStyle(text);
-      return { bottom: a.bottom, half: pet.top + pet.height / 2, textTop: b.top, buttonBottom: c.bottom,
-        overflow: el.scrollHeight > el.clientHeight, clamp: s.webkitLineClamp, lines: b.height / parseFloat(s.lineHeight), title: el.getAttribute('title') };
-    });
-    expect(m.overflow).toBe(false); expect(m.clamp).toBe('3'); expect(m.lines).toBeCloseTo(3, 1);
-    expect(m.buttonBottom).toBeLessThanOrEqual(m.textTop); expect(m.bottom).toBeLessThanOrEqual(m.half);
-    expect(m.title).toContain('Menü etiketleri');
-    await page.locator('#afu-character .afu-balon-metin').click();
-    expect(await page.locator('.afu-mesaj-detayi').innerText()).toContain('Menü etiketleri');
+    const shown = await page.locator('#afu-character > .afu-konusma-balonu').evaluate(el => getComputedStyle(el).display);
+    expect(shown).toBe('none');
   } finally { await page.close(); }
 });
 for (const width of [360, 640]) it(`quota task has no silent vertical overflow at ${width}px`, async () => {

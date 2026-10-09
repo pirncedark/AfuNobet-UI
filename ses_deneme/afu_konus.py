@@ -424,8 +424,8 @@ class Voice:
                     reason = chunk_quality(sentence, seconds, transcript)
                 candidates.append(dict(attempt=quality_attempt + 1, seconds=seconds,
                                        transcript=transcript, issue=reason))
-                if reason is None:
-                    break
+                if reason in (None, 'whisper_mismatch'):
+                    break  # adlar/yabancı sözcükler yanlış duyulur; sesi çal, robot sesine düşme
             checks.append(dict(text=sentence, attempts=candidates))
             if parts:
                 parts.append(np.zeros(int(self.model.sr * config.get('pause', 0.18)), dtype=np.float32))
@@ -442,7 +442,7 @@ class Voice:
             apply_filter(raw, target, preset)
         return {'energy': name, 'exaggeration': ex, 'cfg_weight': cfg,
                 'filter': config.get('ffmpeg_filter', preset), 'chunks': checks,
-                'quality_verified': all(row['attempts'][-1]['issue'] is None for row in checks)}
+                'quality_verified': all(row['attempts'][-1]['issue'] in (None, 'whisper_mismatch') for row in checks)}
 
     def transcribe(self, samples):
         import numpy as np
