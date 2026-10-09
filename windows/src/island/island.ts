@@ -13,11 +13,12 @@ import { deriveEvents, EventDeduper } from "../core/events";
 import { AfuPet, PET_BOYUT } from "../afu/pet";
 import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
-import { KonusanAfu, KOMUT_ONEK, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, KOMUT_ONEK, claudeCevapMi, cevapGonder, temizMetin, kisalt, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
 import { soruAkisiniBagla } from "../question/question";
+import { bicimle } from "../message/bicim";
 import { messageNotifications, showNotification } from "../message/notifications";
 import { loadMessageAlert } from "../core/settings";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -183,12 +184,43 @@ export class Island {
       if (open) State.announce("alert");
     } }).then(dispose => window.addEventListener("pagehide", dispose, { once: true }));
   }
+  /** Gelen Claude mesajını maskot sesiyle okur, sonra tek tur dinler; duyulan cevap Claude'a gider. */
+  private sesliId: string | null = null;
+  private sesliOkunan = new Set<string>();
+  private sesliBitir() { this.sesliId = null; void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
+  private async sesliCevap(message: { id: string; raw?: import("../message/message").Mesaj }) {
+    const raw = message.raw;
+    if (!raw || this.sesliOkunan.has(message.id)) return;
+    this.sesliOkunan.add(message.id);
+    try { if (localStorage.getItem("afuSesliMesaj") === "0") return; } catch { /* ayar yoksa açık */ }
+    if (this.chat.voice?.active || this.chat.responses?.speaking) return;
+    this.sesliId = message.id;
+    const hala = () => messageNotifications.current()?.id === message.id && this.sesliId === message.id;
+    try {
+      const destek = await Bridge.voiceSupported();
+      if (!destek.tts && !destek.afu_tts) return;
+      await Bridge.voiceSpeak(kisalt(temizMetin(raw.metin), 500));
+      if (!hala()) return;
+      const duyulan = (await Bridge.voiceListenTurn(10000)).trim();
+      if (!duyulan || !hala()) return;
+      const bicim = bicimle(raw.metin);
+      const sayilar: Record<string, string> = { bir: "1", iki: "2", "üç": "3", "uc": "3", "dört": "4", "dort": "4" };
+      const kelime = duyulan.toLowerCase().replace(/[^\p{L}\d ]/gu, "").trim();
+      const no = /^\d+$/.test(kelime) ? kelime : sayilar[kelime];
+      const sec = no ? bicim.secenekler?.find(x => x.id === no) : undefined;
+      cevapGonder(raw, sec ? `${sec.id} = ${sec.etiket}` : duyulan);
+      messageNotifications.close(message.id);
+    } catch { /* ses yoksa balon yazıyla çalışmaya devam eder */ }
+  }
   private bindMessages() {
     State.settings.messageAlert = loadMessageAlert();
     messageNotifications.setEnabled(State.settings.messageAlert);
     let raised = false;
     const unsubscribe = messageNotifications.subscribe(() => {
       const message = messageNotifications.current();
+      if (message?.raw && claudeCevapMi(message.raw)) void this.sesliCevap(message);
+      else if (this.sesliId && message?.id !== this.sesliId) this.sesliBitir();
+      else if (!message && this.sesliId) this.sesliBitir();
       this.konusan.setHarici(message?.raw ?? null, message ? () => messageNotifications.close(message.id) : undefined);
       const shouldRaise = !!message && State.settings.messageAlert !== false;
       if (shouldRaise) { this.fsm.messageOpened(); if (this.mode !== "pet") this.setView("overview"); }
