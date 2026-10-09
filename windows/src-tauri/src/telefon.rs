@@ -262,12 +262,23 @@ pub fn yonlendir(yontem: &str, yol: &str, token: &str, govde: &[u8], kok: &std::
                 Err(e) => (400, json!({ "hata": e })),
             }
         }
+        ("GET", "/api/surum") => match son_apk() {
+            Some((surum, _)) => (200, json!({ "surum": surum })),
+            None => (404, json!({ "hata": "Güncelleme dosyası yok." })),
+        },
         ("POST", "/api/komut") => {
             let Some(v) = serde_json::from_slice::<Value>(govde).ok() else { return (400, json!({ "hata": "Komut okunamadı." })) };
             let ajan = v.get("ajan").and_then(|x| x.as_str()).unwrap_or("");
             let gorev = v.get("gorev").and_then(|x| x.as_str()).map(str::trim).unwrap_or("");
             if gorev.is_empty() {
                 return (400, json!({ "hata": "Görev boş olamaz." }));
+            }
+            if ajan.eq_ignore_ascii_case("claude") {
+                // Telefondan Claude'a görev: Telegram ile aynı gelen kutusuna düşer; AFK/Telegram modundaki Claude oradan okur.
+                return match claude_kuyruguna_yaz(gorev) {
+                    Ok(()) => (200, json!({ "ok": true })),
+                    Err(e) => (400, json!({ "hata": e })),
+                };
             }
             if let Err(e) = crate::orkestra::gonderim_gecerli(ajan, "AfuNobet-UI") {
                 return (400, json!({ "hata": e }));
@@ -279,6 +290,59 @@ pub fn yonlendir(yontem: &str, yol: &str, token: &str, govde: &[u8], kok: &std::
         }
         _ => (404, json!({ "hata": "Bulunamadı." })),
     }
+}
+
+/// Claude gelen kutusu (Telegram ile ortak). `AFU_TG_GELEN` ile değiştirilebilir.
+fn claude_gelen_yolu() -> PathBuf {
+    std::env::var_os("AFU_TG_GELEN")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from(r"C:\Users\afuuu\Desktop\AJAN\antygravitiy\telegram_kuyruk\gelen_mesajlar.jsonl"))
+}
+
+pub fn claude_kuyruguna_yaz_yola(yol: &std::path::Path, gorev: &str, simdi_sn: u64) -> Result<(), String> {
+    const YOK: &str = "Claude kanalı kapalı. Bilgisayarda Telegram köprüsünü aç.";
+    let icerik = std::fs::read_to_string(yol).map_err(|_| YOK.to_owned())?;
+    let chat_id = icerik
+        .lines()
+        .rev()
+        .filter_map(|l| serde_json::from_str::<Value>(l).ok())
+        .find_map(|v| v.get("chat_id").cloned())
+        .ok_or_else(|| YOK.to_owned())?;
+    let satir = json!({ "update_id": -(simdi_sn as i64), "chat_id": chat_id, "text": format!("[Telefon] {}", gorev.trim()), "ts": simdi_sn, "durum": "bekliyor", "kaynak": "telefon" });
+    let mut dosya = std::fs::OpenOptions::new().append(true).open(yol).map_err(|_| YOK.to_owned())?;
+    let basa = if icerik.is_empty() || icerik.ends_with('\n') { "" } else { "\n" };
+    write!(dosya, "{basa}{satir}\n").map_err(|_| YOK.to_owned())
+}
+
+fn claude_kuyruguna_yaz(gorev: &str) -> Result<(), String> {
+    let simdi = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    claude_kuyruguna_yaz_yola(&claude_gelen_yolu(), gorev, simdi)
+}
+
+/// Telefon APK'sı bu klasörden sunulur (afunobet-telefon-X.Y.Z.apk); en yüksek sürüm seçilir.
+fn apk_klasoru() -> PathBuf {
+    std::env::var_os("AFU_TELEFON_APK_DIZINI")
+        .map(PathBuf::from)
+        .unwrap_or_else(|| crate::orkestra::project_root().join("AfuNobet-Telefon").join("dist"))
+}
+
+pub fn surum_sayi(s: &str) -> Option<(u32, u32, u32)> {
+    let mut p = s.trim().split('.').map(|x| x.parse::<u32>().ok());
+    Some((p.next()??, p.next()??, p.next()??))
+}
+
+fn son_apk() -> Option<(String, PathBuf)> {
+    let mut en_iyi: Option<((u32, u32, u32), String, PathBuf)> = None;
+    for giris in std::fs::read_dir(apk_klasoru()).ok()?.flatten() {
+        let ad = giris.file_name().to_string_lossy().to_string();
+        let Some(sur) = ad.strip_prefix("afunobet-telefon-").and_then(|r| r.strip_suffix(".apk")) else { continue };
+        if let Some(n) = surum_sayi(sur) {
+            if en_iyi.as_ref().map(|(b, _, _)| n > *b).unwrap_or(true) {
+                en_iyi = Some((n, sur.to_owned(), giris.path()));
+            }
+        }
+    }
+    en_iyi.map(|(_, s, p)| (s, p))
 }
 
 fn baglanti_isle(mut akis: TcpStream) {
@@ -297,6 +361,23 @@ fn baglanti_isle(mut akis: TcpStream) {
     // Yalnız bu bilgisayardan: yeni eşleştirme kodu üretir (arayüz ve yardımcı araçlar için).
     if yerel && istek.yontem == "GET" && istek.yol == "/api/yerel-kod" {
         yanit_yaz(&mut akis, 200, &json!({ "kod": yeni_eslestirme_kodu() }));
+        return;
+    }
+    // APK indirme: token ister, dosya olduğu gibi gönderilir.
+    if istek.yontem == "GET" && istek.yol == "/api/apk" {
+        let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, &istek.token)).unwrap_or(false);
+        if !gecerli {
+            yanit_yaz(&mut akis, 401, &json!({ "hata": "Yetkisiz." }));
+            return;
+        }
+        match son_apk().and_then(|(_, yol)| std::fs::read(yol).ok()) {
+            Some(bayt) => {
+                let _ = akis.set_write_timeout(Some(Duration::from_secs(120)));
+                let _ = write!(akis, "HTTP/1.1 200 OK\r\nContent-Type: application/vnd.android.package-archive\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", bayt.len());
+                let _ = akis.write_all(&bayt);
+            }
+            None => yanit_yaz(&mut akis, 404, &json!({ "hata": "Güncelleme dosyası yok." })),
+        }
         return;
     }
     let kok = crate::questions::kok();
@@ -438,6 +519,23 @@ mod tests {
         for _ in 0..4 { assert_eq!(eslestir(yanlis).0, 401); }
         assert_eq!(eslestir(yanlis).0, 400);
         assert_eq!(eslestir(&kod).0, 400);
+    }
+
+    #[test]
+    fn surum_karsilastirma_ve_claude_kuyrugu() {
+        assert!(surum_sayi("0.10.0") > surum_sayi("0.9.5"));
+        assert_eq!(surum_sayi("x.1.2"), None);
+        let dizin = std::env::temp_dir().join(format!("afu-tel-{}", std::process::id()));
+        std::fs::create_dir_all(&dizin).unwrap();
+        let yol = dizin.join("gelen.jsonl");
+        assert!(claude_kuyruguna_yaz_yola(&yol, "x", 5).is_err());
+        std::fs::write(&yol, "{\"update_id\":1,\"chat_id\":42,\"text\":\"a\",\"durum\":\"tamamlandi\"}\n").unwrap();
+        claude_kuyruguna_yaz_yola(&yol, "  yap  ", 100).unwrap();
+        let son: Value = serde_json::from_str(std::fs::read_to_string(&yol).unwrap().lines().last().unwrap()).unwrap();
+        assert_eq!(son["text"], "[Telefon] yap");
+        assert_eq!(son["durum"], "bekliyor");
+        assert_eq!(son["chat_id"], 42);
+        let _ = std::fs::remove_dir_all(dizin);
     }
 
     #[test]
