@@ -17,6 +17,8 @@ const TAMPON_SINIRI: usize = 50;
 static TAMPON: Mutex<VecDeque<Mesaj>> = Mutex::new(VecDeque::new());
 static TOKEN: Mutex<String> = Mutex::new(String::new());
 static TOKEN_DOSYA: OnceLock<PathBuf> = OnceLock::new();
+/// Eşleştirme: 6 haneli, 10 dk geçerli, tek kullanımlık; 5 yanlış denemede kapanır. (kod, bitiş, hata sayısı)
+static ESLESTIRME: Mutex<Option<(String, std::time::Instant, u32)>> = Mutex::new(None);
 
 /// `mesajlar_list` mesajı tüketip silmeden önce buraya da koyar; telefon son mesajları görür.
 pub fn tampona_ekle(mesaj: Mesaj) {
@@ -57,6 +59,38 @@ fn rastgele_token() -> String {
         parcalar.push_str(&format!("{:016x}", h.finish()));
     }
     parcalar[..32].to_string()
+}
+
+fn yeni_eslestirme_kodu() -> String {
+    let t = rastgele_token();
+    let sayi = u64::from_str_radix(&t[..12], 16).unwrap_or(0) % 1_000_000;
+    let kod = format!("{sayi:06}");
+    if let Ok(mut e) = ESLESTIRME.lock() {
+        *e = Some((kod.clone(), std::time::Instant::now() + Duration::from_secs(600), 0));
+    }
+    kod
+}
+
+/// Telefon kısa kodu getirir; doğruysa uzun token'ı verir ve kodu tüketir.
+pub fn eslestir(kod: &str) -> (u16, Value) {
+    let Ok(mut e) = ESLESTIRME.lock() else { return (400, json!({ "hata": "Eşleştirme yapılamadı." })) };
+    let Some((dogru, bitis, hata)) = e.as_mut() else { return (400, json!({ "hata": "Önce bilgisayarda Telefon bağlantısını göster'e bas." })) };
+    if std::time::Instant::now() > *bitis {
+        *e = None;
+        return (400, json!({ "hata": "Kodun süresi doldu. Bilgisayarda yeniden göster." }));
+    }
+    let girilen: String = kod.chars().filter(|c| c.is_ascii_digit()).collect();
+    if !sabit_esit(&girilen, dogru) {
+        *hata += 1;
+        if *hata >= 5 {
+            *e = None;
+            return (400, json!({ "hata": "Çok fazla yanlış deneme. Bilgisayarda kodu yeniden göster." }));
+        }
+        return (401, json!({ "hata": "Kod yanlış. Bilgisayardaki 6 haneli kodu yeniden gir." }));
+    }
+    *e = None;
+    let token = TOKEN.lock().map(|t| t.clone()).unwrap_or_default();
+    (200, json!({ "token": token }))
 }
 
 fn token_yukle(dosya: &PathBuf) -> String {
@@ -193,6 +227,10 @@ fn sabit_esit(a: &str, b: &str) -> bool {
 
 /// Yönlendirme: (durum kodu, gövde). Test edilebilsin diye ağdan bağımsız.
 pub fn yonlendir(yontem: &str, yol: &str, token: &str, govde: &[u8], kok: &std::path::Path) -> (u16, Value) {
+    if yontem == "POST" && yol == "/api/eslestir" {
+        let kod = serde_json::from_slice::<Value>(govde).ok().and_then(|v| v.get("kod").and_then(|k| k.as_str()).map(str::to_owned)).unwrap_or_default();
+        return eslestir(&kod);
+    }
     let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, token)).unwrap_or(false);
     if !gecerli {
         return (401, json!({ "hata": "Yetkisiz." }));
@@ -246,14 +284,21 @@ pub fn yonlendir(yontem: &str, yol: &str, token: &str, govde: &[u8], kok: &std::
 fn baglanti_isle(mut akis: TcpStream) {
     let _ = akis.set_read_timeout(Some(Duration::from_secs(5)));
     let _ = akis.set_write_timeout(Some(Duration::from_secs(5)));
-    let izinli = akis.peer_addr().map(|a| ozel_ag(a.ip())).unwrap_or(false);
+    let kaynak = akis.peer_addr().ok().map(|a| a.ip());
+    let izinli = kaynak.map(ozel_ag).unwrap_or(false);
     if !izinli {
         return;
     }
+    let yerel = kaynak.map(|ip| ip.is_loopback()).unwrap_or(false);
     let Some(istek) = istek_oku(&mut akis) else {
         yanit_yaz(&mut akis, 400, &json!({ "hata": "İstek okunamadı." }));
         return;
     };
+    // Yalnız bu bilgisayardan: yeni eşleştirme kodu üretir (arayüz ve yardımcı araçlar için).
+    if yerel && istek.yontem == "GET" && istek.yol == "/api/yerel-kod" {
+        yanit_yaz(&mut akis, 200, &json!({ "kod": yeni_eslestirme_kodu() }));
+        return;
+    }
     let kok = crate::questions::kok();
     let sonuc = std::panic::catch_unwind(|| yonlendir(&istek.yontem, &istek.yol, &istek.token, &istek.govde, &kok));
     let (kod, govde) = sonuc.unwrap_or((500, json!({ "hata": "Sunucu hatası." })));
@@ -293,7 +338,7 @@ fn yerel_adres() -> Option<String> {
 pub fn telefon_bilgi() -> Value {
     json!({
         "adres": yerel_adres().map(|a| format!("{a}:{PORT}")).unwrap_or_default(),
-        "token": TOKEN.lock().map(|t| t.clone()).unwrap_or_default(),
+        "kod": yeni_eslestirme_kodu(),
     })
 }
 
@@ -371,6 +416,28 @@ mod tests {
     fn bilinmeyen_yol_404() {
         let _g = token_kur("dddddddddddddddddddddddddddddddd");
         assert_eq!(yonlendir("GET", "/yok", "dddddddddddddddddddddddddddddddd", b"", &std::env::temp_dir()).0, 404);
+    }
+
+    #[test]
+    fn eslestirme_dogru_kod_token_verir_ve_tek_kullanimlik() {
+        let _g = token_kur("eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+        let kod = yeni_eslestirme_kodu();
+        assert_eq!(kod.len(), 6);
+        assert_eq!(eslestir("000x").0, 401);
+        let (k, v) = eslestir(&kod);
+        assert_eq!(k, 200);
+        assert_eq!(v["token"], "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee");
+        assert_eq!(eslestir(&kod).0, 400);
+    }
+
+    #[test]
+    fn eslestirme_bes_yanlista_kapanir() {
+        let _g = token_kur("ffffffffffffffffffffffffffffffff");
+        let kod = yeni_eslestirme_kodu();
+        let yanlis = if kod == "111111" { "222222" } else { "111111" };
+        for _ in 0..4 { assert_eq!(eslestir(yanlis).0, 401); }
+        assert_eq!(eslestir(yanlis).0, 400);
+        assert_eq!(eslestir(&kod).0, 400);
     }
 
     #[test]
