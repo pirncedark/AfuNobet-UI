@@ -37,7 +37,7 @@ export const Bridge = {
   voiceStop: () => action<string>("voice_stop"),
   voiceCancel: () => action<void>("voice_cancel"),
   voiceSpeak: (text: string) => action<void>("voice_speak", { text }),
-  voiceResponse: (text:string) => action<{warning:string|null}>("sol_voice_response",{text}),
+  voiceResponse: (text:string, tarz:"sohbet"|"okuma"="sohbet") => action<{warning:string|null}>("sol_voice_response",{text,tarz}),
   voiceWarning: async (handler:()=>void) => listen("afu-voice-fallback",()=>handler()),
   voiceChoices: () => action<import("../chat/voice").VoiceChoice>("voice_choices"),
   voiceChoose: (ses:string,filtre:string) => action<import("../chat/voice").VoiceChoice>("voice_choose",{ses,filtre}),

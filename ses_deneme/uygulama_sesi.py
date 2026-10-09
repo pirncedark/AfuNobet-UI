@@ -33,10 +33,12 @@ def render(request, directory, voices=None):
                 current = voices[selected] = Voice(selected, cancelled=cancelled)
             current.cancelled = cancelled
             voice = None
-            parameters = current.generate(text, directory / 'answer.wav', preset)
+            extra = {'tarz': request['tarz']} if request.get('tarz') == 'sohbet' else {}
+            parameters = current.generate(text, directory / 'answer.wav', preset, **extra)
             verified = isinstance(parameters, dict) and parameters.get('quality_verified') is True
             return dict(result, ok=verified and not cancelled(), cancelled=cancelled(), voice=selected, voice_parameters=parameters)
-        parameters = voice.generate(text, directory / 'answer.wav', preset)
+        extra = {'tarz': request['tarz']} if request.get('tarz') == 'sohbet' else {}
+        parameters = voice.generate(text, directory / 'answer.wav', preset, **extra)
         verified = isinstance(parameters, dict) and parameters.get('quality_verified') is True
         return dict(result, ok=verified and not cancelled(), cancelled=cancelled(), voice=selected, voice_parameters=parameters)
     except InterruptedError:
