@@ -465,6 +465,7 @@ pub fn run() {
             sistem::baslat(&handle)?;
             ilk_kullanim::prepare(&handle);
             mesajlar::start(handle.clone());
+            voice::afu::sunucu_baslat();
             { let h = handle.clone(); let _ = voice::capture::SEVIYE.set(Box::new(move |v| { let _ = h.emit("afu-mic-level", v); })); }
             if let Ok(path) = handle.path().app_config_dir() {
                 handle.state::<Shared>().settings.lock().unwrap().pet = settings::load(&path.join("pet.json"));

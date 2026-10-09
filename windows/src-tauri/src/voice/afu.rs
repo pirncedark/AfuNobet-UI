@@ -126,6 +126,18 @@ fn kill_worker(child: &mut std::process::Child) {
     }
     let _ = child.kill();
 }
+/// Uygulama açılırken ses sunucusunu arka planda başlatır; model bellekte hazır bekler.
+pub fn sunucu_baslat() {
+    std::thread::spawn(|| {
+        let Some(root) = runtime() else { return; };
+        let Some(python) = interpreter(&root) else { return; };
+        let mut command = Command::new(python);
+        command.args(["-B"]).arg(root.join("uygulama_sesi_sunucu.py")).arg("--hazirla")
+            .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+        #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
+        let _ = command.spawn();
+    });
+}
 pub fn speak(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64) -> Answer {
     let python = root.and_then(interpreter);
     speak_with_interpreter(root, directory, choice, text, generation, ticket, python.as_deref())
