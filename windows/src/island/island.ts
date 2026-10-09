@@ -201,7 +201,8 @@ export class Island {
       if (!destek.tts && !destek.afu_tts) return;
       await Bridge.voiceSpeak(kisalt(temizMetin(raw.metin), 500));
       if (!hala()) return;
-      const duyulan = (await Bridge.voiceListenTurn(10000)).trim();
+      // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
+      const duyulan = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
       if (!duyulan || !hala()) return;
       const bicim = bicimle(raw.metin);
       const sayilar: Record<string, string> = { bir: "1", iki: "2", "üç": "3", "uc": "3", "dört": "4", "dort": "4" };
