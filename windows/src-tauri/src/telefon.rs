@@ -20,6 +20,20 @@ static TOKEN: Mutex<String> = Mutex::new(String::new());
 static TOKEN_DOSYA: OnceLock<PathBuf> = OnceLock::new();
 static SES_ONBELLEK: Mutex<VecDeque<(String, Vec<u8>)>> = Mutex::new(VecDeque::new());
 static URETIM: Mutex<()> = Mutex::new(());
+static SON_GORULME: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+
+/// Telefon bağlıyken zaman damgası yazar; Claude kancası Telegram'a kopya göndermeyi buna göre keser.
+fn telefon_gorundu() {
+    use std::sync::atomic::Ordering;
+    let simdi = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+    if simdi.saturating_sub(SON_GORULME.load(Ordering::Relaxed)) >= 10 {
+        SON_GORULME.store(simdi, Ordering::Relaxed);
+        let _ = std::fs::write(crate::questions::kok().join("telefon_son.txt"), simdi.to_string());
+    }
+}
+
+/// Telefondan cevaplanan mesaj kimlikleri: arayüz henüz tüketmediyse de listeden gizlenir.
+static CEVAPLANAN: Mutex<Vec<String>> = Mutex::new(Vec::new());
 /// Eşleştirme: 6 haneli, 10 dk geçerli, tek kullanımlık; 5 yanlış denemede kapanır. (kod, bitiş, hata sayısı)
 static ESLESTIRME: Mutex<Option<(String, std::time::Instant, u32)>> = Mutex::new(None);
 
@@ -47,6 +61,36 @@ fn tampondan_dus(id: &str) {
     if let Ok(mut tampon) = TAMPON.lock() {
         tampon.retain(|m| m.id != id);
     }
+    if let Ok(mut c) = CEVAPLANAN.lock() {
+        if !c.iter().any(|x| x == id) {
+            c.push(id.to_owned());
+            if c.len() > 200 {
+                c.remove(0);
+            }
+        }
+    }
+}
+
+/// Telefonun gördüğü mesajlar: arayüzün tükettikleri (tampon) + klasörde henüz tüketilmemiş dosyalar.
+/// Telefon, arayüzün açık ya da kapalı olmasına bağlı kalmaz; dosyalar silinmez.
+fn tum_mesajlar() -> Vec<Mesaj> {
+    let mut liste: Vec<Mesaj> = TAMPON.lock().map(|t| t.iter().cloned().collect()).unwrap_or_default();
+    if let Ok(girisler) = std::fs::read_dir(crate::questions::kok().join("mesajlar")) {
+        for g in girisler.flatten().take(100) {
+            if g.path().extension().and_then(|e| e.to_str()) != Some("json") {
+                continue;
+            }
+            if let Some(m) = std::fs::read(g.path()).ok().and_then(|b| crate::mesajlar::mesaj_coz(&b)) {
+                if !liste.iter().any(|x| x.id == m.id) {
+                    liste.push(m);
+                }
+            }
+        }
+    }
+    let cevaplanan = CEVAPLANAN.lock().map(|c| c.clone()).unwrap_or_default();
+    liste.retain(|m| !cevaplanan.contains(&m.id));
+    liste.sort_by_key(|m| m.zaman);
+    liste
 }
 
 /// Sorgu dizisinden değer alır (yüzde kodlu).
@@ -203,7 +247,7 @@ pub fn secenekler(metin: &str) -> Vec<Value> {
 }
 
 fn mesaj_json(m: &Mesaj) -> Value {
-    json!({ "id": m.id, "ajan": m.ajan, "tur": m.tur, "metin": m.metin, "secenekler": secenekler(&m.metin), "zaman": m.zaman })
+    json!({ "id": m.id, "ajan": m.ajan, "tur": m.tur, "metin": m.metin, "tam": m.tam, "secenekler": secenekler(m.tam.as_deref().unwrap_or(&m.metin)), "zaman": m.zaman })
 }
 
 fn sorular() -> Vec<Value> {
@@ -309,10 +353,11 @@ pub fn yonlendir(yontem: &str, yol: &str, token: &str, govde: &[u8], kok: &std::
         return (401, json!({ "hata": "Yetkisiz." }));
     }
     let _ = kok;
+    telefon_gorundu();
     match (yontem, yol) {
         ("GET", "/api/ping") => (200, json!({ "ok": true })),
         ("GET", "/api/durum") => {
-            let mesajlar: Vec<Value> = TAMPON.lock().map(|t| t.iter().map(mesaj_json).collect()).unwrap_or_default();
+            let mesajlar: Vec<Value> = tum_mesajlar().iter().map(mesaj_json).collect();
             (200, json!({ "mesajlar": mesajlar, "sorular": sorular(), "gorevler": telefon_gorevleri() }))
         }
         ("POST", "/api/cevap") => {
@@ -715,7 +760,7 @@ mod tests {
     #[test]
     fn durum_tampondaki_mesaji_sikla_verir() {
         let _g = token_kur("cccccccccccccccccccccccccccccccc");
-        tampona_ekle(Mesaj { surum: 1, id: "claude-test-durum".into(), ajan: "claude".into(), tur: "bitti".into(), metin: "Soru? 1 = a / 2 = b".into(), zaman: 5 });
+        tampona_ekle(Mesaj { surum: 1, id: "claude-test-durum".into(), ajan: "claude".into(), tur: "bitti".into(), metin: "Soru? 1 = a / 2 = b".into(), zaman: 5, tam: None });
         let (kod, v) = yonlendir("GET", "/api/durum", "cccccccccccccccccccccccccccccccc", b"", &std::env::temp_dir());
         assert_eq!(kod, 200);
         let m = v["mesajlar"].as_array().unwrap().iter().find(|m| m["id"] == "claude-test-durum").unwrap().clone();
@@ -726,7 +771,7 @@ mod tests {
     #[test]
     fn tampon_sinirli() {
         for i in 0..80 {
-            tampona_ekle(Mesaj { surum: 1, id: format!("t-{i}"), ajan: "claude".into(), tur: "bitti".into(), metin: "x".into(), zaman: i });
+            tampona_ekle(Mesaj { surum: 1, id: format!("t-{i}"), ajan: "claude".into(), tur: "bitti".into(), metin: "x".into(), zaman: i, tam: None });
         }
         assert!(TAMPON.lock().unwrap().len() <= TAMPON_SINIRI);
     }
