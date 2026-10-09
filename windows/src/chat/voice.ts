@@ -188,6 +188,14 @@ export class SurekliSohbet {
     return; // 60s sessizlik = döngü biter
    }
 
+   // "Tamam yeterli" sohbeti bitirir; çağırma sözü ("AfuNöbet") yeniden başlatır.
+   if (/tamam.{0,3}yeter/.test(text.toLowerCase().replace(/ı/g, "i").replace(/ş/g, "s").replace(/[^a-z0-9]/g, ""))) {
+    this.state = "idle";
+    this.changed();
+    try { await this.actions.voiceResponse?.("Tamam, çağırmanı bekliyorum."); } catch { /* ses yoksa sessiz */ }
+    return;
+   }
+
    this.transcript = text;
    this.state = "thinking";
    this.changed();
