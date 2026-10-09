@@ -13,6 +13,7 @@ use tauri::{AppHandle, Manager};
 pub const PORT: u16 = 47617;
 const GOVDE_SINIRI: usize = 16 * 1024;
 const TAMPON_SINIRI: usize = 50;
+const DOSYA_SINIRI: usize = 25 * 1024 * 1024;
 
 static TAMPON: Mutex<VecDeque<Mesaj>> = Mutex::new(VecDeque::new());
 static TOKEN: Mutex<String> = Mutex::new(String::new());
@@ -46,6 +47,64 @@ fn tampondan_dus(id: &str) {
     if let Ok(mut tampon) = TAMPON.lock() {
         tampon.retain(|m| m.id != id);
     }
+}
+
+/// Sorgu dizisinden değer alır (yüzde kodlu).
+pub fn sorgu_degeri(sorgu: &str, anahtar: &str) -> Option<String> {
+    for parca in sorgu.split('&') {
+        if let Some((k, v)) = parca.split_once('=') {
+            if k == anahtar {
+                return Some(yuzde_coz(v));
+            }
+        }
+    }
+    None
+}
+
+fn yuzde_coz(s: &str) -> String {
+    let b = s.as_bytes();
+    let mut cikti: Vec<u8> = Vec::new();
+    let mut i = 0;
+    while i < b.len() {
+        if b[i] == b'%' && i + 2 < b.len() + 1 && i + 3 <= b.len() {
+            if let Ok(v) = u8::from_str_radix(&s[i + 1..i + 3], 16) {
+                cikti.push(v);
+                i += 3;
+                continue;
+            }
+        }
+        cikti.push(if b[i] == b'+' { b' ' } else { b[i] });
+        i += 1;
+    }
+    String::from_utf8_lossy(&cikti).to_string()
+}
+
+/// Dosya adını güvenli hale getirir: yol ayracı yok, en çok 80 karakter.
+pub fn guvenli_ad(ad: &str) -> String {
+    let temiz: String = ad
+        .chars()
+        .map(|c| if c.is_alphanumeric() || c == '.' || c == '-' || c == '_' { c } else { '_' })
+        .collect();
+    let mut temiz = temiz.trim_matches('.').to_owned();
+    while temiz.contains("..") {
+        temiz = temiz.replace("..", "_");
+    }
+    let sayi = temiz.chars().count();
+    let temiz: String = temiz.chars().skip(sayi.saturating_sub(80)).collect();
+    if temiz.is_empty() { "dosya".to_owned() } else { temiz }
+}
+
+fn dosya_turu(ad: &str) -> &'static str {
+    match ad.rsplit('.').next().map(|e| e.to_ascii_lowercase()).as_deref() {
+        Some("jpg") | Some("jpeg") | Some("png") | Some("webp") | Some("gif") | Some("heic") => "fotoğraf",
+        Some("pdf") => "PDF",
+        Some("mp3") | Some("m4a") | Some("wav") | Some("ogg") => "ses",
+        _ => "dosya",
+    }
+}
+
+fn afu_kok_klasoru(alt: &str) -> PathBuf {
+    crate::questions::kok().join(alt)
 }
 
 /// Telefonun kaynak adresi yalnız özel ağdan olabilir (yerel, LAN, Tailscale).
@@ -165,6 +224,7 @@ fn sorular() -> Vec<Value> {
 struct Istek {
     yontem: String,
     yol: String,
+    sorgu: String,
     token: String,
     govde: Vec<u8>,
 }
@@ -190,7 +250,8 @@ fn istek_oku(akis: &mut TcpStream) -> Option<Istek> {
     let ilk = satirlar.next()?;
     let mut kisimlar = ilk.split(' ');
     let yontem = kisimlar.next()?.to_owned();
-    let yol = kisimlar.next()?.split('?').next()?.to_owned();
+    let hedef = kisimlar.next()?;
+    let (yol, sorgu) = match hedef.split_once('?') { Some((y, q)) => (y.to_owned(), q.to_owned()), None => (hedef.to_owned(), String::new()) };
     let (mut token, mut uzunluk) = (String::new(), 0usize);
     for satir in satirlar {
         if let Some((ad, deger)) = satir.split_once(':') {
@@ -201,7 +262,8 @@ fn istek_oku(akis: &mut TcpStream) -> Option<Istek> {
             }
         }
     }
-    if uzunluk > GOVDE_SINIRI {
+    let sinir = if yol.starts_with("/api/dosya") { DOSYA_SINIRI } else { GOVDE_SINIRI };
+    if uzunluk > sinir {
         return None;
     }
     let mut govde = veri[baslik_sonu..].to_vec();
@@ -213,7 +275,7 @@ fn istek_oku(akis: &mut TcpStream) -> Option<Istek> {
         govde.extend_from_slice(&parca[..n]);
     }
     govde.truncate(uzunluk);
-    Some(Istek { yontem, yol, token, govde })
+    Some(Istek { yontem, yol, sorgu, token, govde })
 }
 
 fn yanit_yaz(akis: &mut TcpStream, kod: u16, govde: &Value) {
@@ -449,6 +511,72 @@ fn baglanti_isle(mut akis: TcpStream) {
         yanit_yaz(&mut akis, 200, &json!({ "kod": yeni_eslestirme_kodu() }));
         return;
     }
+    // Telefondan dosya/fotoğraf/PDF: kaydedilir ve Claude'a haber verilir.
+    if istek.yontem == "POST" && istek.yol == "/api/dosya" {
+        let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, &istek.token)).unwrap_or(false);
+        if !gecerli {
+            yanit_yaz(&mut akis, 401, &json!({ "hata": "Yetkisiz." }));
+            return;
+        }
+        if istek.govde.is_empty() {
+            yanit_yaz(&mut akis, 400, &json!({ "hata": "Dosya boş." }));
+            return;
+        }
+        let ad = guvenli_ad(&sorgu_degeri(&istek.sorgu, "ad").unwrap_or_default());
+        let klasor = afu_kok_klasoru("telefon_gelen");
+        let simdi = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_secs()).unwrap_or(0);
+        let yol = klasor.join(format!("{simdi}_{ad}"));
+        let yazildi = std::fs::create_dir_all(&klasor).and_then(|_| std::fs::write(&yol, &istek.govde));
+        if yazildi.is_err() {
+            yanit_yaz(&mut akis, 400, &json!({ "hata": "Dosya bilgisayara kaydedilemedi." }));
+            return;
+        }
+        let tur = dosya_turu(&ad);
+        let not = sorgu_degeri(&istek.sorgu, "not").unwrap_or_default();
+        let ek = if not.trim().is_empty() { String::new() } else { format!(" Not: {}", not.trim()) };
+        let _ = claude_kuyruguna_yaz(&format!("{tur} gönderdim: {}{ek}", yol.display()));
+        yanit_yaz(&mut akis, 200, &json!({ "ok": true, "yol": yol.display().to_string() }));
+        return;
+    }
+    // PC'den telefona: telefona_gonder klasöründeki dosyaların listesi ve indirilmesi.
+    if istek.yontem == "GET" && (istek.yol == "/api/dosyalar" || istek.yol == "/api/dosya-al") {
+        let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, &istek.token)).unwrap_or(false);
+        if !gecerli {
+            yanit_yaz(&mut akis, 401, &json!({ "hata": "Yetkisiz." }));
+            return;
+        }
+        let klasor = afu_kok_klasoru("telefona_gonder");
+        if istek.yol == "/api/dosyalar" {
+            let mut liste: Vec<Value> = Vec::new();
+            if let Ok(girisler) = std::fs::read_dir(&klasor) {
+                for g in girisler.flatten().take(50) {
+                    if let Ok(m) = g.metadata() {
+                        if m.is_file() {
+                            let t = m.modified().ok().and_then(|t| t.duration_since(std::time::UNIX_EPOCH).ok()).map(|d| d.as_secs()).unwrap_or(0);
+                            liste.push(json!({ "ad": g.file_name().to_string_lossy(), "boyut": m.len(), "ts": t }));
+                        }
+                    }
+                }
+            }
+            liste.sort_by_key(|v| std::cmp::Reverse(v["ts"].as_u64().unwrap_or(0)));
+            yanit_yaz(&mut akis, 200, &json!({ "dosyalar": liste }));
+            return;
+        }
+        let ad = sorgu_degeri(&istek.sorgu, "ad").unwrap_or_default();
+        if ad.is_empty() || ad.contains('/') || ad.contains('\\') || ad.contains("..") {
+            yanit_yaz(&mut akis, 400, &json!({ "hata": "Dosya adı geçersiz." }));
+            return;
+        }
+        match std::fs::read(klasor.join(&ad)) {
+            Ok(bayt) => {
+                let _ = akis.set_write_timeout(Some(Duration::from_secs(120)));
+                let _ = write!(akis, "HTTP/1.1 200 OK\r\nContent-Type: application/octet-stream\r\nContent-Length: {}\r\nConnection: close\r\n\r\n", bayt.len());
+                let _ = akis.write_all(&bayt);
+            }
+            Err(_) => yanit_yaz(&mut akis, 404, &json!({ "hata": "Dosya bulunamadı." })),
+        }
+        return;
+    }
     // Sesli yanıt: metni Afu sesiyle WAV olarak üretip telefona verir.
     if istek.yontem == "POST" && istek.yol == "/api/ses-oku" {
         let gecerli = TOKEN.lock().map(|t| !t.is_empty() && sabit_esit(&t, &istek.token)).unwrap_or(false);
@@ -657,6 +785,18 @@ mod tests {
         let metin = "Merhaba! Bugün nasılsın? Ben iyiyim. Sana yardımcı olmak için buradayım. Ne yapalım istersin?";
         assert_eq!(ilk_parca(metin).as_deref(), Some("Merhaba! Bugün nasılsın? Ben iyiyim."));
         assert_eq!(ilk_parca("   "), None);
+    }
+
+    #[test]
+    fn sorgu_ve_dosya_adi_guvenli() {
+        assert_eq!(sorgu_degeri("ad=Foto%20%C5%9F.jpg&not=a+b", "ad").as_deref(), Some("Foto ş.jpg"));
+        assert_eq!(sorgu_degeri("ad=x&not=a+b", "not").as_deref(), Some("a b"));
+        assert!(!guvenli_ad("..\\..\\x.txt").contains('\\'));
+        assert!(!guvenli_ad("a/b.pdf").contains('/'));
+        assert!(!guvenli_ad("../../etc/passwd").contains(".."));
+        assert_eq!(guvenli_ad("..."), "dosya");
+        assert_eq!(dosya_turu("a.JPG"), "fotoğraf");
+        assert_eq!(dosya_turu("b.pdf"), "PDF");
     }
 
     #[test]
