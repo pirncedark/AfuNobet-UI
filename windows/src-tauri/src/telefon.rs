@@ -489,7 +489,7 @@ fn telefon_gorevleri() -> Vec<Value> {
 fn claude_gelen_yolu() -> PathBuf {
     std::env::var_os("AFU_TG_GELEN")
         .map(PathBuf::from)
-        .unwrap_or_else(|| PathBuf::from(r"C:\Users\afuuu\Desktop\AJAN\antygravitiy\telegram_kuyruk\gelen_mesajlar.jsonl"))
+        .unwrap_or_else(|| crate::state::varsayilan_kok().join("telegram_kuyruk").join("gelen_mesajlar.jsonl"))
 }
 
 pub fn claude_kuyruguna_yaz_yola(yol: &std::path::Path, gorev: &str, simdi_sn: u64) -> Result<(), String> {

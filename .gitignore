@@ -66,3 +66,11 @@ docs/kanit/*
 *.yedek*
 /windows - Kopya/
 studyo/ense_video_anahtar.py
+
+# Yerel gorev/sonuc/log dosyalari depoya girmez
+/GOREV_*.md
+/SONUC_*.md
+docs/SONUC_*.md
+windows/SONUC_*.md
+windows/tests/SONUC_*.md
+*.log
