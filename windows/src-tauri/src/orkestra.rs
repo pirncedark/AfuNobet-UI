@@ -4,7 +4,7 @@ use std::path::{Path, PathBuf};
 
 const CREATE_NO_WINDOW: u32 = 0x08000000;
 
-fn project_root() -> PathBuf {
+pub fn project_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .and_then(|p| p.parent())

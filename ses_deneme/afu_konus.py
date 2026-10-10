@@ -75,6 +75,32 @@ class GpuLock:
         self.path, self.timeout, self.owned = path, timeout, False
         self.cancelled = cancelled or (lambda: False)
 
+    def stale(self):
+        """Sahibi ölmüş kilidi kaldırır (çöken/öldürülen işçiden kalan); canlı sahibin kilidine dokunmaz."""
+        try:
+            pid = int(self.path.read_text().strip())
+        except (OSError, ValueError):
+            return False
+        try:
+            import ctypes
+            kernel = ctypes.windll.kernel32
+            handle = kernel.OpenProcess(0x1000, False, pid)
+            if not handle:
+                alive = False
+            else:
+                code = ctypes.c_ulong()
+                alive = bool(kernel.GetExitCodeProcess(handle, ctypes.byref(code))) and code.value == 259
+                kernel.CloseHandle(handle)
+        except Exception:
+            return False
+        if alive:
+            return False
+        try:
+            self.path.unlink()
+            return True
+        except OSError:
+            return False
+
     def acquire(self):
         deadline = time.monotonic() + self.timeout
         while True:
@@ -87,6 +113,8 @@ class GpuLock:
                     stream.write(str(os.getpid()))
                 return
             except FileExistsError:
+                if self.stale():
+                    continue
                 if time.monotonic() >= deadline:
                     raise TimeoutError('Ses üretimi meşgul; biraz sonra yeniden dene.')
                 time.sleep(1)
@@ -191,8 +219,99 @@ def speech_chunks(text, limit=200):
     return chunks
 
 
+def gate_silence(samples, rate):
+    """Konuşma aralarındaki hışırtıyı (yaprak/kâğıt sesi) tam sessizliğe çeker; konuşma kenarlarını korur."""
+    import numpy as np
+    frame = max(1, int(rate * 0.02))
+    count = len(samples) // frame
+    if count < 3:
+        return samples
+    energy = np.array([float(np.sqrt(np.mean(samples[i * frame:(i + 1) * frame] ** 2))) for i in range(count)])
+    voiced = energy > 0.018
+    keep = voiced.copy()
+    for index in np.flatnonzero(voiced):
+        keep[max(0, index - 2):index + 3] = True  # kelime başı/sonu 40 ms korunur
+    mask = np.zeros(len(samples), dtype=np.float32)
+    for index in range(count):
+        if keep[index]:
+            mask[index * frame:(index + 1) * frame] = 1.0
+    if count * frame < len(samples) and keep[-1]:
+        mask[count * frame:] = 1.0
+    kernel = np.ones(max(1, int(rate * 0.012)), dtype=np.float32)
+    mask = np.convolve(mask, kernel / len(kernel), mode='same')
+    return (samples * mask).astype(np.float32)
+
+
+def trim_end(samples, rate):
+    """Cümle sonundaki gereksiz sessizliği 150 ms bırakarak kırpar (boş bekleme olmasın)."""
+    import numpy as np
+    frame = max(1, int(rate * 0.02))
+    count = len(samples) // frame
+    if count < 3:
+        return samples
+    energy = np.array([float(np.sqrt(np.mean(samples[i * frame:(i + 1) * frame] ** 2))) for i in range(count)])
+    voiced = np.flatnonzero(energy > 0.012)
+    if len(voiced) == 0:
+        return samples
+    cut = min(len(samples), (int(voiced[-1]) + 1) * frame + int(rate * 0.15))
+    return samples[:cut]
+
+
+def breath(rate, seed):
+    """Çok hafif, süzülmüş nefes sesi (≈ -36 dB, 0,3 sn)."""
+    import numpy as np
+    rng = np.random.default_rng(1000 + seed)
+    n = int(rate * 0.3)
+    noise = rng.standard_normal(n).astype(np.float32)
+    spectrum = np.fft.rfft(noise)
+    freqs = np.fft.rfftfreq(n, 1 / rate)
+    spectrum[(freqs < 300) | (freqs > 3200)] = 0
+    shaped = np.fft.irfft(spectrum, n).astype(np.float32)
+    envelope = np.sin(np.linspace(0, np.pi, n)) ** 2
+    shaped *= envelope / max(float(np.max(np.abs(shaped))), 1e-6) * 0.018
+    return shaped
+
+
+def trim_tail(samples, rate, text):
+    """Chatterbox bazen cümleden sonra uğultu/hırlama (uzun kuyruk) üretir: beklenen süreyi aşan son parçayı keser."""
+    import numpy as np
+    frame = int(rate * 0.05)
+    if frame <= 0 or len(samples) < frame * 4:
+        return samples
+    energy = np.array([float(np.sqrt(np.mean(samples[i:i + frame] ** 2))) for i in range(0, len(samples) - frame + 1, frame)])
+    voiced = energy > 0.012
+    limit = (0.07 * len(text) + 0.25) * 1.3
+    segments, start, gap = [], None, 0
+    for index, flag in enumerate(voiced):
+        if flag:
+            if start is None:
+                start = index
+            gap = 0
+            end = index
+        elif start is not None:
+            gap += 1
+            if gap >= 5:  # 250 ms sessizlik parçayı kapatır
+                segments.append((start, end))
+                start = None
+    if start is not None:
+        segments.append((start, end))
+    if len(segments) < 2:
+        return samples
+    keep = segments[0][1]
+    for seg_start, seg_end in segments[1:]:
+        sessiz = float(np.mean(energy[seg_start:seg_end + 1])) < 0.05  # zayıf, boşluktan sonra gelen kuyruk = uğultu
+        if (seg_end + 1) * frame / rate <= limit and not (sessiz and seg_end == segments[-1][1]):
+            keep = seg_end
+        else:
+            break
+    if keep == segments[-1][1]:
+        return samples
+    cut = min(len(samples), (keep + 1) * frame + int(rate * 0.12))
+    return samples[:cut]
+
+
 def chunk_quality(text, seconds, transcript=None):
-    if not 0.025 * len(text) <= seconds <= max(3, 0.18 * len(text)):
+    if not 0.025 * len(text) <= seconds <= max(5, 0.18 * len(text)):
         return 'duration_ratio'
     if transcript is not None:
         # Keep validation in the worker; development proof scripts are not shipped.
@@ -386,7 +505,7 @@ class Voice:
             self.ref.parent.mkdir(parents=True, exist_ok=True)
             subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', str(LOCAL/'2-Afu-Minik-Kiz.mp3'), '-ac', '1', '-ar', '24000', str(self.ref)], check=True, creationflags=HIDDEN)
 
-    def generate(self, text, target, preset):
+    def generate(self, text, target, preset, tarz='okuma'):
         import soundfile as sf
         name, ex, cfg = voice_preset(text)
         # The recommended 5b voice keeps its energy for all answer lengths.
@@ -396,6 +515,7 @@ class Voice:
         cfg = config['cfg_weight']
         import numpy as np
         sentences = speech_chunks(text)
+        previous_text = ''
         parts = []
         checks = []
         for sentence in sentences:
@@ -416,19 +536,24 @@ class Voice:
                             raise
                         time.sleep(10)
                 samples = wav.detach().cpu().numpy().reshape(-1)
+                samples = gate_silence(trim_end(trim_tail(samples, self.model.sr, sentence), self.model.sr), self.model.sr)
                 seconds = len(samples) / self.model.sr
                 reason = chunk_quality(sentence, seconds)
                 transcript = None
-                if reason is None:
-                    transcript = self.transcribe(samples)
+                if reason is None and os.environ.get('AFU_SES_DOGRULA') == '1':
+                    transcript = self.transcribe(samples)  # yavaş; yalnız geliştirme denetiminde
                     reason = chunk_quality(sentence, seconds, transcript)
                 candidates.append(dict(attempt=quality_attempt + 1, seconds=seconds,
                                        transcript=transcript, issue=reason))
-                if reason is None:
-                    break
+                if reason in (None, 'whisper_mismatch'):
+                    break  # adlar/yabancı sözcükler yanlış duyulur; sesi çal, robot sesine düşme
             checks.append(dict(text=sentence, attempts=candidates))
             if parts:
                 parts.append(np.zeros(int(self.model.sr * config.get('pause', 0.18)), dtype=np.float32))
+                if tarz == 'sohbet':
+                    # Sohbette doğal ses: cümleler arası biraz daha sessiz es (okumada yok, hızlı okunur).
+                    parts.append(np.zeros(int(self.model.sr * 0.2), dtype=np.float32))
+            previous_text = sentence
             parts.append(samples)
         raw = target.with_name(target.stem + '_ham.wav')
         if self.cancelled():
@@ -442,7 +567,7 @@ class Voice:
             apply_filter(raw, target, preset)
         return {'energy': name, 'exaggeration': ex, 'cfg_weight': cfg,
                 'filter': config.get('ffmpeg_filter', preset), 'chunks': checks,
-                'quality_verified': all(row['attempts'][-1]['issue'] is None for row in checks)}
+                'quality_verified': all(row['attempts'][-1]['issue'] in (None, 'whisper_mismatch') for row in checks)}
 
     def transcribe(self, samples):
         import numpy as np

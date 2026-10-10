@@ -97,7 +97,8 @@ export class VoiceService {
   if(!this.enabled||!allowed||!text||this.seen.has(key))return;
   this.seen.add(key);if(this.seen.size>512)this.seen.delete(this.seen.values().next().value!);
   if(now-this.last<30000)return;this.last=now;
-  try { await this.actions.voiceSpeak(text); } catch { /* Bildirim hatası sohbeti kesmez. */ }
+  // Bildirimler de Afu sesiyle okunur; Windows sesi yalnız Afu sesi yoksa kullanılır.
+  try { if (this.actions.voiceResponse) await this.actions.voiceResponse(text); else await this.actions.voiceSpeak(text); } catch { /* Bildirim hatası sohbeti kesmez. */ }
  }
  async silence(){this.enabled=false;await this.actions.voiceSilence();}
 }
@@ -185,6 +186,14 @@ export class SurekliSohbet {
     this.state = "idle";
     this.changed();
     return; // 60s sessizlik = döngü biter
+   }
+
+   // "Tamam yeterli" sohbeti bitirir; çağırma sözü ("AfuNöbet") yeniden başlatır.
+   if (/tamam.{0,3}yeter/.test(text.toLowerCase().replace(/ı/g, "i").replace(/ş/g, "s").replace(/[^a-z0-9]/g, ""))) {
+    this.state = "idle";
+    this.changed();
+    try { await this.actions.voiceResponse?.("Tamam, çağırmanı bekliyorum."); } catch { /* ses yoksa sessiz */ }
+    return;
    }
 
    this.transcript = text;

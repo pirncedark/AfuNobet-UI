@@ -7,6 +7,9 @@ import { kopruDurumu, type KopruMesaj } from "../core/kopru";
 import { clipText } from "../core/metin";
 import type { NotificationMessage } from "./notifications";
 import { bicimle } from "./bicim";
+import { messageNotifications } from "./notifications";
+import { sesDalga, mikSeviyesiniBagla } from "./sesdalga";
+import { Bridge } from "../core/bridge";
 import "./message.css";
 
 export const AJANLAR = ["claude", "codex", "gemini", "opencode"] as const;
@@ -61,9 +64,11 @@ export function temizMetin(metin: string): string { return temizSatirlar(metin).
 export function bolunBaslik(metin: string): { etiket: string | null; govde: string } {
   const satirlar = temizSatirlar(metin);
   if (!satirlar.length) return { etiket: null, govde: "" };
-  const es = new RegExp(`^(${AJANLAR.join("|")})\\s*[:\\-–—]\\s*(.*)$`, "i").exec(satirlar[0]);
+  // "Claude · klasör: metin" biçimi hangi terminalden geldiğini etikette gösterir.
+  // Klasör adında tire olabilir (AfuNobet-UI): "·" biçiminde ayraç yalnız ":" olur.
+  const es = new RegExp(`^(${AJANLAR.join("|")})(?:\\s*·\\s*([\\w .\\-]{1,24}?)\\s*:|\\s*[:\\-–—])\\s*(.*)$`, "i").exec(satirlar[0]);
   if (!es) return { etiket: null, govde: satirlar.join(" ") };
-  return { etiket: ad(es[1].toLowerCase() as MesajAjan), govde: [es[2], ...satirlar.slice(1)].filter(Boolean).join(" ") };
+  return { etiket: ad(es[1].toLowerCase() as MesajAjan) + (es[2] ? " · " + es[2].trim() : ""), govde: [es[3], ...satirlar.slice(1)].filter(Boolean).join(" ") };
 }
 
 /** İlk anlamlı iki cümle: balonda üçüncü cümle ve sonrası gösterilmez. */
@@ -182,21 +187,42 @@ function komutBalonu(belge: Pick<Document, "createElement">, kapat?: () => void)
   const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket"; etiket.textContent = "Afu'ya komut ver";
   const satir = belge.createElement("div"); satir.className = "afu-cevap-satir";
   const ajan = belge.createElement("select"); ajan.className = "soru-alan afu-komut-ajan"; ajan.setAttribute("aria-label", "Ajan");
-  for (const a of ["codex", "gemini", "opencode"]) { const o = belge.createElement("option"); o.value = a; o.textContent = ad(a as MesajAjan); ajan.append(o); }
+  for (const a of ["codex", "gemini", "opencode", "claude"]) { const o = belge.createElement("option"); o.value = a; o.textContent = ad(a as MesajAjan); ajan.append(o); }
   const alan = belge.createElement("input"); alan.type = "text"; alan.placeholder = "Ne yapılsın?"; alan.className = "soru-alan";
   const gonder = belge.createElement("button"); gonder.type = "button"; gonder.className = "soru-dugme"; gonder.textContent = "Gönder";
+  window.addEventListener("afu-komut-yaz", ev => { const t = (ev as CustomEvent<string>).detail; if (alan.isConnected && t) { alan.value = t; alan.focus(); } });
+  const mik = belge.createElement("button"); mik.type = "button"; mik.className = "soru-dugme afu-komut-mik"; mik.textContent = "🎤"; mik.title = "Sesle yaz"; mik.setAttribute("aria-label", "Sesle yaz");
   const durum = belge.createElement("div"); durum.className = "afu-komut-durum";
+  // Mikrofon düğmesi: yeşil dalga oynar, söylediğin yazı kutusuna düşer.
+  mik.addEventListener("click", () => {
+    if (mik.disabled) return;
+    mik.disabled = true; durum.textContent = ""; alan.placeholder = "Dinliyorum… konuş";
+    mikSeviyesiniBagla(); sesDalga("dinliyor");
+    // Arka plandaki "AfuNöbet" dinlemesi mikrofonu tutuyorsa önce bırakır.
+    Bridge.voiceCancel().catch(() => {}).then(() => Bridge.voiceListenTurn(10000))
+      .then(t => { const m = t.replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim(); if (m) alan.value = m; else durum.textContent = "Seni duyamadım. Yeniden dene."; })
+      .catch(() => { durum.textContent = "Mikrofon açılamadı. Mikrofon izni ve cihazı kontrol et."; })
+      .finally(() => { sesDalga(null); mik.disabled = false; alan.placeholder = "Ne yapılsın?"; });
+  });
   const yolla = () => {
     const gorev = alan.value.trim(); if (!gorev) return;
+    if (ajan.value === "claude") {
+      const acik = messageNotifications.current()?.raw;
+      if (acik && claudeCevapMi(acik)) { cevapGonder(acik, gorev); if (kapat) kapat(); }
+      else durum.textContent = "Claude şu an cevap beklemiyor. Claude bir mesaj gönderince yaz.";
+      return;
+    }
     gonder.disabled = true;
     invoke("orkestra_send", { agent: ajan.value, project: "AfuNobet-UI", task: gorev })
       .then(() => { if (kapat) kapat(); })
       .catch(err => { gonder.disabled = false; durum.textContent = typeof err === "string" && err ? err : "Komut gönderilemedi. Yeniden dene."; });
   };
-  for (const el of [e, ajan, alan, gonder]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
+  const sohbet = belge.createElement("button"); sohbet.type = "button"; sohbet.className = "soru-dugme afu-komut-mik"; sohbet.textContent = "🗣"; sohbet.title = "Sesli sohbet (bitirmek için: tamam yeterli)"; sohbet.setAttribute("aria-label", "Sesli sohbet");
+  sohbet.addEventListener("click", () => { window.dispatchEvent(new Event("afu-sesli-sohbet")); if (kapat) kapat(); });
+  for (const el of [e, ajan, alan, gonder, mik, sohbet]) for (const ev of ["click", "pointerdown", "keyup"] as const) el.addEventListener(ev, x => x.stopPropagation());
   alan.addEventListener("keydown", x => { x.stopPropagation(); if (x.key === "Enter") yolla(); });
   gonder.addEventListener("click", yolla);
-  satir.append(ajan, alan, gonder);
+  satir.append(ajan, alan, mik, sohbet, gonder);
   e.append(etiket, satir, durum);
   if (kapat) {
     const k = belge.createElement("span"); k.className = "afu-balon-kapat"; k.setAttribute("role", "button"); k.setAttribute("tabindex", "0");

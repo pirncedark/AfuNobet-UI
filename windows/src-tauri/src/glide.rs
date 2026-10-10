@@ -117,7 +117,7 @@ pub fn pet_gizli_mi(on: bool, tam_ekran: bool, onay: bool) -> bool {
 pub const PET_BALON_PAY: f64 = 24.0;
 pub const PET_BALON_YUKSEKLIK: f64 = 340.0;
 pub const PET_BALON_BOSLUK: f64 = 8.0;
-pub fn pet_pencere_genisligi(balon: bool) -> f64 { if balon { 320.0 } else { PET_PENCERE } }
+pub fn pet_pencere_genisligi(balon: bool) -> f64 { if balon { 592.0 } else { PET_PENCERE } }
 
 /// Centre the wider window on the original pet, clamped to the monitor edges.
 pub fn balon_x(x: i32, pet: i32, width: i32, left: i32, right: i32) -> i32 {
@@ -406,7 +406,7 @@ mod tests {
             let pet = crate::dpi::physical_for(pet_pencere_genisligi(false), scale) as i32;
             let wide = crate::dpi::physical_for(pet_pencere_genisligi(true), scale) as i32;
             assert_eq!(pet, crate::dpi::physical_for(256.0, scale) as i32);
-            assert_eq!(wide, crate::dpi::physical_for(320.0, scale) as i32);
+            assert_eq!(wide, crate::dpi::physical_for(592.0, scale) as i32);
             let x = balon_x(600, pet, wide, 0, 1920);
             assert_eq!(x + wide / 2, 600 + pet / 2);
             assert_eq!(balon_x(600, pet, pet, 0, 1920), 600);

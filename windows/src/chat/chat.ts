@@ -187,6 +187,7 @@ export class ChatView {
   this.history.push(`${who}: ${text}`);this.history=this.history.slice(-40);
   this.conversationList.textContent=this.history.join("\n\n");
  }
+ async sesliSohbetiBaslat(){if(this.conversation?.active)return;await this.toggleConversation();}
  private async toggleConversation(){
   if(!this.active||this.voiceStopping)return;
   if(this.voiceLogin){this.voiceLogin=false;await this.stopConversation();return;}

@@ -13,9 +13,12 @@ pub struct Choice {
     pub chosen: bool,
     #[serde(default)]
     pub available: Vec<String>,
+    /// "sohbet" = nefes/es eklenir; boş/"okuma" = hızlı, süssüz okuma.
+    #[serde(default, skip_serializing)]
+    pub tarz: String,
 }
 impl Default for Choice {
-    fn default() -> Self { Self { ses: "afu_5b".into(), filtre: "sicak".into(), chosen: false, available: vec!["afu_5b".into(), "notr".into()] } }
+    fn default() -> Self { Self { ses: "afu_5b".into(), filtre: "sicak".into(), chosen: false, available: vec!["afu_5b".into(), "notr".into()], tarz: String::new() } }
 }
 fn valid(ses: &str, filtre: &str) -> bool { NAMES.contains(&ses) && FILTERS.contains(&filtre) }
 pub fn runtime() -> Option<PathBuf> {
@@ -64,6 +67,12 @@ pub fn job_directory() -> PathBuf {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_nanos();
     std::env::temp_dir().join(format!("afu-voice-{}-{stamp}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::Relaxed)))
+}
+/// Geçici tanı: iptal kaynağını %TEMP%\afu-ses-iptal.log dosyasına yazar.
+pub fn kayit(kaynak: &str) {
+    use std::io::Write;
+    let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+    if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(std::env::temp_dir().join("afu-ses-iptal.log")) { let _ = writeln!(f, "{t} {kaynak}"); }
 }
 pub fn cancel(directory: &Path) { let _ = fs::write(directory.join("cancel"), b""); }
 fn resolve_interpreter(root: &Path, configured: Option<&Path>, exe: Option<&Path>) -> Option<PathBuf> {
@@ -126,6 +135,35 @@ fn kill_worker(child: &mut std::process::Child) {
     }
     let _ = child.kill();
 }
+/// Uygulama açılırken ses sunucusunu arka planda başlatır; model bellekte hazır bekler.
+pub fn sunucu_baslat() {
+    std::thread::spawn(|| {
+        let Some(root) = runtime() else { return; };
+        let Some(python) = interpreter(&root) else { return; };
+        let mut command = Command::new(python);
+        command.args(["-B"]).arg(root.join("uygulama_sesi_sunucu.py")).arg("--hazirla")
+            .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
+        #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
+        let _ = command.spawn();
+    });
+}
+/// Telefon için: sesi çalmadan WAV olarak üretir (Afu sesi, ses sunucusu üzerinden).
+pub fn uret_wav(text: &str, tarz: &str) -> Result<Vec<u8>, String> {
+    let root = runtime().ok_or("Afu sesi kurulu değil.")?;
+    let python = interpreter(&root);
+    let directory = job_directory();
+    fs::create_dir_all(&directory).map_err(|_| "Ses hazırlanamadı.".to_owned())?;
+    let mut choice = Choice::default();
+    choice.tarz = tarz.into();
+    let generation = AtomicU64::new(1);
+    let sonuc = speak_worker(Some(&root), &directory, &choice, text, &generation, 1, python.as_deref(), true);
+    let bayt = fs::read(directory.join("answer.wav"));
+    let _ = fs::remove_dir_all(&directory);
+    match (sonuc, bayt) {
+        (Answer::Played, Ok(b)) => Ok(b),
+        _ => Err("Ses üretilemedi. Yeniden dene.".into()),
+    }
+}
 pub fn speak(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64) -> Answer {
     let python = root.and_then(interpreter);
     speak_with_interpreter(root, directory, choice, text, generation, ticket, python.as_deref())
@@ -142,7 +180,7 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
     let fallback = || Answer::Fallback("Ayrıntıları ekranda görebilirsin.".into());
     if generation.load(Ordering::Acquire) != ticket { return Answer::Cancelled; }
     let (Some(root), Some(python)) = (root, python) else { return Answer::Fallback(NOT_INSTALLED.into()); };
-    let request = serde_json::json!({"text":text,"ses":choice.ses,"filtre":choice.filtre,"headless":headless});
+    let request = serde_json::json!({"text":text,"ses":choice.ses,"filtre":choice.filtre,"headless":headless,"tarz":choice.tarz});
     if fs::write(directory.join("request.json"), request.to_string()).is_err() { return fallback(); }
     let mut command = Command::new(python);
     command.args(["-B"]).arg(root.join("uygulama_sesi.py")).arg(directory)

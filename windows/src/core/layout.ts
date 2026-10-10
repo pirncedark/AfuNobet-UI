@@ -40,7 +40,7 @@ export function contentWidth(textWidth: number, viewportW: number, _viewportH: n
  *  üstündeki "boş" kısım tıklamayı yutar ve tıklama masaüstüne geçmez. */
 export const PET_BALON_PAY = 24;
 export const PET_BALON_YUKSEKLIK = 340;
-export const PET_BALON_GENISLIK = 296;
+export const PET_BALON_GENISLIK = 568;
 export const PET_BALON_PENCERE = 320;
 /** Balon kuyruğu ile karakterin başı arasındaki boşluk. */
 export const PET_BALON_BOSLUK = 8;

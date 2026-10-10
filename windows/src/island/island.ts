@@ -13,7 +13,7 @@ import { deriveEvents, EventDeduper } from "../core/events";
 import { AfuPet, PET_BOYUT } from "../afu/pet";
 import { petMesgul } from "../afu/ifade";
 import { T } from "../afu/timing";
-import { KonusanAfu, KOMUT_ONEK, claudeCevapMi, cevapGonder, temizMetin, kisalt, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
+import { KonusanAfu, KOMUT_ONEK, bolunBaslik, claudeCevapMi, cevapGonder, temizMetin, kisalt, petBalonMetniniSigdir, devirMesajlari, olayMesaji, terminalPetMetni } from "../message/message";
  import { AfuViews } from "../views/views";
 import { h } from "../views/dom";
 import { IslandStateMachine } from "./fsm";
@@ -21,6 +21,8 @@ import { soruAkisiniBagla } from "../question/question";
 import { bicimle } from "../message/bicim";
 import { messageNotifications, showNotification } from "../message/notifications";
 import { loadMessageAlert } from "../core/settings";
+import { listen } from "@tauri-apps/api/event";
+import { sesDalga, mikSeviyesiniBagla } from "../message/sesdalga";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { cursorToCss, dismissAction, hitRect, hitScale, toWindow } from "../core/hit";
 
@@ -187,23 +189,66 @@ export class Island {
   /** Gelen Claude mesajını maskot sesiyle okur, sonra tek tur dinler; duyulan cevap Claude'a gider. */
   private sesliId: string | null = null;
   private sesliOkunan = new Set<string>();
-  private sesliBitir() { this.sesliId = null; void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
+  private sesDalga = sesDalga;
+  /** Sohbet açıkken gelen mesaj okunur ve cevap dinlenir; "tamam yeterli" kapatır, "AfuNöbet" tekrar açar. */
+  private sohbetAcik = true;
+  private uyanikBekle = false;
+  private mikMesgul = false;
+  private static sade(t: string) {
+    return t.toLowerCase().replace(/ö/g, "o").replace(/ü/g, "u").replace(/ı/g, "i").replace(/ş/g, "s").replace(/ç/g, "c").replace(/ğ/g, "g").replace(/[^a-z0-9]/g, "");
+  }
+  private async uyanmaDongusu() {
+    if (this.uyanikBekle) return;
+    this.uyanikBekle = true;
+    const bekle = (ms: number) => new Promise(r => window.setTimeout(r, ms));
+    try {
+      // "Hey Google" gibi: "AfuNöbet" sözü her zaman dinlenir (sohbet açık ya da kapalı).
+      for (;;) {
+        if (this.sesliId || this.mikMesgul || this.chat.conversation?.active) { await bekle(600); continue; }
+        let duyulan = "";
+        try { duyulan = await Bridge.voiceListenTurn(6000); } catch { await bekle(1500); continue; }
+        if (!/afu.{0,3}(bet|bed|pet|bat)/.test(Island.sade(duyulan))) continue;
+        this.sohbetAcik = true;
+        try { await Bridge.voiceResponse("Buradayım."); } catch { /* ses yoksa sessiz devam */ }
+        const acik = messageNotifications.current();
+        if (acik?.raw && claudeCevapMi(acik.raw)) { this.sesliOkunan.delete(acik.id); void this.sesliCevap(acik); }
+        else await this.sesliSohbetAc(); // Bekleyen mesaj yoksa "tamam yeterli"ye kadar sesli sohbet
+      }
+    } finally { this.uyanikBekle = false; }
+  }
+  /** Sohbet penceresini açar ve sürekli sesli sohbeti başlatır ("tamam yeterli" ile biter). */
+  async sesliSohbetAc() {
+    if (this.view !== "chat") { this.setView("chat"); void this.chat.refresh(); this.fsm.pinned = true; }
+    await new Promise(r => window.setTimeout(r, 700));
+    await this.chat.sesliSohbetiBaslat();
+  }
+  private async sohbetiKapat(message: { id: string; raw?: import("../message/message").Mesaj }) {
+    this.sohbetAcik = false;
+    if (message.raw) cevapGonder(message.raw, null);
+    messageNotifications.close(message.id);
+    void this.uyanmaDongusu();
+    try { await Bridge.voiceResponse("Tamam, çağırmanı bekliyorum."); } catch { /* ses yoksa sessiz devam */ }
+  }
+  private sesliBitir() { this.sesliId = null; this.sesDalga(null); void Bridge.voiceCancel().catch(() => {}); void Bridge.voiceSilence().catch(() => {}); }
   private async sesliCevap(message: { id: string; raw?: import("../message/message").Mesaj }) {
     const raw = message.raw;
     if (!raw || this.sesliOkunan.has(message.id)) return;
     this.sesliOkunan.add(message.id);
     try { if (localStorage.getItem("afuSesliMesaj") === "0") return; } catch { /* ayar yoksa açık */ }
-    if (this.chat.voice?.active || this.chat.responses?.speaking) return;
+    if (!this.sohbetAcik || this.chat.voice?.active || this.chat.responses?.speaking) return;
     this.sesliId = message.id;
     const hala = () => messageNotifications.current()?.id === message.id && this.sesliId === message.id;
     try {
       const destek = await Bridge.voiceSupported();
       if (!destek.tts && !destek.afu_tts) return;
-      await Bridge.voiceSpeak(kisalt(temizMetin(raw.metin), 500));
+      const calmaDinle = await listen("afu-voice-playing", () => this.sesDalga("konusuyor"));
+      try { await Bridge.voiceResponse(kisalt(bolunBaslik(raw.metin).govde || temizMetin(raw.metin), 130), "okuma"); } finally { calmaDinle(); this.sesDalga(null); }
       if (!hala()) return;
       // Konuşma tanıma gürültüyü "(Müzik)", "[alkış]" gibi etiketle döndürür; bunlar cevap sayılmaz.
+      mikSeviyesiniBagla(); this.sesDalga("dinliyor");
       const duyulan = (await Bridge.voiceListenTurn(10000)).replace(/[(\[*][^)\]*]*[)\]*]/g, " ").replace(/\s+/g, " ").trim();
       if (!duyulan || !hala()) return;
+      if (/tamam.{0,3}yeter/.test(Island.sade(duyulan))) { this.sesliId = null; this.sesDalga(null); void this.sohbetiKapat(message); return; }
       const bicim = bicimle(raw.metin);
       const sayilar: Record<string, string> = { bir: "1", iki: "2", "üç": "3", "uc": "3", "dört": "4", "dort": "4" };
       const kelime = duyulan.toLowerCase().replace(/[^\p{L}\d ]/gu, "").trim();
@@ -212,10 +257,13 @@ export class Island {
       cevapGonder(raw, sec ? `${sec.id} = ${sec.etiket}` : duyulan);
       messageNotifications.close(message.id);
     } catch { /* ses yoksa balon yazıyla çalışmaya devam eder */ }
+    finally { this.sesDalga(null); }
   }
   private bindMessages() {
     State.settings.messageAlert = loadMessageAlert();
     messageNotifications.setEnabled(State.settings.messageAlert);
+    window.addEventListener("afu-sesli-sohbet", () => void this.sesliSohbetAc());
+    window.setTimeout(() => void this.uyanmaDongusu(), 8000); // model yüklensin, sonra çağırma sözü dinlenir
     let raised = false;
     const unsubscribe = messageNotifications.subscribe(() => {
       const message = messageNotifications.current();
@@ -337,10 +385,9 @@ export class Island {
   }
   launch() {
     if (messageNotifications.isOpen && State.settings.messageAlert !== false) return;
-    let first = true, pendingHints = false;
-    try { first = localStorage.getItem("afunobet-orientation-v1") !== "seen"; pendingHints = Number(localStorage.getItem("afunobet-discovery-v1") ?? 0) < 4; localStorage.setItem("afunobet-orientation-v1", "seen"); } catch { /* Optional orientation persistence. */ }
-    if (first || pendingHints) this.fsm.launch();
-    else this.fsm.reveal();
+    // Uygulama her açılışta pet olarak başlar; büyük karşılama ekranı açılmaz.
+    try { localStorage.setItem("afunobet-orientation-v1", "seen"); } catch { /* Optional orientation persistence. */ }
+    this.fsm.collapse();
   }
   applySettings() { this.fsm.homeToPetitDelay = State.settings.autoCloseInterval; this.setPetEnabled(State.settings.pet); }
   setPetEnabled(on: boolean) {

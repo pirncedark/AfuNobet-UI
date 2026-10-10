@@ -28,7 +28,7 @@
    balonu olarak durur. `#afu-pet` `overflow:hidden` olduğu için balon ayrı bir
    kutuya (pet kutusu + balon şeridi) çizilir; konumu core/layout.ts
    (PET_BALON_TABAN/PET_BALON_YUKSEKLIK) ile Rust tarafında aynı sayıdır. */
-#afu-pet-balon{position:absolute;left:50%;bottom:var(--pet-balon-bottom,274px);width:calc(100% - 24px);max-width:296px;height:auto;transform:translateX(-50%);pointer-events:none;z-index:12}
+#afu-pet-balon{position:absolute;left:50%;bottom:var(--pet-balon-bottom,274px);width:calc(100% - 24px);max-width:568px;height:auto;transform:translateX(-50%);pointer-events:none;z-index:12}
 #afu-pet-balon:empty{display:none}
 #afu-pet-balon>.afu-konusma-balonu{display:block;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;width:100%;overflow:visible;pointer-events:auto;border-width:2px;margin:0;padding:8px 10px;background:#17283f;border-radius:10px;box-shadow:0 3px 10px #0006;max-height:var(--pet-balon-h,340px)}
 .afu-balon-etiket{display:block;min-height:26px;font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:#ffd97a;opacity:.9;padding-right:58px}
@@ -48,6 +48,8 @@
 /* The expanded card owns its character; hide the separate miniature pet. */
 #island[data-mode=expanded] ~ #afu-pet,
 #island[data-mode=expanded] ~ #afu-pet-balon{display:none}
+/* Büyük ekranda mesaj kartta görünür; maskotun üstünde ikinci bir balon çıkmaz. */
+#island[data-mode=expanded] #afu-character>.afu-konusma-balonu{display:none!important}
 /* Claude mesajına cevap satırı: yazı kutusu + Gönder, balon ve kartta tam sığar. */
 .afu-cevap-satir{display:flex;gap:6px;align-items:stretch;margin-top:6px;width:100%;box-sizing:border-box}
 .afu-cevap-satir .soru-alan{flex:1 1 auto;min-width:0}
@@ -62,3 +64,14 @@
 .afu-komut-balonu .afu-komut-ajan{flex:0 0 auto;width:auto;max-width:84px}
 .afu-komut-durum{min-height:0;margin-top:4px;font-size:11px;color:#ffb4a8}
 .afu-komut-durum:empty{display:none}
+
+/* Ses dalgası: Afu konuşurken turuncu, seni dinlerken yeşil oynar. */
+#afu-ses-dalga{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:3px;height:22px;padding:3px 8px;border-radius:11px;background:#17283fe6;border:1px solid #659dd5;z-index:30;pointer-events:none}
+#afu-ses-dalga i{display:block;width:4px;height:6px;border-radius:2px;background:#ffb347;animation:afu-dalga .7s ease-in-out infinite}
+#afu-ses-dalga.dinliyor i{background:#5ee08a}
+#afu-ses-dalga i:nth-child(2){animation-delay:.1s}#afu-ses-dalga i:nth-child(3){animation-delay:.2s}#afu-ses-dalga i:nth-child(4){animation-delay:.3s}#afu-ses-dalga i:nth-child(5){animation-delay:.4s}
+@keyframes afu-dalga{0%,100%{height:5px}50%{height:18px}}
+
+.afu-komut-balonu .afu-komut-mik{flex:0 0 auto;min-width:30px;padding:2px 7px}
+#afu-ses-dalga.dinliyor i{animation:none;height:calc(5px + var(--lvl,0) * 17px);transition:height .08s}
+#afu-ses-dalga.dinliyor i:nth-child(2n){height:calc(5px + var(--lvl,0) * 12px)}
