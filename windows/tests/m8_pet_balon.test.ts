@@ -86,8 +86,10 @@ for(const scale of [1,1.25,1.5]) for(const [name,text] of [
   expect(metrics.top).toBeGreaterThanOrEqual(0); expect(metrics.right).toBeLessThanOrEqual(320);
   expect(metrics.textBottom).toBeLessThanOrEqual(metrics.bottom-2);
   expect(metrics.textTop).toBeGreaterThan(metrics.top); expect(metrics.petW).toBe(256);
-  expect(metrics.fullHeight).toBeLessThanOrEqual(metrics.visibleHeight+1);
-  if(name==='tasma') expect(metrics.value).toMatch(/\u2026$/);
+  // Tam metin korunur; s\u0131\u011fmayan g\u00f6vde kutu i\u00e7inde kayd\u0131r\u0131l\u0131r (kesme/\u2026 yok).
+  expect(metrics.value).not.toMatch(/\u2026$/);
+  if(name==='tasma') expect(metrics.fullHeight).toBeGreaterThan(metrics.visibleHeight);
+  else expect(metrics.fullHeight).toBeLessThanOrEqual(metrics.visibleHeight+1);
   if(name==='uzun') expect(metrics.value!.length).toBeGreaterThan(80);
   await expectPixelsInside(page,balloon,`${name}-${scale}`);
   await balloon.getByRole('button',{name:/Okudum/}).click();

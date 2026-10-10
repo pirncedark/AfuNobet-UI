@@ -145,13 +145,16 @@ impl SolVoiceState {
         if let Ok(jobs) = self.jobs.lock() { for path in jobs.iter() { voice::afu::cancel(path); } }
     }
 }
+fn state_cancel_capture(app:&tauri::AppHandle){app.state::<voice::VoiceState>().cancel_capture();}
 #[tauri::command]
 fn sol_voice_silence(sol: tauri::State<'_, SolVoiceState>, state: tauri::State<'_, voice::VoiceState>) {
     sol.silence();voice::voice_silence(state);
 }
 #[tauri::command]
-async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoiceState>, text: String, tarz: Option<String>) -> Result<Value, String> {
+async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoiceState>, text: String, tarz: Option<String>, parcalar: Option<Vec<String>>) -> Result<Value, String> {
     use std::sync::atomic::Ordering;
+    let text=std::iter::once(text).chain(parcalar.unwrap_or_default()).collect::<Vec<_>>().join(" ");
+    state_cancel_capture(&app);
     let generation=sol.generation.clone();
     let ticket=generation.fetch_add(1,Ordering::AcqRel)+1;
     let directory=voice::afu::job_directory();
@@ -159,11 +162,15 @@ async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoic
     std::fs::create_dir_all(&directory).map_err(|_|failure.to_owned())?;
     let jobs=sol.jobs.clone();jobs.lock().map_err(|_|failure.to_owned())?.push(directory.clone());
     let lock=sol.lock.clone();
+    let speech_lock=app.state::<voice::VoiceState>().speech_lock.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let _guard=lock.lock().map_err(|_|failure.to_owned())?;
+        let _speech=speech_lock.lock().map_err(|_|failure.to_owned())?;
+        state_cancel_capture(&app);
         let mut secim=voice::afu::Choice::default(); secim.tarz=tarz.unwrap_or_default();
         let result=voice::afu::speak(voice::afu::runtime().as_deref(),&directory,&secim,&text,&generation,ticket);
         if let Ok(mut jobs)=jobs.lock(){jobs.retain(|path|path!=&directory);}
+        let _=std::fs::remove_dir_all(&directory);
         match result {
             voice::afu::Answer::Played|voice::afu::Answer::Cancelled=>Ok(serde_json::json!({"warning":null})),
             voice::afu::Answer::Fallback(_)=>Err(failure.to_owned()),
@@ -470,6 +477,7 @@ pub fn run() {
             sistem::baslat(&handle)?;
             ilk_kullanim::prepare(&handle);
             mesajlar::start(handle.clone());
+            {let h=handle.clone();let _=voice::afu::PLAYING.set(Box::new(move||{let _=h.emit("afu-voice-playing",());}));}
             voice::afu::sunucu_baslat();
             telefon::baslat(handle.clone());
             { let h = handle.clone(); std::thread::spawn(move || { h.state::<voice::VoiceState>().motoru_hazirla(); }); }

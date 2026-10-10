@@ -278,8 +278,8 @@ export function balonOlustur(
     metin.textContent = govdeText || "Yeni mesaj geldi.";
   }
   e.append(etiket, metin);
-  // Pet previews use the available height, rather than the card's 80-character summary.
-  if (!bicim.soru) metin.setAttribute('data-pet-metin', bicim.ayrinti || yazi.govde || tam);
+  // Mini pet always keeps the complete body, including questions and options.
+  metin.setAttribute("data-pet-metin", terminalPetMetni(mesaj.metin, mesaj.ajan).tam);
 
   if (bicim.soru) {
     e.style.pointerEvents = "auto"; e.style.cursor = "default";
@@ -344,27 +344,12 @@ export function balonOlustur(
   return e;
 }
 
-/** Fit at word boundaries; the original remains in title and the detail view. */
+/** Keep the full pet text; CSS scrolls the body while reply controls stay fixed. */
 export function petBalonMetniniSigdir(host: HTMLElement) {
   const metin = host.querySelector<HTMLElement>(".afu-balon-metin[data-pet-metin]");
   if (!metin) return;
   const tam = metin.dataset.petMetin!;
-  const key = `${tam}|${host.clientWidth}|${host.style.getPropertyValue('--pet-balon-h')}`;
-  if (metin.dataset.olcu === key) return;
-  metin.dataset.olcu = key;
-  // Bound the preview even when a long message fits geometrically.
-  const onizleme = kisalt(tam, 180);
-  metin.textContent = onizleme;
-  if (metin.scrollHeight <= metin.clientHeight + 1) return;
-  const kelimeler = onizleme.replace(/…$/, "").trim().split(/\s+/);
-  let lo = 0, hi = kelimeler.length;
-  while (lo < hi) {
-    const mid = Math.ceil((lo + hi) / 2);
-    metin.textContent = kelimeler.slice(0, mid).join(' ') + '…';
-    if (metin.scrollHeight <= metin.clientHeight + 1) lo = mid;
-    else hi = mid - 1;
-  }
-  metin.textContent = kelimeler.slice(0, lo).join(' ') + '…';
+  if (metin.textContent !== tam) metin.textContent = tam;
 }
 
 export function olayMesaji(olay: AfuEvent, tasks: Task[], now: number, quotas?: Snapshot["quotas"]): Mesaj | null {
