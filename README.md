@@ -126,6 +126,15 @@ Add these hooks to `~/.claude/settings.json` (replace `<repo>` with the reposito
 
 The session title is the first 120 characters of your prompt; secrets such as tokens and keys are masked. Other agents use the same bridge with `--ajan codex`, `--ajan gemini` and so on.
 
+### Voice chat
+
+1. Open the chat panel and press the microphone button ("Start voice chat"), then speak.
+2. Speech is recognised on your PC (local Whisper; Windows speech recognition is the fallback). The microphone is only on while you hold the action, 60 s at most.
+3. If Windows says speech recognition is off, press "Enable permission", turn it on in Windows settings and try again.
+4. To hear replies, turn on spoken replies (TTS) in Settings; it is off by default.
+5. Needs the Claude Code hook bridge and AfuNobet installed, otherwise there is nowhere to send the message.
+6. Real microphone and speech output are not yet verified on every machine.
+
 ### Data and privacy
 
 - Agent data stays on your computer: the pipe is local and limited to your Windows user.
@@ -191,6 +200,15 @@ Hazır derlenmiş `afunobet-ui.exe` her [Release](https://github.com/pirncedark/
 ### Claude Code'u bağla
 
 İngilizce bölümdeki `hooks` bloğunu `~/.claude/settings.json` dosyasına ekleyin (`<repo>` yerine depo yolunu yazın) ve Claude Code'u yeniden başlatın. Oturum başlığı isteminizin ilk 120 karakteridir; anahtar ve token gibi gizli bilgiler maskelenir. Diğer ajanlar aynı köprüyü `--ajan codex`, `--ajan gemini` gibi kullanır.
+
+### Sesli sohbet
+
+1. Sohbet panelini açın, mikrofon düğmesine ("Sesli sohbeti başlat") basıp konuşun.
+2. Konuşma bilgisayarınızda tanınır (yerel Whisper; yedek olarak Windows konuşma tanıma). Mikrofon yalnız siz kullanırken açıktır, en fazla 60 sn.
+3. Windows konuşma tanıma izni kapalıysa "İzni aç"a basın, Windows ayarlarından açıp tekrar deneyin.
+4. Yanıtları duymak için Ayarlar'dan sesli okumayı (TTS) açın; varsayılan kapalıdır.
+5. Claude Code kanca köprüsü ve AfuNöbet kurulu olmalı; yoksa mesajın gideceği yer olmaz.
+6. Gerçek mikrofon ve ses çıkışı her bilgisayarda henüz doğrulanmadı.
 
 ### Veri ve gizlilik
 
