@@ -8,6 +8,8 @@ use std::thread::JoinHandle;
 use std::time::{Duration, Instant};
 pub const RATE: u32 = 16_000;
 pub const MAX_SECONDS: usize = 60;
+/// Mikrofon seviyesini (RMS) arayüze iletir; uygulama açılışında kurulur.
+pub static SEVIYE: std::sync::OnceLock<Box<dyn Fn(f32) + Send + Sync>> = std::sync::OnceLock::new();
 pub fn cumle_bitti_mi(cerceveler_rms: &[f32], esik: f32, sessizlik_ms: usize) -> bool {
     let sessizlik_cerceve_sayisi = sessizlik_ms.div_ceil(30).max(1);
     let mut konusma_basladi = false;
@@ -168,12 +170,15 @@ impl Recorder {
                                 };
                                 // Örnek hızı rate. 30ms = rate * 30 / 1000.
                                 let cerceve_boyutu = ((rate * 30 / 1000) as usize).max(1);
+                                let mut en_yuksek = 0f32;
                                 for cerceve in anlik_samples.chunks_exact(cerceve_boyutu) {
                                     let kare_toplam: f32 = cerceve.iter().map(|&x| x * x).sum();
                                     let rms = (kare_toplam / cerceve_boyutu as f32).sqrt();
                                     cerceveler_rms.push(rms);
+                                    en_yuksek = en_yuksek.max(rms);
                                     son_islenen_ornek += cerceve_boyutu;
                                 }
+                                if en_yuksek > 0.0 { if let Some(f) = SEVIYE.get() { f(en_yuksek); } }
                                 if cumle_bitti_mi(&cerceveler_rms, esik, sessizlik_ms) {
                                     break true; // Kaydı doğal olarak bitir ve sakla
                                 }

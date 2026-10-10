@@ -27,6 +27,7 @@ mod hook_kur;
 mod kimlik;
 mod protokol;
 mod mesajlar;
+mod telefon;
 mod ipc;
 mod claude_hook;
 
@@ -139,6 +140,7 @@ struct SolVoiceState {
 }
 impl SolVoiceState {
     fn silence(&self) {
+        voice::afu::kayit("sol_silence");
         self.generation.fetch_add(1, std::sync::atomic::Ordering::AcqRel);
         if let Ok(jobs) = self.jobs.lock() { for path in jobs.iter() { voice::afu::cancel(path); } }
     }
@@ -148,7 +150,7 @@ fn sol_voice_silence(sol: tauri::State<'_, SolVoiceState>, state: tauri::State<'
     sol.silence();voice::voice_silence(state);
 }
 #[tauri::command]
-async fn sol_voice_response(sol: tauri::State<'_, SolVoiceState>, text: String) -> Result<Value, String> {
+async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoiceState>, text: String, tarz: Option<String>) -> Result<Value, String> {
     use std::sync::atomic::Ordering;
     let generation=sol.generation.clone();
     let ticket=generation.fetch_add(1,Ordering::AcqRel)+1;
@@ -159,7 +161,8 @@ async fn sol_voice_response(sol: tauri::State<'_, SolVoiceState>, text: String) 
     let lock=sol.lock.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let _guard=lock.lock().map_err(|_|failure.to_owned())?;
-        let result=voice::afu::speak(voice::afu::runtime().as_deref(),&directory,&voice::afu::Choice::default(),&text,&generation,ticket);
+        let mut secim=voice::afu::Choice::default(); secim.tarz=tarz.unwrap_or_default();
+        let result=voice::afu::speak(voice::afu::runtime().as_deref(),&directory,&secim,&text,&generation,ticket);
         if let Ok(mut jobs)=jobs.lock(){jobs.retain(|path|path!=&directory);}
         match result {
             voice::afu::Answer::Played|voice::afu::Answer::Cancelled=>Ok(serde_json::json!({"warning":null})),
@@ -456,6 +459,8 @@ pub fn run() {
             questions::questions_list,
             questions::answer_question,
             questions::mesaj_cevapla,
+            telefon::telefon_bilgi,
+            telefon::telefon_yenile,
             mesajlar::mesajlar_list,
             ipc::ajan_listesi,
             log_ac
@@ -465,6 +470,10 @@ pub fn run() {
             sistem::baslat(&handle)?;
             ilk_kullanim::prepare(&handle);
             mesajlar::start(handle.clone());
+            voice::afu::sunucu_baslat();
+            telefon::baslat(handle.clone());
+            { let h = handle.clone(); std::thread::spawn(move || { h.state::<voice::VoiceState>().motoru_hazirla(); }); }
+            { let h = handle.clone(); let _ = voice::capture::SEVIYE.set(Box::new(move |v| { let _ = h.emit("afu-mic-level", v); })); }
             if let Ok(path) = handle.path().app_config_dir() {
                 handle.state::<Shared>().settings.lock().unwrap().pet = settings::load(&path.join("pet.json"));
                 glide::x_yukle(path.join("pet_x.txt"));

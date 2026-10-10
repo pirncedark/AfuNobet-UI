@@ -14,6 +14,9 @@ pub struct Mesaj {
     pub tur: String,
     pub metin: String,
     pub zaman: u64,
+    /// Telefon için tam metin (özet yerine); arayüzdeki balon `metin` kullanır.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub tam: Option<String>,
 }
 
 fn gecerli_kimlik(s: &str, en_fazla: usize) -> bool {
@@ -21,7 +24,7 @@ fn gecerli_kimlik(s: &str, en_fazla: usize) -> bool {
     boy > 0 && boy <= en_fazla && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 
-fn mesaj_coz(bayt: &[u8]) -> Option<Mesaj> {
+pub fn mesaj_coz(bayt: &[u8]) -> Option<Mesaj> {
     if bayt.len() > 64 * 1024 {
         return None;
     }
@@ -51,6 +54,7 @@ fn mesaj_coz(bayt: &[u8]) -> Option<Mesaj> {
         tur: tur.to_owned(),
         metin: maskele(metin),
         zaman,
+        tam: govde.get("tam").and_then(|v| v.as_str()).filter(|t| t.len() <= 8000).map(maskele),
     })
 }
 
@@ -114,6 +118,7 @@ pub fn mesajlar_list() -> Vec<Mesaj> {
             if yol.extension().and_then(|s| s.to_str()) == Some("json") {
                 if let Ok(bayt) = fs::read(&yol) {
                     if let Some(mesaj) = mesaj_coz(&bayt) {
+                        crate::telefon::tampona_ekle(mesaj.clone());
                         liste.push(mesaj);
                         let _ = fs::remove_file(&yol); // tüketildi
                     }
