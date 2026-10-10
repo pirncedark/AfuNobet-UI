@@ -40,7 +40,7 @@ fn select_motor(local:bool,_windows:bool)->Result<MotorChoice,SesHata>{if local 
 pub struct VoiceState {
     recorder: Arc<Mutex<Option<(u64, capture::Recorder)>>>,
     motor: Arc<Mutex<Option<whisper::Motor>>>,
-    speech_lock: Arc<Mutex<()>>,
+    pub speech_lock: Arc<Mutex<()>>,
     generation: Arc<AtomicU64>,
     capture_generation: Arc<AtomicU64>,
     pending: Arc<Mutex<Option<(u64, Arc<AtomicBool>)>>>,
@@ -59,7 +59,7 @@ impl VoiceState {
     fn cancel_afu(&self) {
         if let Ok(jobs) = self.afu_jobs.lock() { for directory in jobs.iter() { afu::cancel(directory); } }
     }
-    fn cancel_capture(&self) {
+    pub fn cancel_capture(&self) {
         let cutoff = self.capture_generation.fetch_add(1, Ordering::AcqRel) + 1;
         let pending_done = if let Ok(pending) = self.pending.try_lock() {
             if let Some((ticket, signal)) = pending.as_ref() {
@@ -146,6 +146,7 @@ pub async fn voice_supported() -> Supported {
 }
 #[tauri::command]
 pub async fn voice_start(state: State<'_, VoiceState>) -> Result<(), String> {
+    let speech_lock=state.speech_lock.clone();
     let recorder = state.recorder.clone();
     let pending = state.pending.clone();
     let closed = state.closed.clone();
@@ -173,6 +174,10 @@ pub async fn voice_start(state: State<'_, VoiceState>) -> Result<(), String> {
                 return Err(SesHata::Microphone);
             }
             // Aygıt hazırlığı sırasında hiçbir uygulama Mutex kilidi tutulmaz.
+            let _speech = speech_lock.lock().map_err(|_| SesHata::Microphone)?;
+            if epoch.load(Ordering::Acquire) != ticket || signal.load(Ordering::Acquire) {
+                return Err(SesHata::Microphone);
+            }
             let recording = capture::Recorder::start_cancelled(signal.clone())?;
             let mut slot = recorder.lock().map_err(|_| SesHata::Microphone)?;
             if signal.load(Ordering::Acquire)
@@ -204,9 +209,10 @@ pub async fn voice_start(state: State<'_, VoiceState>) -> Result<(), String> {
 pub async fn voice_stop(state: State<'_, VoiceState>) -> Result<String, String> {
     let recorder = state.recorder.clone();
     let motor = state.motor.clone();
+    let epoch = state.capture_generation.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let recording = recorder.lock().map_err(|_| SesHata::Microphone)?.take();
-        let Some((_, recording)) = recording else {
+        let Some((ticket, recording)) = recording else {
             return Ok(String::new());
         };
         let data = recording.stop()?;
@@ -220,7 +226,9 @@ pub async fn voice_stop(state: State<'_, VoiceState>) -> Result<String, String> 
             };
             *engine = Some(whisper::Motor::yukle(&path)?);
         }
-        engine.as_ref().ok_or(SesHata::Model)?.cevir(&data)
+        let text = engine.as_ref().ok_or(SesHata::Model)?.cevir(&data)?;
+        if epoch.load(Ordering::Acquire) != ticket { return Ok(String::new()); }
+        Ok(text)
     })
     .await
     .map_err(|_| SesHata::Recognition.to_string())?
@@ -308,14 +316,19 @@ pub async fn voice_response(app: tauri::AppHandle, state: State<'_, VoiceState>,
     let generation = state.generation.clone();
     let ticket = generation.fetch_add(1, Ordering::AcqRel) + 1;
     state.cancel_afu();
+    state.cancel_capture();
     let directory = afu::job_directory();
     std::fs::create_dir_all(&directory).map_err(|_| "Yanıt okunamadı; metinden devam et.")?;
     let jobs = state.afu_jobs.clone();
     jobs.lock().map_err(|_| "Yanıt okunamadı; metinden devam et.")?.push(directory.clone());
     let lock = state.speech_lock.clone();
+    let recorder = state.recorder.clone();
+    let capture_epoch = state.capture_generation.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let result = (|| {
             let _guard = lock.lock().map_err(|_| SesHata::Speech.to_string())?;
+            capture_epoch.fetch_add(1, Ordering::AcqRel);
+            if let Ok(mut slot) = recorder.lock() { slot.take(); }
             if closed.load(Ordering::Acquire) { return Ok(ResponseResult { warning: None }); }
             match afu::speak(root.as_deref(), &directory, &choice, &text.chars().take(32000).collect::<String>(), &generation, ticket) {
                 afu::Answer::Played | afu::Answer::Cancelled => Ok(ResponseResult { warning: None }),
@@ -345,12 +358,17 @@ pub async fn voice_speak(state: State<'_, VoiceState>, text: String) -> Result<(
     if state.closed.load(Ordering::Acquire) {
         return Err(SesHata::Speech.to_string());
     }
+    state.cancel_capture();
+    let recorder = state.recorder.clone();
+    let capture_epoch = state.capture_generation.clone();
     let closed = state.closed.clone();
     let generation = state.generation.clone();
     let ticket = generation.fetch_add(1, Ordering::AcqRel) + 1;
     let lock = state.speech_lock.clone();
     tauri::async_runtime::spawn_blocking(move || {
         let _guard = lock.lock().map_err(|_| SesHata::Speech)?;
+        capture_epoch.fetch_add(1, Ordering::AcqRel);
+        if let Ok(mut slot) = recorder.lock() { slot.take(); }
         if closed.load(Ordering::Acquire) || generation.load(Ordering::Acquire) != ticket {
             return Ok(());
         };

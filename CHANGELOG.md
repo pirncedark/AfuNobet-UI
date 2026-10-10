@@ -1,6 +1,11 @@
 ﻿# Changes
 
 
+## 1.0.6 — 2026-10-10
+
+The mini pet keeps the full Claude message (scrolls instead of cutting it), the voice chat is faster, and the build no longer carries local paths.
+Mini pet Claude mesajının tamamını gösterir (keserek değil, kaydırarak), sesli sohbet hızlandı ve derlemede yerel yol izi kalmadı.
+
 ## 1.0.4 — 2026-10-05
 
 Afu now reacts to Claude Code sessions, keeps moving in the collapsed bar and stays animated even when Windows animation effects are off.

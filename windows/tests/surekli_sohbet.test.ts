@@ -1,3 +1,4 @@
+import { sesIptal } from "../src/chat/voice";
 import { afterEach, expect, test, vi } from "vitest";
 import { SurekliSohbet } from "../src/chat/voice";
 import { ChatView } from "../src/chat/chat";
@@ -9,7 +10,7 @@ class Element {
  click(){for(const f of this.listeners.get("click")??[])f();}
 }
 function dom(){vi.stubGlobal("document",{createElement:()=>new Element(),createTextNode:(text:string)=>Object.assign(new Element(),{textContent:text})});}
-afterEach(()=>{vi.unstubAllGlobals();vi.useRealTimers();});
+afterEach(async()=>{await sesIptal({voiceSilence:async()=>{}});vi.unstubAllGlobals();vi.useRealTimers();});
 function fakeVoice(){return {voiceStart:async()=>{},voiceStop:async()=>"",voiceCancel:vi.fn(async()=>{}),voiceSpeak:async()=>{},voiceSilence:async()=>{},voiceSupported:async()=>({whisper:true,winrt_stt:false,tts:true}),voiceListenTurn:vi.fn(async()=>""),voiceResponse:vi.fn(async()=>({warning:null}))};}
 test("Bitir düşünürken geç gelen yanıtı okutmaz",async()=>{
  const actions=fakeVoice();actions.voiceListenTurn.mockResolvedValue("soru");
@@ -51,11 +52,11 @@ test("SurekliSohbet - 2 tur sohbet", async () => {
   const chat = {
     send: async (text: string) => { turns.push(text);return `Cevap: ${text}`; }
   };
-  
+
   const sohbet = new SurekliSohbet(actions as unknown as import("../src/chat/voice").VoiceActions, chat);
-  
+
   await sohbet.baslat();
-  
+
   expect(dinlemeSayisi).toBe(3);
   expect(limits).toEqual([60000,60000,60000]);
   expect(turns).toEqual(["merhaba","nasılsın"]);
@@ -72,10 +73,10 @@ test("SurekliSohbet - sessizlikte bitiş", async () => {
     voiceListenTurn: async () => "" // hemen sessizlik
   };
   const chat = { send: async () => "" };
-  
+
   const sohbet = new SurekliSohbet(actions as unknown as import("../src/chat/voice").VoiceActions, chat);
   await sohbet.baslat();
-  
+
   expect(sohbet.state).toBe("idle");
 });
 
@@ -87,16 +88,17 @@ test("SurekliSohbet - bitir() kesme", async () => {
     voiceStart: async () => {},
     voiceStop: async () => "",
     voiceCancel: async () => { bitirdi = true; pResolver(""); },
+    voiceSilence: async () => {},
     voiceSpeak: async () => {},
     voiceListenTurn: async () => delay
   };
   const chat = { send: async () => "" };
-  
+
   const sohbet = new SurekliSohbet(actions as unknown as import("../src/chat/voice").VoiceActions, chat);
   const p = sohbet.baslat();
   await sohbet.bitir();
   await p;
-  
+
   expect(sohbet.state).toBe("idle");
   expect(bitirdi).toBe(true);
 });
@@ -114,10 +116,10 @@ test("ChatView - oturum yokken giriş", async () => {
   };
   const view = new ChatView(actions as unknown as import("../src/chat/chat").ChatActions);
   await view.refresh();
-  
+
   // Baslat düğmesine tıkla
   (view.mainVoiceBtn as unknown as Element).click();
-  
+
   await Promise.resolve();
   expect(loginCagrisi).toBe(1);
   await view.detach();
