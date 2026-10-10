@@ -140,11 +140,22 @@ pub fn sunucu_baslat() {
     std::thread::spawn(|| {
         let Some(root) = runtime() else { return; };
         let Some(python) = interpreter(&root) else { return; };
-        let mut command = Command::new(python);
+        let mut command = Command::new(&python);
         command.args(["-B"]).arg(root.join("uygulama_sesi_sunucu.py")).arg("--hazirla")
             .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
         #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
         let _ = command.spawn();
+        loop {
+            if ACTIVE_SPEECH.load(Ordering::Acquire)==0 {
+                let dir=job_directory();
+                if fs::create_dir_all(&dir).is_ok(){
+                    let epoch=AtomicU64::new(1);
+                    let _=speak_worker(Some(&root),&dir,&Choice::default(),"Merhaba.",&epoch,1,Some(&python),true);
+                    let _=fs::remove_dir_all(dir);
+                }
+            }
+            std::thread::sleep(Duration::from_secs(240));
+        }
     });
 }
 /// Telefon için: sesi çalmadan WAV olarak üretir (Afu sesi, ses sunucusu üzerinden).
@@ -166,7 +177,7 @@ pub fn uret_wav(text: &str, tarz: &str) -> Result<Vec<u8>, String> {
 }
 pub fn speak(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64) -> Answer {
     let python = root.and_then(interpreter);
-    speak_with_interpreter(root, directory, choice, text, generation, ticket, python.as_deref())
+    speak_pipeline(root, directory, choice, text, generation, ticket, python.as_deref())
 }
 fn speak_with_interpreter(root: Option<&Path>, directory: &Path, choice: &Choice, text: &str, generation: &AtomicU64, ticket: u64, python: Option<&Path>) -> Answer {
     speak_worker(root, directory, choice, text, generation, ticket, python, false)
@@ -187,7 +198,7 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
         .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
     let Ok(mut child) = command.spawn() else { return fallback(); };
-    let deadline = Instant::now() + Duration::from_secs(600);
+    let deadline = Instant::now() + Duration::from_secs(30);
     let mut cancel_deadline = None;
     loop {
         if generation.load(Ordering::Acquire) != ticket {
@@ -344,4 +355,90 @@ mod tests {
         }
         fs::remove_dir_all(dir).unwrap();
     }
+}
+
+static ACTIVE_SPEECH: AtomicU64 = AtomicU64::new(0);
+pub static PLAYING: std::sync::OnceLock<Box<dyn Fn() + Send + Sync>> = std::sync::OnceLock::new();
+struct SpeechLease;
+impl Drop for SpeechLease { fn drop(&mut self){ACTIVE_SPEECH.fetch_sub(1,Ordering::AcqRel);} }
+struct TempJob(PathBuf);
+impl Drop for TempJob { fn drop(&mut self){let _=fs::remove_dir_all(&self.0);} }
+/// Matches TS chunk policy, including hard splitting unbroken words. Never truncates.
+pub fn chunks(text:&str)->Vec<String>{
+    let cleaned=text.chars().map(|c|if "*`#_>".contains(c){' '}else{c}).collect::<String>();
+    let cleaned=cleaned.split_whitespace().collect::<Vec<_>>().join(" ");
+    let mut rest=cleaned.chars().collect::<Vec<_>>();let mut result=Vec::new();
+    while !rest.is_empty(){
+        let limit=if result.is_empty(){60}else{110};let mut end=limit.min(rest.len());
+        let boundaries=(0..end).filter(|&i|".!?…".contains(rest[i])&&(i+1==rest.len()||rest[i+1]==' ')).collect::<Vec<_>>();
+        if let Some(&i)=if result.is_empty(){boundaries.first()}else{boundaries.last()}{end=i+1;}
+        else if rest.len()>end {if let Some(i)=rest[..end].iter().rposition(|&c|c==' '){if i>0{end=i;}}}
+        result.push(rest.drain(..end).collect::<String>().trim().to_owned());
+        while rest.first()==Some(&' '){rest.remove(0);}
+    }result
+}
+fn play_wav(path:&Path,generation:&AtomicU64,ticket:u64)->Result<(),()> {
+    use windows::{core::HSTRING,Foundation::{Uri,TypedEventHandler},Media::{Core::MediaSource,Playback::MediaPlayer},Win32::System::WinRT::{RoInitialize,RoUninitialize,RO_INIT_MULTITHREADED}};
+    unsafe { RoInitialize(RO_INIT_MULTITHREADED) }.map_err(|_|())?;
+    struct Apartment;impl Drop for Apartment{fn drop(&mut self){unsafe{RoUninitialize()};}}
+    let _apt=Apartment;
+    let uri=Uri::CreateUri(&HSTRING::from(format!("file:///{}",path.to_string_lossy().replace('\\',"/")))).map_err(|_|())?;
+    let source=MediaSource::CreateFromUri(&uri).map_err(|_|())?;
+    struct Source(MediaSource);impl Drop for Source{fn drop(&mut self){let _=self.0.Close();}}
+    let source=Source(source);
+    let player=MediaPlayer::new().map_err(|_|())?;
+    struct Player(MediaPlayer);impl Drop for Player{fn drop(&mut self){let _=self.0.Pause();let _=self.0.Close();}}
+    let player=Player(player);let(tx,rx)=std::sync::mpsc::channel();let failed=tx.clone();
+    let ended=player.0.MediaEnded(&TypedEventHandler::new(move|_,_|{let _=tx.send(true);Ok(())})).map_err(|_|())?;
+    let error=player.0.MediaFailed(&TypedEventHandler::new(move|_,_|{let _=failed.send(false);Ok(())})).map_err(|_|())?;
+    let outcome=(||{
+        if generation.load(Ordering::Acquire)!=ticket{return Ok(());}
+        player.0.SetSource(&source.0).map_err(|_|())?;player.0.Play().map_err(|_|())?;
+        if let Some(playing)=PLAYING.get(){playing();}
+        let deadline=Instant::now()+Duration::from_secs(30);
+        loop {
+            if generation.load(Ordering::Acquire)!=ticket{return Ok(());}
+            match rx.recv_timeout(Duration::from_millis(20)){Ok(true)=>return Ok(()),Ok(false)=>return Err(()),Err(std::sync::mpsc::RecvTimeoutError::Disconnected)=>return Err(()),_=>{}}
+            if Instant::now()>=deadline{return Err(());}
+        }
+    })();
+    let _=player.0.RemoveMediaEnded(ended);let _=player.0.RemoveMediaFailed(error);outcome
+}
+fn speak_pipeline(root:Option<&Path>,directory:&Path,choice:&Choice,text:&str,generation:&AtomicU64,ticket:u64,python:Option<&Path>)->Answer{
+    if generation.load(Ordering::Acquire)!=ticket{return Answer::Cancelled;}
+    let (Some(root),Some(python))=(root,python)else{return Answer::Fallback(NOT_INSTALLED.into());};
+    ACTIVE_SPEECH.fetch_add(1,Ordering::AcqRel);let _lease=SpeechLease;
+    let parts=chunks(text);
+    std::thread::scope(|scope|{
+        let render=|index:usize|{
+            let dir=directory.join(format!("afu-voice-part-{index}"));
+            if fs::create_dir_all(&dir).is_err(){return (TempJob(dir),Answer::Fallback(FALLBACK.into()));}
+            let answer=speak_worker(Some(root),&dir,choice,&parts[index],generation,ticket,Some(python),true);
+            (TempJob(dir),answer)
+        };
+        if parts.is_empty(){return Answer::Played;}
+        let mut pending=scope.spawn(move||render(0));
+        for i in 0..parts.len(){
+            let (job,answer)=match pending.join(){Ok(result)=>result,Err(_)=>return Answer::Fallback(FALLBACK.into())};
+            if generation.load(Ordering::Acquire)!=ticket{return Answer::Cancelled;}
+            if !matches!(answer,Answer::Played){return answer;}
+            // Only one next synthesis in flight. Each WAV/player is released after playback.
+            if i+1<parts.len(){pending=scope.spawn(move||render(i+1));}
+            else { return if play_wav(&job.0.join("answer.wav"),generation,ticket).is_ok(){Answer::Played}else{Answer::Fallback(FALLBACK.into())}; }
+            if play_wav(&job.0.join("answer.wav"),generation,ticket).is_err(){return Answer::Fallback(FALLBACK.into());}
+        }
+        Answer::Played
+    })
+}
+#[cfg(test)]
+mod instant_tests{
+    use super::*;
+    #[test]fn complete_chunks_have_short_first_and_bounded_rest(){
+        let text=format!("?lk c?mle. {}","Uzun a??klama devam ediyor. ".repeat(100));let parts=chunks(&text);
+        assert_eq!(parts[0],"?lk c?mle.");assert!(parts[0].chars().count()<=60);
+        assert!(parts.iter().skip(1).all(|p|p.chars().count()<=110));
+        assert_eq!(parts.join("").replace(' ',""),text.replace(' ',""));
+    }
+    #[test]fn long_word_is_not_lost(){let text="??".repeat(500);let parts=chunks(&text);assert_eq!(parts.concat(),text);assert_eq!(parts[0].chars().count(),60);}
+    #[test]fn temporary_chunk_is_released(){let dir=job_directory();fs::create_dir_all(&dir).unwrap();{let _job=TempJob(dir.clone());}assert!(!dir.exists());}
 }

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ChatModel, ChatView, speechText } from "../src/chat/chat";
+import { sesIptal } from "../src/chat/voice";
 import { State } from "../src/core/state";
 class Element {
  children:Element[]=[];textContent="";value="";hidden=false;disabled=false;className="";
@@ -17,7 +18,7 @@ function delta(v:ChatView,text:string){v.onEvent({method:"item/agentMessage/delt
 function start(v:ChatView){v.onEvent({method:"turn/started",params:{threadId:"t",turn:{id:"1"}}});}
 function complete(v:ChatView){v.onEvent({method:"turn/completed",params:{threadId:"t",turn:{id:"1",status:"completed"}}});}
 beforeEach(()=>{vi.stubGlobal("document",{createElement:()=>new Element(),createTextNode:(text:string)=>Object.assign(new Element(),{textContent:text})});State.settings.tts=false;});
-afterEach(()=>{State.settings.tts=false;vi.unstubAllGlobals();});
+afterEach(async()=>{await sesIptal({voiceSilence:async()=>{}});State.settings.tts=false;vi.unstubAllGlobals();});
 describe("Sol Voice spec 17",()=>{
  it("PROMPT INTEGRITY: preserves whitespace and never calls legacy context",async()=>{
   const {a,s}=setup();const context=vi.fn(()=>"Görev: gizli");const v=new ChatView(a,context,s);

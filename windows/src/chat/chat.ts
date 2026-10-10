@@ -2,7 +2,7 @@ import { State } from "../core/state";
 import { h } from "../views/dom";
 
 import { shortName } from "./context";
-import { VoiceController, VoiceService, SurekliSohbet, type VoiceActions } from "./voice";
+import { VoiceController, VoiceService, SurekliSohbet, parcaliOku, sesIptal, type VoiceActions } from "./voice";
 import "../chat.css";
 import { VoicePicker } from "./voice-picker";
 import { Katman, kapatDugmesi } from "../views/overlay";
@@ -25,16 +25,10 @@ class SolSpeech {
  async speak(text:string){
   if(!this.enabled||!text)return;
   const ticket=++this.generation;this.speaking=true;this.message="";this.changed();
-  const chars=Array.from(text),size=this.actions.voiceResponse?32000:4000;
-  try{for(let start=0;start<chars.length;start+=size){
-   if(ticket!==this.generation||!this.enabled)return;
-   const chunk=chars.slice(start,start+size).join("");
-   if(this.actions.voiceResponse){const result=await this.actions.voiceResponse(chunk);if(result.warning)throw new Error("tts");}
-   else await this.actions.voiceSpeak(chunk);
-  }}catch{if(ticket===this.generation)this.message="Afu sesi açılamadı; yanıtı yazıyla gösteriyorum.";}
+  try{const result=await parcaliOku(this.actions,text,()=>ticket===this.generation&&this.enabled);if(result?.warning)throw new Error("tts");}catch{if(ticket===this.generation)this.message="Afu sesi açılamadı; yanıtı yazıyla gösteriyorum.";}
   finally{if(ticket===this.generation){this.speaking=false;this.changed();}}
  }
- async cancel(stopNative=true){++this.generation;const speaking=this.speaking;this.speaking=false;this.changed();if(speaking&&stopNative)await this.actions.voiceSilence();}
+ async cancel(stopNative=true){++this.generation;const speaking=this.speaking;this.speaking=false;this.changed();if(speaking&&stopNative)await sesIptal(this.actions);}
 }
 export interface Attachment { name:string; path:string }
 export interface Outgoing { text:string; attachments:string[] }
@@ -132,7 +126,7 @@ export class ChatView {
    });
   }
   if(voiceActions){this.canOpenVoiceSettings=!!voiceActions.voiceOpenSettings;this.voiceHelpButton.addEventListener("click",()=>{const help=this.conversation?.help??this.voice?.help;if(!help||!this.active||!voiceActions.voiceOpenSettings)return;void voiceActions.voiceOpenSettings(help.kind).catch(()=>{if(this.active&&(this.conversation?.help??this.voice?.help)===help)this.message.textContent="Ayarlar açılamadı; yeniden dene.";});});this.details.append(this.voiceHelpButton);this.voice=new VoiceController(voiceActions,()=>{if(this.voice?.transcript)this.input.value=this.voice.transcript;if(this.voice?.message)this.message.textContent=this.voice.message;if(this.voice?.state!=="listening")this.voiceHint.hidden=true;this.render();},async()=>{
-    this.voiceHint.hidden=true;const speech=this.responses?.cancel(false);const silence=voiceActions.voiceSilence();await speech;await silence;
+    this.voiceHint.hidden=true;const speech=this.responses?.cancel(false);const silence=sesIptal(voiceActions);await speech;await silence;
     if(this.model.busy){await this.actions.codexCancel();this.model.cancelled();}
    });
    this.notifications=new VoiceService(voiceActions);
