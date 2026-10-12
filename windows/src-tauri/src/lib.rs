@@ -173,7 +173,7 @@ async fn sol_voice_response(app: tauri::AppHandle, sol: tauri::State<'_, SolVoic
         let _=std::fs::remove_dir_all(&directory);
         match result {
             voice::afu::Answer::Played|voice::afu::Answer::Cancelled=>Ok(serde_json::json!({"warning":null})),
-            voice::afu::Answer::Fallback(_)=>Err(failure.to_owned()),
+            voice::afu::Answer::Fallback(message)=>Err(message),
         }
     }).await.map_err(|_|failure.to_owned())?
 }

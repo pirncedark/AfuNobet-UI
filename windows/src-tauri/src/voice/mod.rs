@@ -10,7 +10,6 @@ use std::sync::{
 };
 use tauri::State;
 use tauri::Manager;
-use tauri::Emitter;
 #[derive(Clone, Copy, Debug)]
 pub enum SesHata {
     Microphone,
@@ -337,14 +336,8 @@ pub async fn voice_response(app: tauri::AppHandle, state: State<'_, VoiceState>,
                     if cleaned == afu::NOT_INSTALLED {
                         return Ok(ResponseResult { warning: Some(cleaned) });
                     }
-                    let _ = app.emit("afu-voice-fallback", ());
-                    // Fallback text has already passed the shared local cleaner.
-                    let chars: Vec<char> = cleaned.chars().collect();
-                    for chunk in chars.chunks(4000) {
-                        if generation.load(Ordering::Acquire) != ticket { return Ok(ResponseResult { warning: None }); }
-                        winrt::konus_iptalli(&chunk.iter().collect::<String>(), &generation, ticket).map_err(|_| "Ses okunamadı; metinden devam et.".to_string())?;
-                    }
-                    Ok(ResponseResult { warning: Some(afu::FALLBACK.into()) })
+                    // Preserve the adapter's actionable message instead of reading an error aloud.
+                    Err(cleaned)
                 }
             }
         })();

@@ -29,10 +29,10 @@ describe('instant speech',()=>{
   const calls:string[]=[];const actions={voiceResponse:async(t:string)=>{calls.push(t);return {warning:null};},voiceSilence:async()=>{}};
   const run=voice.parcaliOku(actions,'İlk cümle. İkinci cümle.');await Promise.resolve();expect(calls[0]).toBe('İlk cümle.');await run;
  });
- it('releases a stalled speech at 30 seconds',async()=>{
+ it('releases a stalled speech at 150 seconds',async()=>{
   vi.useFakeTimers();const silence=vi.fn(async()=>{});
   const run=voice.parcaliOku({voiceResponse:()=>new Promise(()=>{}),voiceSilence:silence},'Merhaba');
-  const result=run.catch(e=>e.message);await vi.advanceTimersByTimeAsync(30000);expect(await result).toMatch(/zaman/);expect(silence).toHaveBeenCalledOnce();
+  const result=run.catch(e=>e.message);await vi.advanceTimersByTimeAsync(150000);expect(await result).toMatch(/zaman/);expect(silence).toHaveBeenCalledOnce();
  });
  it('waits 700ms before reopening the microphone',async()=>{
   vi.useFakeTimers();await voice.parcaliOku({voiceResponse:async()=>({warning:null}),voiceSilence:async()=>{}},'Merhaba');

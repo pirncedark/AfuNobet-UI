@@ -34,8 +34,21 @@ pub fn runtime() -> Option<PathBuf> {
     None
 }
 pub fn choices(path: &Path, root: Option<&Path>) -> Choice {
-    let mut choice = fs::read(path).ok().and_then(|b| serde_json::from_slice::<Choice>(&b).ok())
-        .filter(|c| valid(&c.ses, &c.filtre)).unwrap_or_default();
+    let saved = fs::read(path).ok();
+    let parsed = saved.as_ref().and_then(|b| serde_json::from_slice::<Choice>(b).ok())
+        .filter(|c| valid(&c.ses, &c.filtre));
+    if saved.is_some() && parsed.is_none() {
+        let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_nanos();
+        // Keep the original bytes before recovering defaults; never overwrite an existing backup.
+        let backup = path.with_file_name(format!("voice.json.bozuk-{stamp}"));
+        if let Ok(mut file) = fs::OpenOptions::new().write(true).create_new(true).open(backup) {
+            use std::io::Write;
+            if file.write_all(saved.as_ref().unwrap()).is_ok() {
+                let _ = fs::write(path, serde_json::to_vec(&Choice::default()).unwrap_or_default());
+            }
+        }
+    }
+    let mut choice = parsed.unwrap_or_default();
     choice.available = vec!["afu_5b".into(), "notr".into()];
     if let Some(root) = root {
         let manifest = fs::read(root.join("ses_adaylari/presets.json")).ok()
@@ -61,17 +74,19 @@ pub fn save_choice(path: &Path, root: Option<&Path>, ses: &str, filtre: &str) ->
     Ok(choice)
 }
 #[derive(Deserialize)]
-struct WorkerResult { ok: bool, cancelled: bool, text: String, #[serde(default)] missing_installation: bool }
+struct WorkerResult { ok: bool, cancelled: bool, #[serde(default)] error_code: String, #[serde(default)] mesaj: String, #[serde(default)] missing_installation: bool }
 pub enum Answer { Played, Cancelled, Fallback(String) }
 pub fn job_directory() -> PathBuf {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     let stamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap_or_default().as_nanos();
     std::env::temp_dir().join(format!("afu-voice-{}-{stamp}-{}", std::process::id(), COUNTER.fetch_add(1, Ordering::Relaxed)))
 }
-/// Geçici tanı: iptal kaynağını %TEMP%\afu-ses-iptal.log dosyasına yazar.
+/// Boyut sınırlı kalıcı tanı: iptal kaynağını %TEMP%\afu-ses-iptal.log dosyasına yazar.
 pub fn kayit(kaynak: &str) {
     use std::io::Write;
     let t = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|d| d.as_millis()).unwrap_or(0);
+    let path = std::env::temp_dir().join("afu-ses-iptal.log");
+    if fs::metadata(&path).map(|m| m.len() >= 256 * 1024).unwrap_or(false) { let _ = fs::rename(&path, path.with_extension("log.1")); }
     if let Ok(mut f) = fs::OpenOptions::new().create(true).append(true).open(std::env::temp_dir().join("afu-ses-iptal.log")) { let _ = writeln!(f, "{t} {kaynak}"); }
 }
 pub fn cancel(directory: &Path) { let _ = fs::write(directory.join("cancel"), b""); }
@@ -145,7 +160,7 @@ pub fn sunucu_baslat() {
             .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
         #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
         let _ = command.spawn();
-        loop {
+        {
             if ACTIVE_SPEECH.load(Ordering::Acquire)==0 {
                 let dir=job_directory();
                 if fs::create_dir_all(&dir).is_ok(){
@@ -154,7 +169,6 @@ pub fn sunucu_baslat() {
                     let _=fs::remove_dir_all(dir);
                 }
             }
-            std::thread::sleep(Duration::from_secs(240));
         }
     });
 }
@@ -198,7 +212,7 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
         .stdin(Stdio::null()).stdout(Stdio::null()).stderr(Stdio::null());
     #[cfg(windows)] { use std::os::windows::process::CommandExt; command.creation_flags(0x08000000); }
     let Ok(mut child) = command.spawn() else { return fallback(); };
-    let deadline = Instant::now() + Duration::from_secs(30);
+    let deadline = Instant::now() + Duration::from_secs(150);
     let mut cancel_deadline = None;
     loop {
         if generation.load(Ordering::Acquire) != ticket {
@@ -226,7 +240,7 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
         Some(r) if r.cancelled => Answer::Cancelled,
         Some(r) if r.missing_installation => Answer::Fallback(NOT_INSTALLED.into()),
         Some(r) if r.ok => Answer::Played,
-        Some(r) => Answer::Fallback(r.text),
+        Some(r) => { kayit(&format!("worker_error {}", r.error_code)); Answer::Fallback(if r.mesaj.is_empty() { "Ses hazırlanamadı. Yeniden dene.".into() } else { r.mesaj }) },
         None => fallback(),
     }
 }
@@ -234,6 +248,19 @@ fn speak_worker(root: Option<&Path>, directory: &Path, choice: &Choice, text: &s
 #[cfg(test)]
 mod tests {
     use super::*;
+    #[test]
+    fn broken_preferences_are_backed_up_before_default_recovery() {
+        let dir = job_directory(); fs::create_dir_all(&dir).unwrap();
+        let path = dir.join("voice.json"); fs::write(&path, b"{broken").unwrap();
+        let recovered = choices(&path, None);
+        assert_eq!(recovered.ses, "afu_5b"); assert_eq!(recovered.filtre, "sicak");
+        let backups = fs::read_dir(&dir).unwrap().filter_map(Result::ok)
+            .filter(|entry| entry.file_name().to_string_lossy().starts_with("voice.json.bozuk-")).collect::<Vec<_>>();
+        assert_eq!(backups.len(), 1); assert_eq!(fs::read(backups[0].path()).unwrap(), b"{broken");
+        choices(&path, None);
+        assert_eq!(fs::read_dir(&dir).unwrap().count(), 2);
+        fs::remove_dir_all(dir).unwrap();
+    }
     #[test]
     fn worktree_finds_shared_interpreter() {
         let dir = job_directory();

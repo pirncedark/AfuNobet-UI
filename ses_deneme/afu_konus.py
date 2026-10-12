@@ -467,6 +467,52 @@ class CodexThread:
         self.p.wait()
         self.stderr.close()
 
+MODEL_FILES = ('ve.pt', 't3_mtl23ls_v2.safetensors', 's3gen.pt',
+               'grapheme_mtl_merged_expanded_v1.json', 'conds.pt', 'Cangjie5_TC.json')
+MODEL_MISSING = "Afu'nun ses dosyaları eksik. İnternet bağlantısıyla bir kez onarılır."
+
+class VoiceFilesMissing(RuntimeError):
+    pass
+
+def complete_snapshot(path, required=MODEL_FILES):
+    try:
+        return path.is_dir() and all((path / name).is_file() and
+                                    (path / name).stat().st_size > 0 for name in required)
+    except OSError:
+        return False
+
+def select_snapshot(cache, required=MODEL_FILES):
+    """Prefer refs/main, then a deterministic complete revision; never write cache."""
+    snapshots = cache / 'snapshots'
+    candidates = []
+    try:
+        revision = (cache / 'refs/main').read_text(encoding='utf-8').strip()
+        if revision and Path(revision).name == revision and revision not in ('.', '..'):
+            candidates.append(snapshots / revision)
+    except OSError:
+        pass
+    if snapshots.is_dir():
+        candidates.extend(sorted(snapshots.iterdir(), key=lambda path: path.name))
+    return next((path for path in candidates if complete_snapshot(path, required)), None)
+
+def model_snapshot(cache=None, repair=True):
+    cache = cache or Path.home() / '.cache/huggingface/hub/models--ResembleAI--chatterbox'
+    selected = select_snapshot(cache)
+    if selected is not None:
+        return selected
+    if repair:
+        try:
+            from huggingface_hub import snapshot_download
+            # Offline only: no network download, and verify even the returned revision.
+            restored = Path(snapshot_download('ResembleAI/chatterbox',
+                            cache_dir=str(cache.parent), allow_patterns=list(MODEL_FILES),
+                            local_files_only=True))
+            if complete_snapshot(restored):
+                return restored
+        except Exception:
+            pass
+    raise VoiceFilesMissing(MODEL_MISSING)
+
 class Voice:
     def __init__(self, selected=DEFAULT_VOICE, cancelled=None):
         self.selected = selected
@@ -488,12 +534,12 @@ class Voice:
         from chatterbox.mtl_tts import ChatterboxMultilingualTTS
         torch.set_num_threads(4)
         self.torch = torch
-        snapshots = Path.home() / '.cache/huggingface/hub/models--ResembleAI--chatterbox/snapshots'
+        snapshot = model_snapshot()
         for attempt in range(3):
             if self.cancelled():
                 raise InterruptedError('Ses durduruldu.')
             try:
-                self.model = ChatterboxMultilingualTTS.from_local(next(snapshots.iterdir()), device='cuda' if torch.cuda.is_available() else 'cpu')
+                self.model = ChatterboxMultilingualTTS.from_local(snapshot, device='cuda' if torch.cuda.is_available() else 'cpu')
                 break
             except torch.cuda.OutOfMemoryError:
                 torch.cuda.empty_cache()
@@ -574,8 +620,11 @@ class Voice:
         from scipy.signal import resample_poly
         if not hasattr(self, 'whisper'):
             from faster_whisper import WhisperModel
-            cache = Path.home() / '.cache/huggingface/hub/models--Systran--faster-whisper-small/snapshots'
-            self.whisper = WhisperModel(str(next(cache.iterdir())), device='cpu', compute_type='int8',
+            cache = Path.home() / '.cache/huggingface/hub/models--Systran--faster-whisper-small'
+            snapshot = select_snapshot(cache, ('model.bin', 'config.json', 'tokenizer.json'))
+            if snapshot is None:
+                raise VoiceFilesMissing(MODEL_MISSING)
+            self.whisper = WhisperModel(str(snapshot), device='cpu', compute_type='int8',
                                         cpu_threads=4, local_files_only=True)
         audio = resample_poly(samples, 16000, self.model.sr).astype(np.float32)
         segments, _ = self.whisper.transcribe(audio, language='tr', beam_size=5,
