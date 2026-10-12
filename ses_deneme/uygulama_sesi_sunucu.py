@@ -2,6 +2,7 @@
 Yalnız 127.0.0.1 dinler; 10 dk boşta kalırsa kapanıp GPU belleğini bırakır."""
 import socket
 import sys
+import time
 from pathlib import Path
 import uygulama_sesi as adapter
 
@@ -21,7 +22,9 @@ def main():
     try:
         if '--hazirla' in sys.argv:
             try:
-                voices[adapter.DEFAULT_VOICE] = adapter.Voice(adapter.DEFAULT_VOICE)  # ilk istek de hızlı olsun
+                started = time.monotonic()
+                voices[adapter.DEFAULT_VOICE] = adapter.Voice(adapter.DEFAULT_VOICE)
+                print(f'warmup_model_ms={round((time.monotonic() - started) * 1000)}', flush=True)
             except Exception:
                 pass
         while True:

@@ -9,10 +9,10 @@ describe("bicimle", () => {
 2. testler çalıştırıldı
 3. \`bicim.ts\` eklendi
 4. dördüncü madde uzun uzun yazıldı ki altmış karakteri geçsin ve kırılsın diye bekliyoruz böylece test edeceğiz.`;
-    
+
     const sonuc = bicimle(metin);
-    
-    expect(sonuc.baslik).toBe("Commit atıldı: 0068b0a");
+
+    expect(sonuc.baslik).toBe("✨ Commit atıldı: 0068b0a");
     expect(sonuc.maddeler).toHaveLength(3);
     expect(sonuc.maddeler[0]).toBe("GOREV_R3A.md okundu");
     expect(sonuc.maddeler[1]).toBe("testler çalıştırıldı");
@@ -27,14 +27,19 @@ describe("bicimle", () => {
     const metin = "Bunu yapayım mı? ❓";
     const sonuc = bicimle(metin);
     expect(sonuc.soru).toBe(true);
+    expect(sonuc.maddeler).toEqual([]);
+    expect(sonuc.numaraliMaddeler).toEqual([]);
   });
 
   it("soru algılar (1 = / 2 =)", () => {
     const metin = "Ne yapalım?\n1 = Evet / 2 = Hayır";
     const sonuc = bicimle(metin);
     expect(sonuc.soru).toBe(true);
+    expect(sonuc.maddeler).toEqual([]);
+    expect(sonuc.numaraliMaddeler).toEqual([]);
+    expect(sonuc.secenekler).toEqual([{ id: '1', etiket: 'Evet' }, { id: '2', etiket: 'Hayır' }]);
   });
-  
+
   it("ANSI kodlarını temizler", () => {
     const metin = "\x1B[32mBaşarı!\x1B[0m\n- İşlem tamam";
     const sonuc = bicimle(metin);
@@ -42,7 +47,7 @@ describe("bicimle", () => {
     expect(sonuc.maddeler[0]).toBe("İşlem tamam");
     expect(sonuc.ayrinti).toBe("Başarı!\n- İşlem tamam");
   });
-  
+
   it("60 karakterden uzun maddeleri keser", () => {
     const metin = "Başlık\n- Bu madde çok uzun olduğu için altmış karakter sınırını geçecek ve sonunda üç nokta ile kesilmesi gerekecek.";
     const sonuc = bicimle(metin);

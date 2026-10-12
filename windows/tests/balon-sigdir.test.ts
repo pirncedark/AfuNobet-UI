@@ -4,6 +4,33 @@ import { chromium } from "playwright";
 import { readFileSync } from "node:fs";
 import { balonOlustur, petBalonMetniniSigdir } from "../src/message/message";
 
+it("145px önizleme uzun başlıkla iki tam madde gösterir", async () => {
+  const doc = new Window().document;
+  const text = '🎯 Görev terminalde yürüyor, ben bekliyorum\n1. Görev terminale gönderildi\n2. tsc temiz\n3. Sonuç bekleniyor';
+  const balloon = balonOlustur(doc as unknown as Document, { surum: 1, id: 'preview', ajan: 'codex', tur: 'bilgi', metin: text, zaman: 0 }, () => {}, () => {}, 1);
+  expect(balloon.querySelectorAll('li')).toHaveLength(2);
+  expect(balloon.title).toContain(text.split('\n')[0]);
+  const browser = await chromium.launch({ headless: true });
+  try {
+    const page = await browser.newPage();
+    await page.setContent(`<style>${readFileSync('src/message/message.css', 'utf8')}</style><div id="afu-character" style="position:relative;width:145px">${balloon.outerHTML}</div>`);
+    const result = await page.evaluate(() => {
+      const box = document.querySelector('.afu-konusma-balonu')!.getBoundingClientRect();
+      const title = document.querySelector('.soru-baslik')!;
+      return { height: box.height, titleHeight: title.getBoundingClientRect().height,
+        clamp: getComputedStyle(title).webkitLineClamp,
+        rows: [...document.querySelectorAll('li')].map(row => {
+          const r = row.getBoundingClientRect();
+          return r.height === 15 && r.top >= box.top && r.bottom <= box.bottom - 19;
+        }) };
+    });
+    expect(result.height).toBeLessThanOrEqual(104);
+    expect(result.titleHeight).toBe(15);
+    expect(result.clamp).toBe('1');
+    expect(result.rows).toEqual([true, true]);
+  } finally { await browser.close(); }
+});
+
 it("pet shows the entire long question and keeps reply controls visible", async () => {
   const browser = await chromium.launch({ headless: true });
   try {
@@ -14,8 +41,8 @@ it("pet shows the entire long question and keeps reply controls visible", async 
       const host = doc.createElement("div"); host.id = "afu-pet-balon";
       host.append(balonOlustur(doc as unknown as Document, { surum: 1, id: "fit", ajan: "claude", tur: "bitti", metin: full, zaman: 1 }, () => {}, () => {}, 0));
       petBalonMetniniSigdir(host as unknown as HTMLElement);
-      const expected = full.replace(/\n/g, " ");
-      expect(host.querySelector(".afu-balon-metin")!.textContent).toBe(expected);
+      const expected = full.replace(/\s+/g, " ").trim();
+      expect(host.querySelector(".afu-balon-metin")!.textContent!.replace(/\s+/g, " ").trim()).toBe(expected);
       expect(host.querySelector(".afu-balon-metin")!.textContent!.endsWith("â€¦")).toBe(false);
       expect(host.querySelectorAll(".soru-secenekler button")).toHaveLength(3);
       const page = await browser.newPage({ viewport: { width: 320, height: 600 } });

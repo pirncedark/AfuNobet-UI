@@ -107,6 +107,12 @@ export class VoiceService {
 
 
 /** Yanıt sesi bildirim tercihinden bağımsız ve varsayılan kapalıdır. */
+function speechFailure(error:unknown, fallback:string):string {
+ const message=error instanceof Error?error.message:String(error);
+ const allowed=["Afu'nun ses dosyaları eksik. İnternet bağlantısıyla bir kez onarılır.",
+  "Afu sesi kurulu değil, yazıyla devam ediyorum.","Ses hazırlanamadı. Yeniden dene.","Ses zaman aşımı"];
+ return allowed.includes(message)?message:fallback;
+}
 export class ResponseSpeech {
  get enabled(){return State.settings.tts;}
  set enabled(value:boolean){State.settings.tts=value;}
@@ -116,7 +122,7 @@ export class ResponseSpeech {
   if(!this.enabled)return;
   const chars=Array.from(text.replace(/[\x00-\x08\x0b-\x1f\x7f]/g," ").trim()).slice(0,32000);
   if(!chars.length)return;
-  const ticket=++this.generation;this.speaking=true;this.message="";this.changed();
+  const ticket=++this.generation;this.speaking=true;this.message="Afu uyanıyor…";this.changed();
   try{
    if(this.actions.voiceResponse){
     const unlisten=this.actions.voiceWarning?await this.actions.voiceWarning(()=>{if(ticket===this.generation&&this.enabled){this.message="Afu sesi hazır değil; Windows sesiyle devam ediyorum, daha sonra yeniden dene.";this.changed();}}):undefined;
@@ -128,11 +134,11 @@ export class ResponseSpeech {
     return;
    }
    await parcaliOku(this.actions,chars.join(""),()=>ticket===this.generation&&this.enabled);
-  }catch{if(ticket===this.generation)this.message="Yanıt okunamadı; metinden devam et.";}
-  finally{if(ticket===this.generation){this.speaking=false;this.changed();}}
+  }catch(error){if(ticket===this.generation)this.message=speechFailure(error,"Yanıt okunamadı; metinden devam et.");}
+  finally{if(ticket===this.generation){this.speaking=false;if(this.message==="Afu uyanıyor…")this.message="";this.changed();}}
  }
  async cancel(stopNative=true){
-  ++this.generation;const wasSpeaking=this.speaking;this.speaking=false;this.changed();
+  ++this.generation;const wasSpeaking=this.speaking;this.speaking=false;this.message="";this.changed();
   if(wasSpeaking&&stopNative)await sesIptal(this.actions);
  }
 }
@@ -213,14 +219,16 @@ export class SurekliSohbet {
 
    if (ticket !== this.generation) return;
    this.state = "speaking";
+   this.message = "Afu uyanıyor…";
    this.changed();
 
    try {
     this.yanki.soylendi(reply);
     await parcaliOku(this.actions,reply,()=>ticket===this.generation);
+    if(ticket===this.generation && this.message==="Afu uyanıyor…")this.message="";
    } catch (error) {
     if (ticket !== this.generation) return;
-    this.message = "Ses okunamadı; yeniden dene.";
+    this.message = speechFailure(error,"Ses okunamadı; yeniden dene.");
     this.state = "idle";
     this.changed();
     return;
@@ -291,7 +299,7 @@ export async function parcaliOku(actions:SpeechActions,text:string,valid:()=>boo
  let timer:ReturnType<typeof setTimeout>|undefined;
  let warning:string|null=null;
  const cancelled=new Promise<void>(resolve=>{durdur=resolve;});
- const deadline=new Promise<never>((_,reject)=>{timer=setTimeout(()=>{if(ticket===sesNesli){++sesNesli;sesDurumu='bosta';void actions.voiceSilence().catch(()=>{});}reject(new Error('Ses zaman aşımı'));},30000);});
+ const deadline=new Promise<never>((_,reject)=>{timer=setTimeout(()=>{if(ticket===sesNesli){++sesNesli;sesDurumu='bosta';void actions.voiceSilence().catch(()=>{});}reject(new Error('Ses zaman aşımı'));},150000);});
  try {
   const work=(async()=>{
    if(actions.voiceChunks){const result=await actions.voiceChunks(parts[0],parts.slice(1)) as {warning?:string}|undefined;warning=result?.warning??null;return;}

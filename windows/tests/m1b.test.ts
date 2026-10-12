@@ -39,17 +39,19 @@ describe("M1B pending approval", () => {
 
 describe("M1B balloon bullets", () => {
   it.each([
-    ["Bu madde tamamlandı ve bütün bileşenler başarıyla doğrulandı", "Bu madde tamamlandı ve bütün bileşenler…"],
+    ["Bu madde tamamlandı ve bütün bileşenler başarıyla doğrulandı", "Bu madde tamamlandı ve bütün bileşenler başarıyla doğrulandı"],
     ["Kısa madde", "Kısa madde"],
-    ["x".repeat(55), "x".repeat(49) + "…"],
+    ["x".repeat(55), "x".repeat(55)],
   ])("renders a whole-word preview for %s", (text, expected) => {
     const elements: any[] = [];
     const document = { createElement: (tag: string) => {
-      const element = { tag, className: "", textContent: "", style: {},
-        setAttribute() {}, append() {}, addEventListener() {} };
+      const element = { tag, className: "", textContent: "", style: {}, children: [] as any[],
+        setAttribute() {}, append(...children: any[]) { this.children.push(...children); }, addEventListener() {} };
       elements.push(element); return element;
     } };
     balonOlustur(document as any, { surum: 1, id: "bullet", ajan: "claude", tur: "bilgi", metin: `Claude:\nBaşlık\n- ${text}`, zaman: 0 }, () => {});
-    expect(elements.find(element => element.tag === "li")?.textContent).toBe(expected);
+    const li = elements.find(element => element.tag === "li");
+    const yazi = li?.children.find((element: any) => element.tag === "span" && element.className !== "afu-madde-no");
+    expect(yazi?.textContent).toBe(expected);
   });
 });

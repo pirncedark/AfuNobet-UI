@@ -4,7 +4,7 @@ from pathlib import Path
 import sys
 import time
 import wave
-from afu_konus import Voice, VOICE_NAMES, DEFAULT_VOICE, speech_text, LOCAL
+from afu_konus import Voice, VOICE_NAMES, DEFAULT_VOICE, speech_text, LOCAL, VoiceFilesMissing, MODEL_MISSING
 
 FILTERS = ('sicak', 'enerjik', 'sakin', 'yok')
 
@@ -15,7 +15,7 @@ def render(request, directory, voices=None):
     if cancelled():
         return dict(result, cancelled=True)
     if LOCAL is None:
-        return dict(result, missing_installation=True)
+        return dict(result, missing_installation=True, error_code='missing_installation', mesaj='Afu sesi kurulu değil, yazıyla devam ediyorum.')
     voice = None
     try:
         selected = request.get('ses', DEFAULT_VOICE)
@@ -43,13 +43,15 @@ def render(request, directory, voices=None):
         return dict(result, ok=verified and not cancelled(), cancelled=cancelled(), voice=selected, voice_parameters=parameters)
     except InterruptedError:
         return dict(result, cancelled=True)
-    except Exception:
+    except Exception as error:
         if request.get('headless', False):
             # Headless proof retains diagnostics locally; UI and speech stay safe.
             import traceback
             (directory / 'diagnostic.txt').write_text(traceback.format_exc(), encoding='utf-8')
         # Technical errors never reach the user's screen or speech.
-        return dict(result, cancelled=cancelled())
+        return dict(result, cancelled=cancelled(),
+                    error_code='model_files_missing' if isinstance(error, VoiceFilesMissing) else 'synthesis_failed',
+                    mesaj=MODEL_MISSING if isinstance(error, VoiceFilesMissing) else 'Ses hazırlanamadı. Yeniden dene.')
     finally:
         if voice is not None:
             voice.close()
@@ -75,6 +77,8 @@ def finish(directory, request, result):
             play(directory / 'answer.wav', lambda: (directory / 'cancel').exists())
         except Exception:
             result['ok'] = False
+    if not result['ok'] and not result['cancelled'] and not result.get('error_code'):
+        result.update(error_code='audio_failed', mesaj='Ses hazırlanamadı. Yeniden dene.')
     result['cancelled'] = result['cancelled'] or (directory / 'cancel').exists()
     (directory / 'result.json').write_text(json.dumps(result, ensure_ascii=False), encoding='utf-8')
 
@@ -83,7 +87,16 @@ def run_job(directory, voices=None):
     if (directory / 'cancel').exists():
         finish(directory, request, {'ok': False, 'cancelled': True, 'text': ''})
         return
-    finish(directory, request, render(request, directory, voices))
+    started = time.monotonic()
+    current = voices.get(request.get('ses', DEFAULT_VOICE)) if voices is not None else None
+    cold = not getattr(current, '_afu_synthesized', False)
+    result = render(request, directory, voices)
+    result.update(startup='cold' if cold else 'warm', elapsed_ms=round((time.monotonic() - started) * 1000))
+    if result['ok'] and voices is not None:
+        current = voices.get(request.get('ses', DEFAULT_VOICE))
+        if current is not None:
+            current._afu_synthesized = True
+    finish(directory, request, result)
 
 def via_server(directory):
     """Bellekte hazır duran ses sunucusuna iş verir; yoksa başlatır. Başarısızsa False."""
@@ -97,7 +110,7 @@ def via_server(directory):
     conn = connect()
     if conn is None:
         server = Path(__file__).with_name('uygulama_sesi_sunucu.py')
-        subprocess.Popen(['cmd', '/c', 'start', '', '/B', sys.executable, '-B', str(server)],
+        subprocess.Popen([sys.executable, '-B', str(server), '--hazirla'],
                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          creationflags=0x08000000)
         deadline = time.monotonic() + 60

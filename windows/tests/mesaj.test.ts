@@ -99,7 +99,7 @@ describe("Konuşan Afu", () => {
     const raw = "━━━\n**Gemini:**\n# Tamamlandı\n`dosya` ve *metin*.\n═─━\nDevam edelim mi?";
     const result = terminalPetMetni(raw, "gemini");
     expect(result.etiket).toBe("Gemini");
-    expect(result.tam).toBe("Tamamlandı dosya ve metin. Devam edelim mi?");
+    expect(result.tam).toBe("Tamamlandı\ndosya ve metin.\nDevam edelim mi?");
     expect(result.soru).toBe(true);
     expect(terminalPetMetni("Bitti.", "codex").soru).toBe(false);
     expect(terminalPetMetni("Cevap bekliyorum.", "opencode").soru).toBe(true);
