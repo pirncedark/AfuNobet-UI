@@ -80,9 +80,14 @@ export function ilkCumle(metin: string, adet = 2): string {
 export interface BalonYazi { etiket: string; govde: string }
 /** Pure terminal-to-pet conversion. Detect questions before shortening the preview. */
 export function terminalPetMetni(metin: string, ajan: MesajAjan = "codex") {
-  const { etiket, govde } = bolunBaslik(metin);
+  const { etiket } = bolunBaslik(metin);
   const bicim = bicimle(metin);
-  const tam = govde || "Yeni mesaj geldi.";
+  const satirlar = temizSatirlar(metin);
+  if (etiket && satirlar.length) {
+    const ilk = bolunBaslik(satirlar[0]).govde;
+    satirlar.splice(0, 1, ...(ilk ? [ilk] : []));
+  }
+  const tam = satirlar.join("\n") || "Yeni mesaj geldi.";
   const soru = bicim.soru || /\?(?:\s|$)|\b(?:cevap|yanıt|onay)\s+bekli|\b(?:seçiniz|seçin|yanıtlayın|cevaplayın)\b/iu.test(tam);
   const kisaltilmis = bicim.ayrinti ? kisalt(ilkCumle(bicim.ayrinti)) : kisalt(ilkCumle(tam));
   return { etiket: etiket ?? ad(ajan), govde: kisaltilmis, tam, soru };
@@ -94,7 +99,7 @@ export function bildirimBalonu(belge: Pick<Document, "createElement">, host: HTM
   host.replaceChildren(); host.hidden = mesaj?.type !== "notification";
   if (!mesaj || mesaj.type !== "notification") return;
   const yazi = terminalPetMetni(mesaj.text ?? "", mesaj.ajan);
-  const balon = belge.createElement("section"); balon.className = "afu-konusma-balonu afu-bildirim-balonu";
+  const balon = belge.createElement("section"); balon.className = `afu-konusma-balonu afu-bildirim-balonu tur-${bicimle(mesaj.text).tur}`;
   balon.setAttribute("role", "status"); balon.title = yazi.tam;
   const etiket = belge.createElement("span"); etiket.className = "afu-balon-etiket";
   etiket.textContent = yazi.etiket + (mesaj.requiresReply ? " · Cevap bekliyor" : "");
@@ -256,6 +261,7 @@ export function balonOlustur(
 
   yazi.govde = yazi.govde.replace(/^\s*Ayrıntı\s*:\s*/i, "");
   const bicim = bicimle(tam.replace(/^(claude|codex|gemini|opencode)\s*[:\-–—]\s*/i, "").replace(/^\s*Ayrıntı\s*:\s*/i, ""));
+  e.className += ` tur-${bicim.tur}`;
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
 
   if (bicim.maddeler.length > 0) {
@@ -264,12 +270,13 @@ export function balonOlustur(
       baslik.textContent = bicim.baslik; metin.append(baslik);
     }
     const ul = belge.createElement("ul");
-    ul.style.margin = "2px 0"; ul.style.paddingLeft = "14px";
-    for (const m of bicim.maddeler.slice(0, 2)) {
-      const preview = m.slice(0, 49);
-      const boundary = preview.lastIndexOf(" ");
+    ul.className = "afu-maddeler";
+    for (const m of bicim.numaraliMaddeler.slice(0, 3)) {
       const li = belge.createElement("li");
-      li.textContent = m.length > 50 ? (boundary > 0 ? preview.slice(0, boundary) : preview).trimEnd() + "…" : m;
+      const no = belge.createElement("span"); no.className = "afu-madde-no";
+      no.textContent = m.no || "•";
+      const yazi = belge.createElement("span"); yazi.textContent = m.yazi;
+      li.append(no, yazi);
       ul.append(li);
     }
     metin.append(ul);

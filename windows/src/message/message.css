@@ -1,5 +1,18 @@
 .afu-konusma-balonu{position:absolute;top:0;left:2px;right:2px;z-index:12;padding:5px 6px;border-radius:10px;background:#17283f;color:#edf5ff;border:1px solid #659dd5;box-shadow:0 2px 8px #0005;font:12px/1.4 system-ui;text-align:left;overflow-wrap:anywhere;cursor:pointer;overflow:auto;min-height:24px}
 .afu-konusma-balonu:focus-visible{outline:2px solid #fff}
+.afu-konusma-balonu.tur-bilgi{--mesaj-renk:#659dd5}
+.afu-konusma-balonu.tur-basari{--mesaj-renk:#5fd38d}
+.afu-konusma-balonu.tur-uyari{--mesaj-renk:#f2c14e}
+.afu-konusma-balonu.tur-hata{--mesaj-renk:#ff7b7b}
+.afu-konusma-balonu.tur-soru{--mesaj-renk:#b693ff}
+.afu-konusma-balonu[class*="tur-"]{border-color:var(--mesaj-renk)}
+.afu-konusma-balonu[class*="tur-"] .soru-baslik,.afu-konusma-balonu[class*="tur-"] .afu-balon-etiket{color:var(--mesaj-renk);font-weight:700;opacity:1}
+.afu-maddeler{list-style:none;margin:2px 0;padding:0}
+.afu-maddeler li{display:flex;align-items:baseline;gap:5px}
+.afu-maddeler li>span:last-child{min-width:0;overflow-wrap:anywhere}
+.afu-madde-no{flex:0 0 auto;min-width:16px;padding:0 2px;border:1px solid var(--mesaj-renk);border-radius:4px;color:var(--mesaj-renk);font-size:10px;font-weight:700;text-align:center}
+.afu-konusma-balonu .afu-balon-metin{white-space:pre-line}
+#afu-pet-balon .afu-konusma-balonu[class*="tur-"]::after{border-top-color:var(--mesaj-renk)}
 .afu-bildirim-kap[hidden]{display:none}
 .afu-bildirim-kap>.afu-bildirim-balonu{position:relative;left:auto;right:auto;top:auto;box-sizing:border-box;max-height:200px;overflow:auto;pointer-events:auto}
 #afu-pet-balon>.afu-bildirim-kap,#afu-pet-balon>.soru-kap{height:100%;pointer-events:auto}
@@ -59,7 +72,7 @@
 #afu-pet-balon .soru-karti>:not(.soru-govde){flex-shrink:0}
 /* Seçenek düğmeleri küçük: "1 = ... / 2 = ..." satırı sıkışık, yan yana durur. */
 .afu-konusma-balonu .soru-secenekler,.afu-mesaj-detayi .soru-secenekler{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
-.afu-konusma-balonu .soru-secenekler .soru-dugme,.afu-mesaj-detayi .soru-secenekler .soru-dugme{flex:0 0 auto;min-height:22px;padding:2px 9px;font-size:11px;line-height:1.2;border-radius:9px}
+.afu-konusma-balonu .soru-secenekler .soru-dugme,.afu-mesaj-detayi .soru-secenekler .soru-dugme{flex:0 1 auto;max-width:100%;min-width:0;white-space:normal;overflow-wrap:anywhere;text-align:center;min-height:22px;padding:2px 9px;font-size:11px;line-height:1.2;border-radius:9px}
 /* Komut balonu: ajan seçici + yazı kutusu + Gönder tek satırda. */
 .afu-komut-balonu{cursor:default}
 .afu-komut-balonu .afu-komut-ajan{flex:0 0 auto;width:auto;max-width:84px}

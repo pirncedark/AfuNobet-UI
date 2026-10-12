@@ -14,8 +14,8 @@ it("pet shows the entire long question and keeps reply controls visible", async 
       const host = doc.createElement("div"); host.id = "afu-pet-balon";
       host.append(balonOlustur(doc as unknown as Document, { surum: 1, id: "fit", ajan: "claude", tur: "bitti", metin: full, zaman: 1 }, () => {}, () => {}, 0));
       petBalonMetniniSigdir(host as unknown as HTMLElement);
-      const expected = full.replace(/\n/g, " ");
-      expect(host.querySelector(".afu-balon-metin")!.textContent).toBe(expected);
+      const expected = full.replace(/\s+/g, " ").trim();
+      expect(host.querySelector(".afu-balon-metin")!.textContent!.replace(/\s+/g, " ").trim()).toBe(expected);
       expect(host.querySelector(".afu-balon-metin")!.textContent!.endsWith("â€¦")).toBe(false);
       expect(host.querySelectorAll(".soru-secenekler button")).toHaveLength(3);
       const page = await browser.newPage({ viewport: { width: 320, height: 600 } });

@@ -12,7 +12,7 @@ describe("bicimle", () => {
     
     const sonuc = bicimle(metin);
     
-    expect(sonuc.baslik).toBe("Commit atıldı: 0068b0a");
+    expect(sonuc.baslik).toBe("✨ Commit atıldı: 0068b0a");
     expect(sonuc.maddeler).toHaveLength(3);
     expect(sonuc.maddeler[0]).toBe("GOREV_R3A.md okundu");
     expect(sonuc.maddeler[1]).toBe("testler çalıştırıldı");

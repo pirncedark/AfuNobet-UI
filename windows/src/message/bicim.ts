@@ -3,6 +3,8 @@ export interface SoruSecenegi {
   etiket: string;
 }
 export interface MesajBicimi {
+  tur: "bilgi" | "basari" | "uyari" | "hata" | "soru";
+  numaraliMaddeler: { no: string; yazi: string }[];
   baslik: string;
   maddeler: string[];
   ayrinti: string;
@@ -12,7 +14,7 @@ export interface MesajBicimi {
 
 export function bicimle(text: string | undefined): MesajBicimi {
   if (!text) {
-    return { baslik: "", maddeler: [], ayrinti: "", soru: false };
+    return { baslik: "", maddeler: [], numaraliMaddeler: [], tur: "bilgi", ayrinti: "", soru: false };
   }
 
   // Soru algılama (temizlenmeden önce veya sonra yapılabilir)
@@ -30,6 +32,11 @@ export function bicimle(text: string | undefined): MesajBicimi {
       }
     }
   }
+
+  const tur: MesajBicimi["tur"] = soru ? "soru"
+    : /❌|hata|başarısız|error/iu.test(text) ? "hata"
+    : /⚠|dikkat|uyarı/iu.test(text) ? "uyari"
+    : /✅|tamam|geçti|bitti/iu.test(text) ? "basari" : "bilgi";
 
   // ANSI kodlarını at
   // eslint-disable-next-line no-control-regex
@@ -51,22 +58,22 @@ export function bicimle(text: string | undefined): MesajBicimi {
   const lines = ayrinti.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
   if (lines.length === 0) {
-    return { baslik: "", maddeler: [], ayrinti, soru, secenekler };
+    return { baslik: "", maddeler: [], numaraliMaddeler: [], tur, ayrinti, soru, secenekler };
   }
 
-  // Başlık: İlk satır. Baştaki emoji başlık süsünü at.
-  let baslik = lines[0].replace(/^[\p{Extended_Pictographic}\s]+/u, '').trim();
-  if (!baslik) {
-    baslik = lines[0]; // Sadece emojiden oluşuyorsa kendini koru
-  }
+  const baslik = lines[0];
 
   // Maddeler: En fazla 3 kısa madde (her biri ≤ 60 karakter, fazlası "…")
   const maddeler: string[] = [];
+  const numaraliMaddeler: MesajBicimi["numaraliMaddeler"] = [];
   for (let i = 1; i < lines.length; i++) {
     let line = lines[i];
     // Madde işaretlerini temizle (1., 2., *, - vb.)
-    line = line.replace(/^(\d+\.|-|\*)\s+/, '').trim();
+    const isaret = /^(\d+\.?|-|\*)\s+/.exec(line);
+    const no = isaret ? isaret[1].replace(/\.$/, '') : '';
+    line = line.replace(/^(\d+\.?|-|\*)\s+/, '').trim();
     if (line.length === 0) continue;
+    numaraliMaddeler.push({ no, yazi: line.length > 72 ? line.substring(0, 72) + '…' : line });
     
     if (line.length > 60) {
       line = line.substring(0, 59) + '…';
@@ -74,5 +81,5 @@ export function bicimle(text: string | undefined): MesajBicimi {
     maddeler.push(line);
     if (maddeler.length === 3) break;
   }
-  return { baslik, maddeler, ayrinti, soru, secenekler };
+  return { baslik, maddeler, numaraliMaddeler, tur, ayrinti, soru, secenekler };
 }
