@@ -20,7 +20,7 @@ export function bicimle(text: string | undefined): MesajBicimi {
   // Soru algılama (temizlenmeden önce veya sonra yapılabilir)
   let soru = text.includes('❓');
   const secenekler: SoruSecenegi[] = [];
-  
+
   // "1 = Evet / 2 = Hayır" formatını veya satır satır olanları ayıkla
   const secenekMatch = text.match(/(\d+)\s*=\s*([^/\n]+)/g);
   if (secenekMatch) {
@@ -49,11 +49,11 @@ export function bicimle(text: string | undefined): MesajBicimi {
   cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, '$1');
   cleanText = cleanText.replace(/`(.*?)`/g, '$1');
   cleanText = cleanText.replace(/^#+\s+/gm, '');
-  
+
   // Fazla boş satırları sıkıştır
   cleanText = cleanText.replace(/\n{3,}/g, '\n\n');
   const ayrinti = cleanText.trim();
-  
+
   // Baştaki boşlukları ve boş satırları temizle
   const lines = ayrinti.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
@@ -68,13 +68,14 @@ export function bicimle(text: string | undefined): MesajBicimi {
   const numaraliMaddeler: MesajBicimi["numaraliMaddeler"] = [];
   for (let i = 1; i < lines.length; i++) {
     let line = lines[i];
+    if (/^\d+\s*=/.test(line)) continue;
     // Madde işaretlerini temizle (1., 2., *, - vb.)
     const isaret = /^(\d+\.?|-|\*)\s+/.exec(line);
     const no = isaret ? isaret[1].replace(/\.$/, '') : '';
     line = line.replace(/^(\d+\.?|-|\*)\s+/, '').trim();
     if (line.length === 0) continue;
     numaraliMaddeler.push({ no, yazi: line.length > 72 ? line.substring(0, 72) + '…' : line });
-    
+
     if (line.length > 60) {
       line = line.substring(0, 59) + '…';
     }

@@ -264,14 +264,15 @@ export function balonOlustur(
   e.className += ` tur-${bicim.tur}`;
   const metin = belge.createElement("span"); metin.className = "afu-balon-metin";
 
-  if (bicim.maddeler.length > 0) {
+  if (bicim.maddeler.length > 0 || bicim.soru) {
     if (bicim.baslik) {
       const baslik = belge.createElement("div"); baslik.className = "soru-baslik";
       baslik.textContent = bicim.baslik; metin.append(baslik);
     }
     const ul = belge.createElement("ul");
     ul.className = "afu-maddeler";
-    for (const m of bicim.numaraliMaddeler.slice(0, 3)) {
+    const gorunen = bicim.numaraliMaddeler.slice(0, 2);
+    for (const m of gorunen) {
       const li = belge.createElement("li");
       const no = belge.createElement("span"); no.className = "afu-madde-no";
       no.textContent = m.no || "•";
@@ -279,7 +280,7 @@ export function balonOlustur(
       li.append(no, yazi);
       ul.append(li);
     }
-    metin.append(ul);
+    if (gorunen.length) metin.append(ul);
   } else {
     const govdeText = bicim.ayrinti ? kisalt(ilkCumle(temizMetin(bicim.ayrinti))) : (yazi.govde ? kisalt(ilkCumle(temizMetin(yazi.govde))) : "");
     metin.textContent = govdeText || "Yeni mesaj geldi.";
