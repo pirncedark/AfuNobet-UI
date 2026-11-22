@@ -10,7 +10,7 @@ describe("E2 Ajan Pill ve Devir Testleri", () => {
     expect(cdx.renk).toBe("#10a37f");
     const gem = ajanKimlik("gemini");
     expect(gem.kisaAd).toBe("GEM");
-    expect(gem.renk).toBe("#1a73e8");
+    expect(gem.renk).toBe("#d49a2a");
   });
 
   it("2. agentPillState: Calisan ajan aktif doner", () => {

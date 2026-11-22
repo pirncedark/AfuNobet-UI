@@ -104,7 +104,7 @@ it("panel yüksekliği içeriğe göre: üstte sabit, boş alan yok, taşarsa ka
   expect(css).toMatch(/\.sistem-ayar\s*\{[^}]*min-height:\s*36px/);
   // Başlık 16px yarı kalın; açıklama 11px soluk.
   expect(css).toMatch(/\.sistem-title\s*\{[^}]*font-size:\s*16px[^}]*font-weight:\s*600/);
-  expect(css).toMatch(/\.sistem-ayar-not\s*\{[^}]*font-size:\s*11px[^}]*color:\s*#a7bbd5/);
+  expect(css).toMatch(/\.sistem-ayar-not\s*\{[^}]*font-size:\s*11px[^}]*color:\s*var\(--afu-sis-muted/);
 });
 
 it("dört ayar satırı anahtar görünümünde, ana karttaki Ayarlar menüsüyle aynı metni kullanır", async () => {

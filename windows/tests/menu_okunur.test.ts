@@ -137,7 +137,7 @@ for (const scale of [1, 1.5]) for (const width of [420, 640, 720, 960]) {
         const s = getComputedStyle(e); return { bg: s.backgroundColor, height: e.getBoundingClientRect().height, border: s.borderRadius };
       }));
       expect(fields).toHaveLength(3);
-      for (const f of fields) { expect(f.bg).toBe('rgb(8, 14, 27)'); expect(f.height).toBe(fields[0].height); expect(f.border).toBe('7px'); }
+      for (const f of fields) { expect(f.bg).toBe('rgb(245, 245, 247)'); expect(f.height).toBe(fields[0].height); expect(f.border).toBe('7px'); }
       expect(await page.locator('.modal-close').getAttribute('class')).toContain('icon-button');
       expect(await page.getByRole('dialog', { name: 'Görev ara' }).isVisible()).toBe(true);
       const layout = await page.locator('.modal-dialog').evaluate(dialog => {

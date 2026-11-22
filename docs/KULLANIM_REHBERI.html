@@ -5,21 +5,23 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AfuNöbet — Kullanım Rehberi</title>
 <style>
-body{background:#090d17;color:#e6ebf6;font:16px/1.65 system-ui,sans-serif;margin:40px auto;max-width:860px;padding:0 24px}
-h1,h2,h3{color:#83d9f5}
-section{border-top:1px solid #29364e;padding:24px 0}
-a{color:#83d9f5;text-decoration:none}
+:root{color-scheme:light dark;--bg:#F5F5F7;--fg:#161513;--muted:#524E46;--surface:rgba(255,255,255,.78);--solid:#FFFFFF;--border:rgba(184,148,82,.28);--accent:#7A5C24;--gold:#B89452;--ok-bg:#E5F4EA;--ok-fg:#166534;--ok-b:rgba(22,101,52,.42);--warn-bg:#FAF0DC;--warn-fg:#8A5A10;--warn-b:rgba(184,148,82,.52)}
+@media(prefers-color-scheme:dark){:root{--bg:#141518;--fg:#F5F2EB;--muted:#B9B2A2;--surface:rgba(26,28,34,.74);--solid:#1A1C22;--border:rgba(242,229,201,.16);--accent:#DCC28A;--gold:#B89452;--ok-bg:#172E20;--ok-fg:#63C28B;--ok-b:rgba(99,194,139,.4);--warn-bg:#332612;--warn-fg:#E8B14A;--warn-b:rgba(232,177,74,.45)}}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;margin:40px auto;max-width:860px;padding:0 24px}
+h1,h2,h3{color:var(--accent)}
+section{border-top:1px solid var(--border);padding:24px 0}
+a{color:var(--accent);text-decoration:none}
 a:hover{text-decoration:underline}
 button{font:inherit}
 li{margin:8px 0}
-.badge-ready{background:#11382b;border:1px solid #28a745;border-radius:6px;color:#7ee787;display:inline-block;font-size:12px;font-weight:700;padding:2px 8px}
-.badge-future{background:#3d2714;border:1px solid #d29922;border-radius:6px;color:#e3b341;display:inline-block;font-size:12px;font-weight:700;padding:2px 8px}
-.note{background:#192233;border-left:4px solid #83d9f5;border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
-.note-warn{background:#261d15;border-left:4px solid #d29922;border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
-code{background:#161f30;border-radius:4px;overflow-wrap:anywhere;padding:2px 6px}
+.badge-ready{background:var(--ok-bg);border:1px solid var(--ok-b);border-radius:6px;color:var(--ok-fg);display:inline-block;font-size:12px;font-weight:700;padding:2px 8px}
+.badge-future{background:var(--warn-bg);border:1px solid var(--warn-b);border-radius:6px;color:var(--warn-fg);display:inline-block;font-size:12px;font-weight:700;padding:2px 8px}
+.note{background:var(--surface);border-left:4px solid var(--gold);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
+.note-warn{background:var(--warn-bg);border-left:4px solid var(--warn-fg);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
+code{background:var(--solid);border:1px solid var(--border);border-radius:4px;overflow-wrap:anywhere;padding:2px 6px}
 table{border-collapse:collapse;margin:16px 0;width:100%}
-th,td{border:1px solid #29364e;padding:10px 12px;text-align:left}
-th{background:#131c2d;color:#83d9f5}
+th,td{border:1px solid var(--border);padding:10px 12px;text-align:left}
+th{background:var(--surface);color:var(--accent)}
 </style>
 </head>
 <body>
