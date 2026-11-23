@@ -558,3 +558,12 @@ footer{height:auto;min-height:32px;padding-top:4px}
 .menu-boyut{display:flex;align-items:center;gap:8px;padding:6px 10px}
 .menu-boyut .boyut-kaydirici{flex:1 1 auto;min-width:0;accent-color:var(--afu-gold-primary)}
 .menu-boyut .boyut-deger{flex:0 0 auto;min-width:3.2em;text-align:right;font-variant-numeric:tabular-nums}
+
+@media (any-pointer: coarse) {
+  :is(#content, #afu-pet-balon, body) :is(button, summary, a[href], [role="button"], select, input, textarea) {
+    min-inline-size: 48px !important;
+    min-block-size: 48px !important;
+  }
+  #content header { height: auto; overflow: visible; }
+  #content .agent-pills { overflow-x: auto; }
+}
