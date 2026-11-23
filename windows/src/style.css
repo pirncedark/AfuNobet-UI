@@ -5,11 +5,11 @@
   --afu-gold-soft:#F2E5C9;
   --afu-bg:#F5F5F7;
   --afu-island-bg:rgba(245,245,247,.92);
-  --afu-surface-glass:rgba(255,255,255,.78);
+  --afu-surface-glass:rgba(255,255,255,.72);
   --afu-surface-solid:#FFFFFF;
   --afu-surface-alt:#EAE8E3;
   --afu-surface-raised:#FFFFFF;
-  --afu-border-glass:rgba(184,148,82,.28);
+  --afu-border-glass:rgba(184,148,82,.24);
   --afu-border-strong:rgba(122,92,36,.42);
   --afu-glass-blur:14px;
   --afu-glass-glow:radial-gradient(72% 58% at 50% 100%,rgba(184,148,82,.22),transparent 72%);
@@ -48,7 +48,7 @@
   :root:not([data-theme="light"]){
     --afu-bg:#141518;
     --afu-island-bg:rgba(20,21,24,.92);
-    --afu-surface-glass:rgba(26,28,34,.74);
+    --afu-surface-glass:rgba(26,28,34,.68);
     --afu-surface-solid:#1A1C22;
     --afu-surface-alt:#22252C;
     --afu-surface-raised:#242730;
@@ -86,7 +86,7 @@
 :root[data-theme="dark"]{
   --afu-bg:#141518;
   --afu-island-bg:rgba(20,21,24,.92);
-  --afu-surface-glass:rgba(26,28,34,.74);
+  --afu-surface-glass:rgba(26,28,34,.68);
   --afu-surface-solid:#1A1C22;
   --afu-surface-alt:#22252C;
   --afu-surface-raised:#242730;

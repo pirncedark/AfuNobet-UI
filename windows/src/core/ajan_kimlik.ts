@@ -16,7 +16,7 @@ export function ajanKimlik(id: string): AjanKimlik {
   }
 }
 
-/** Addan kararlı sıcak/zümrüt renk tonu (0–164, mavi/mor/indigo hariç). */
+/** Addan kararlı sıcak/zümrüt renk tonu (0–164 derece). */
 export function renkTonu(ad: string): number {
   let h = 0;
   for (let i = 0; i < ad.length; i++) h = (h * 31 + ad.charCodeAt(i)) >>> 0;
