@@ -21,7 +21,7 @@ describe("W4 ajan pill: liste → sayı / renk / durum", () => {
     const pills = agentPills(snap([row("a", "codex", "Calisiyor")]));
     expect(pills.map(p => p.id)).toEqual(["codex", "gemini", "opencode", "orkestra"]);
     expect(pills.find(p => p.id === "codex")!.kimlik).toMatchObject({ kisaAd: "CDX", renk: "#10a37f" });
-    expect(pills.find(p => p.id === "gemini")!.kimlik).toMatchObject({ kisaAd: "GEM", renk: "#1a73e8" });
+    expect(pills.find(p => p.id === "gemini")!.kimlik).toMatchObject({ kisaAd: "GEM", renk: "#d49a2a" });
     expect(pills.find(p => p.id === "opencode")!.kimlik).toMatchObject({ kisaAd: "OPN", renk: "#e34f26" });
     expect(new Set(pills.map(p => p.kimlik.renk)).size).toBe(pills.length);
   });

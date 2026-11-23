@@ -1,10 +1,58 @@
-.afu-konusma-balonu{position:absolute;top:0;left:2px;right:2px;z-index:12;padding:5px 6px;border-radius:10px;background:#17283f;color:#edf5ff;border:1px solid #659dd5;box-shadow:0 2px 8px #0005;font:12px/1.4 system-ui;text-align:left;overflow-wrap:anywhere;cursor:pointer;overflow:auto;min-height:24px}
-.afu-konusma-balonu:focus-visible{outline:2px solid #fff}
-.afu-konusma-balonu.tur-bilgi{--mesaj-renk:#659dd5}
-.afu-konusma-balonu.tur-basari{--mesaj-renk:#5fd38d}
-.afu-konusma-balonu.tur-uyari{--mesaj-renk:#f2c14e}
-.afu-konusma-balonu.tur-hata{--mesaj-renk:#ff7b7b}
-.afu-konusma-balonu.tur-soru{--mesaj-renk:#b693ff}
+:root{
+  --afu-msg-bg:rgba(255,255,255,.94);
+  --afu-msg-bg-solid:#FFFFFF;
+  --afu-msg-fg:#161513;
+  --afu-msg-muted:#524E46;
+  --afu-msg-border:#B89452;
+  --afu-msg-chip:#F2E5C9;
+  --afu-msg-chip-hover:#E6D2A8;
+  --afu-msg-focus:#7A5C24;
+  --afu-msg-info:#7A5C24;
+  --afu-msg-success:#166534;
+  --afu-msg-warn:#8A5A10;
+  --afu-msg-error:#B42318;
+  --afu-msg-question:#9A6B1E;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --afu-msg-bg:rgba(26,28,34,.94);
+  --afu-msg-bg-solid:#1A1C22;
+  --afu-msg-fg:#F5F2EB;
+  --afu-msg-muted:#B9B2A2;
+  --afu-msg-border:#DCC28A;
+  --afu-msg-chip:#242730;
+  --afu-msg-chip-hover:#313540;
+  --afu-msg-focus:#DCC28A;
+  --afu-msg-info:#DCC28A;
+  --afu-msg-success:#63C28B;
+  --afu-msg-warn:#E8B14A;
+  --afu-msg-error:#F07A70;
+  --afu-msg-question:#F2E5C9;
+}}
+:root[data-theme="dark"]{
+  --afu-msg-bg:rgba(26,28,34,.94);
+  --afu-msg-bg-solid:#1A1C22;
+  --afu-msg-fg:#F5F2EB;
+  --afu-msg-muted:#B9B2A2;
+  --afu-msg-border:#DCC28A;
+  --afu-msg-chip:#242730;
+  --afu-msg-chip-hover:#313540;
+  --afu-msg-focus:#DCC28A;
+  --afu-msg-info:#DCC28A;
+  --afu-msg-success:#63C28B;
+  --afu-msg-warn:#E8B14A;
+  --afu-msg-error:#F07A70;
+  --afu-msg-question:#F2E5C9;
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  :root{--afu-msg-bg:var(--afu-msg-bg-solid)}
+}
+.afu-konusma-balonu{position:absolute;top:0;left:2px;right:2px;z-index:12;padding:5px 6px;border-radius:10px;background:var(--afu-msg-bg);color:var(--afu-msg-fg);border:1px solid var(--afu-msg-border);box-shadow:var(--afu-shadow,0 4px 14px rgba(22,21,19,.16));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);font:12px/1.4 system-ui;text-align:left;overflow-wrap:anywhere;cursor:pointer;overflow:auto;min-height:24px}
+.afu-konusma-balonu:focus-visible{outline:2px solid var(--afu-msg-focus);outline-offset:2px}
+.afu-konusma-balonu.tur-bilgi{--mesaj-renk:var(--afu-msg-info)}
+.afu-konusma-balonu.tur-basari{--mesaj-renk:var(--afu-msg-success)}
+.afu-konusma-balonu.tur-uyari{--mesaj-renk:var(--afu-msg-warn)}
+.afu-konusma-balonu.tur-hata{--mesaj-renk:var(--afu-msg-error)}
+.afu-konusma-balonu.tur-soru{--mesaj-renk:var(--afu-msg-question)}
 .afu-konusma-balonu[class*="tur-"]{border-color:var(--mesaj-renk)}
 .afu-konusma-balonu[class*="tur-"] .soru-baslik,.afu-konusma-balonu[class*="tur-"] .afu-balon-etiket{color:var(--mesaj-renk);font-weight:700;opacity:1}
 .afu-maddeler{list-style:none;margin:2px 0;padding:0}
@@ -18,7 +66,7 @@
 #afu-pet-balon>.afu-bildirim-kap,#afu-pet-balon>.soru-kap{height:100%;pointer-events:auto}
 #afu-pet-balon .soru-karti{max-height:var(--pet-balon-h,340px);overflow:hidden;gap:3px;padding:5px 7px;font-size:12px}
 #afu-pet-balon .soru-baslik{font-size:13px}
-#afu-pet-balon .soru-govde{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#659dd5 #17283f}
+#afu-pet-balon .soru-govde{flex:1 1 auto;min-height:0;max-height:none;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--afu-msg-border) var(--afu-msg-bg-solid)}
 /* Card preview: three complete lines, with ellipsis; click opens the full message.
    The fixed heading row reserves space for Okudum; at most half the pet is covered. */
 #afu-character>.afu-konusma-balonu{display:block;top:-12px;left:0;right:0;font-size:12px;max-height:104px;overflow:hidden}
@@ -28,14 +76,14 @@
 #afu-character>.afu-konusma-balonu .afu-maddeler li{height:15px;line-height:15px}
 #afu-character>.afu-konusma-balonu .afu-maddeler li>span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #afu-character>.afu-konusma-balonu:has(.afu-balon-ek){padding-bottom:19px}
-.afu-baglanti{font-size:11px;margin:3px 0 7px;color:#879bb6;white-space:nowrap}
-.afu-baglanti .bagli{color:#75d9a4}
-.afu-mesaj-ipucu{font-size:12px;line-height:1.4;color:#b5cce8;margin:4px 0 8px}
-.afu-mesaj-detayi{font-size:12px;padding:10px;border-radius:10px;background:#16273e;margin:5px 0;max-height:155px;overflow:auto}
+.afu-baglanti{font-size:11px;margin:3px 0 7px;color:var(--afu-msg-muted);white-space:nowrap}
+.afu-baglanti .bagli{color:var(--afu-msg-success)}
+.afu-mesaj-ipucu{font-size:12px;line-height:1.4;color:var(--afu-msg-muted);margin:4px 0 8px}
+.afu-mesaj-detayi{font-size:12px;padding:10px;border-radius:10px;background:var(--afu-surface-glass,var(--afu-msg-bg));border:1px solid var(--afu-border-glass,rgba(184,148,82,.28));margin:5px 0;max-height:155px;overflow:auto;color:var(--afu-msg-fg)}
 .afu-mesaj-detayi p{white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;margin-top:6px}
-.afu-mesaj-detayi>button{display:block;margin:8px 0 0 auto;height:28px;padding:0 12px;border-radius:8px;border:1px solid #d6a84f66;background:#0f1e30;font-size:12px;font-weight:600;color:#edf5ff}
-.afu-mesaj-detayi>button:hover{background:#26405e;box-shadow:0 0 8px #d6a84f22}
-.afu-mesaj-detayi>button:focus-visible,.afu-balon-kapat:focus-visible{outline:2px solid #ffd97a;outline-offset:2px}
+.afu-mesaj-detayi>button{display:block;margin:8px 0 0 auto;height:28px;padding:0 12px;border-radius:8px;border:1px solid rgba(184,148,82,.45);background:var(--afu-msg-chip);font-size:12px;font-weight:600;color:var(--afu-msg-fg)}
+.afu-mesaj-detayi>button:hover{background:var(--afu-msg-chip-hover);box-shadow:0 0 8px rgba(184,148,82,.22)}
+.afu-mesaj-detayi>button:focus-visible,.afu-balon-kapat:focus-visible{outline:2px solid var(--afu-msg-focus);outline-offset:2px}
 .afu-konusuyor .pet-image,.afu-konusuyor .afu-image{animation:afu-konusma-tepkisi .45s ease-in-out infinite!important}
 @keyframes afu-konusma-tepkisi{50%{transform:translateY(-1px) rotate(.7deg)}}
 @media(prefers-reduced-motion:reduce){:root:not(.afu-hareket-zorla) :is(.afu-konusuyor .pet-image,.afu-konusuyor .afu-image){animation:none!important}}
@@ -45,18 +93,18 @@
    (PET_BALON_TABAN/PET_BALON_YUKSEKLIK) ile Rust tarafında aynı sayıdır. */
 #afu-pet-balon{position:absolute;left:50%;bottom:var(--pet-balon-bottom,274px);width:calc(100% - 24px);max-width:568px;height:auto;transform:translateX(-50%);pointer-events:none;z-index:12}
 #afu-pet-balon:empty{display:none}
-#afu-pet-balon>.afu-konusma-balonu{display:flex;flex-direction:column;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;width:100%;overflow:visible;pointer-events:auto;border-width:2px;margin:0;padding:8px 10px;background:#17283f;border-radius:10px;box-shadow:0 3px 10px #0006;max-height:var(--pet-balon-h,340px)}
-.afu-balon-etiket{display:block;min-height:26px;font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:#ffd97a;opacity:.9;padding-right:58px}
+#afu-pet-balon>.afu-konusma-balonu{display:flex;flex-direction:column;position:relative;top:auto;left:auto;right:auto;box-sizing:border-box;width:100%;overflow:visible;pointer-events:auto;border-width:2px;margin:0;padding:8px 10px;background:var(--afu-msg-bg);border-radius:10px;box-shadow:var(--afu-shadow,0 3px 12px rgba(22,21,19,.18));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);max-height:var(--pet-balon-h,340px)}
+.afu-balon-etiket{display:block;min-height:26px;font-size:12px;line-height:1.3;font-weight:bold;letter-spacing:.02em;color:var(--afu-msg-info);opacity:.95;padding-right:58px}
 .afu-balon-metin{display:block;font-size:12px;line-height:1.4;overflow-wrap:anywhere;padding-right:16px}
-.afu-balon-ek{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:bold;color:#ffd97a;background:#0f1e30cc;border-radius:8px;padding:0 5px}
-.afu-balon-kapat{position:absolute;right:4px;top:3px;min-width:54px;padding:3px 5px;line-height:18px;text-align:center;border-radius:7px;font-size:12px;color:#cfe2f7;background:#0f1e30cc;cursor:pointer}
-.afu-balon-kapat:hover{background:#26405e}
+.afu-balon-ek{position:absolute;left:6px;bottom:4px;font-size:10px;font-weight:bold;color:var(--afu-msg-info);background:var(--afu-msg-chip);border-radius:8px;padding:0 5px}
+.afu-balon-kapat{position:absolute;right:4px;top:3px;min-width:54px;padding:3px 5px;line-height:18px;text-align:center;border-radius:7px;font-size:12px;color:var(--afu-msg-fg);background:var(--afu-msg-chip);cursor:pointer}
+.afu-balon-kapat:hover{background:var(--afu-msg-chip-hover)}
 /* Kuyruk: başın üstündeki balonun ucu karakterin başına bakar. */
-#afu-pet-balon .afu-konusma-balonu::after{content:"";position:absolute;left:50%;bottom:-10px;width:0;height:0;margin-left:-8px;border:9px solid transparent;border-top-color:#659dd5;border-bottom:0;filter:drop-shadow(0 1px 0 #0006)}
+#afu-pet-balon .afu-konusma-balonu::after{content:"";position:absolute;left:50%;bottom:-10px;width:0;height:0;margin-left:-8px;border:9px solid transparent;border-top-color:var(--afu-msg-border);border-bottom:0;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25))}
 /* P10 kesme: ekranın üstü yetmezse pet penceresi tepeden kırpılır; balon kutusu
    kalan yer kadar kısalır, kuyruk ucu karakterin başına bağlı kalır. Yükseklik
    island.ts `petBalonKutusu()` ile `--pet-balon-h` üzerinden verilir. */
-#afu-pet-balon .afu-balon-metin{padding-right:0;max-height:max(0px,calc(var(--pet-balon-h,340px) - 46px));min-height:0;flex:0 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:#659dd5 #17283f;white-space:pre-wrap;line-height:17px}
+#afu-pet-balon .afu-balon-metin{padding-right:0;max-height:max(0px,calc(var(--pet-balon-h,340px) - 46px));min-height:0;flex:0 1 auto;overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--afu-msg-border) var(--afu-msg-bg-solid);white-space:pre-wrap;line-height:17px}
 #afu-pet-balon:has(.afu-balon-ek) .afu-konusma-balonu{padding-bottom:24px}
 #afu-pet-balon:has(.afu-balon-ek) .afu-balon-metin{max-height:max(0px,calc(var(--pet-balon-h,340px) - 62px))}
 #afu-pet-balon .afu-balon-kapat{top:5px;right:6px}
@@ -78,13 +126,13 @@
 /* Komut balonu: ajan seçici + yazı kutusu + Gönder tek satırda. */
 .afu-komut-balonu{cursor:default}
 .afu-komut-balonu .afu-komut-ajan{flex:0 0 auto;width:auto;max-width:84px}
-.afu-komut-durum{min-height:0;margin-top:4px;font-size:11px;color:#ffb4a8}
+.afu-komut-durum{min-height:0;margin-top:4px;font-size:11px;color:var(--afu-msg-error)}
 .afu-komut-durum:empty{display:none}
 
-/* Ses dalgası: Afu konuşurken turuncu, seni dinlerken yeşil oynar. */
-#afu-ses-dalga{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:3px;height:22px;padding:3px 8px;border-radius:11px;background:#17283fe6;border:1px solid #659dd5;z-index:30;pointer-events:none}
-#afu-ses-dalga i{display:block;width:4px;height:6px;border-radius:2px;background:#ffb347;animation:afu-dalga .7s ease-in-out infinite}
-#afu-ses-dalga.dinliyor i{background:#5ee08a}
+/* Ses dalgası: Afu konuşurken altın, seni dinlerken yeşil oynar. */
+#afu-ses-dalga{position:fixed;left:50%;bottom:4px;transform:translateX(-50%);display:flex;align-items:flex-end;gap:3px;height:22px;padding:3px 8px;border-radius:11px;background:var(--afu-msg-bg);border:1px solid var(--afu-msg-border);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:30;pointer-events:none}
+#afu-ses-dalga i{display:block;width:4px;height:6px;border-radius:2px;background:#B89452;animation:afu-dalga .7s ease-in-out infinite}
+#afu-ses-dalga.dinliyor i{background:var(--afu-msg-success)}
 #afu-ses-dalga i:nth-child(2){animation-delay:.1s}#afu-ses-dalga i:nth-child(3){animation-delay:.2s}#afu-ses-dalga i:nth-child(4){animation-delay:.3s}#afu-ses-dalga i:nth-child(5){animation-delay:.4s}
 @keyframes afu-dalga{0%,100%{height:5px}50%{height:18px}}
 
